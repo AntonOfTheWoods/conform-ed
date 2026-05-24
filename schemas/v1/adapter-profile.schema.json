@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://conform-ed.dev/schemas/v1/adapter-profile.schema.json",
+  "title": "Conform-ed Adapter Profile",
+  "type": "object",
+  "required": ["contractVersion", "profileVersion", "suite", "adapter", "interoperability", "operations", "artifacts"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "profileVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "suite": {
+      "enum": ["cmi5", "lti13", "lrs"]
+    },
+    "adapter": {
+      "type": "object",
+      "required": ["name", "version", "transport"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "transport": { "enum": ["http-json"] }
+      },
+      "additionalProperties": false
+    },
+    "interoperability": {
+      "type": "object",
+      "required": ["statementRetrieval"],
+      "properties": {
+        "statementRetrieval": { "enum": ["adapter-api"] },
+        "packageUpload": { "enum": ["inline-base64"] }
+      },
+      "additionalProperties": false
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "method"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "method": { "enum": ["GET", "POST"] },
+          "description": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["requirementTraceRequired"],
+      "properties": {
+        "requirementTraceRequired": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "suite": { "const": "cmi5" }
+        },
+        "required": ["suite"]
+      },
+      "then": {
+        "properties": {
+          "interoperability": {
+            "required": ["statementRetrieval", "packageUpload"],
+            "properties": {
+              "packageUpload": { "const": "inline-base64" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

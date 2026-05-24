@@ -9,5 +9,15 @@
       "lrs": "http://127.0.0.1:4311/xapi"
     }
   },
-  "adapter": { "kind": "http", "baseUrl": "http://127.0.0.1:4500" }
+  "adapter": {
+    "kind": "http",
+    "baseUrl": "http://127.0.0.1:4500",
+    "auth": {
+      "mode": "bearer",
+      "tokenFromEnv": "CONFORM_ED_ADAPTER_TOKEN"
+    }
+  },
+  "artifacts": {
+    "outputDir": "/artifacts"
+  }
 }

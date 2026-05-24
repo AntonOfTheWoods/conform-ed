@@ -1,5 +1,6 @@
 export const capabilities = {
   contractVersion: "1.0.0",
+  profileVersion: "1.0.0",
   adapterName: "lti13-adapter-reference",
   adapterVersion: "0.1.0",
   profiles: ["lti13-tool-v1"],

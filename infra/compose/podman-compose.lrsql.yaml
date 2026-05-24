@@ -1,0 +1,51 @@
+services:
+  db:
+    image: docker.io/library/postgres:18
+    environment:
+      POSTGRES_USER: ${LRSQL_DB_USER:-lrsql_user}
+      POSTGRES_PASSWORD: ${LRSQL_DB_PASSWORD:-lrsql_password}
+      POSTGRES_DB: ${LRSQL_DB_NAME:-lrsql_db}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LRSQL_DB_USER:-lrsql_user} -d ${LRSQL_DB_NAME:-lrsql_db}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - lrsql-db-data:/var/lib/postgresql/data:Z
+
+  lrs:
+    image: ${LRSQL_IMAGE:-yetanalytics/lrsql:latest}
+    command:
+      - /lrsql/bin/run_postgres.sh
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${LRSQL_PORT:-8080}:8080"
+    environment:
+      LRSQL_DB_HOST: db
+      LRSQL_DB_PORT: ${LRSQL_DB_PORT:-5432}
+      LRSQL_DB_NAME: ${LRSQL_DB_NAME:-lrsql_db}
+      LRSQL_DB_USER: ${LRSQL_DB_USER:-lrsql_user}
+      LRSQL_DB_PASSWORD: ${LRSQL_DB_PASSWORD:-lrsql_password}
+      LRSQL_POOL_INITIALIZATION_FAIL_TIMEOUT: ${LRSQL_POOL_INITIALIZATION_FAIL_TIMEOUT:-10000}
+      LRSQL_URL_PREFIX: ${LRSQL_URL_PREFIX:-/xapi}
+      LRSQL_SUPPORTED_VERSIONS: ${LRSQL_SUPPORTED_VERSIONS:-1.0.3,2.0.0}
+      LRSQL_ENABLE_STRICT_VERSION: ${LRSQL_ENABLE_STRICT_VERSION:-false}
+      LRSQL_ADMIN_USER_DEFAULT: ${LRSQL_ADMIN_USER_DEFAULT:-lrsqladmin}
+      LRSQL_ADMIN_PASS_DEFAULT: ${LRSQL_ADMIN_PASS_DEFAULT:-AdminPass1!}
+      LRSQL_API_KEY_DEFAULT: ${LRSQL_API_KEY_DEFAULT:-janedoe}
+      LRSQL_API_SECRET_DEFAULT: ${LRSQL_API_SECRET_DEFAULT:-supersecret}
+      LRSQL_ALLOW_ALL_ORIGINS: ${LRSQL_ALLOW_ALL_ORIGINS:-true}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null --header='X-Experience-API-Version: 2.0.0' --user='${LRSQL_API_KEY_DEFAULT:-janedoe}' --password='${LRSQL_API_SECRET_DEFAULT:-supersecret}' http://127.0.0.1:8080/xapi/about || exit 1",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+volumes:
+  lrsql-db-data:

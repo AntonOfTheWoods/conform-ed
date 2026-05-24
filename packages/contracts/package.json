@@ -4,7 +4,30 @@
   "type": "module",
   "module": "src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./caliper/v1_2": "./src/caliper/v1_2/index.ts",
+    "./case/v1_1": "./src/case/v1_1/index.ts",
+    "./cat/v1_0": "./src/cat/v1_0/index.ts",
+    "./clr/v2_0": "./src/clr/v2_0/index.ts",
+    "./common-cartridge/v1_3": "./src/common-cartridge/v1_3/index.ts",
+    "./common-cartridge/v1_4": "./src/common-cartridge/v1_4/index.ts",
+    "./cmi5": "./src/cmi5/index.ts",
+    "./cmi5/v1_0": "./src/cmi5/v1_0/index.ts",
+    "./xapi": "./src/xapi/index.ts",
+    "./xapi/v1_0_3": "./src/xapi/v1_0_3/index.ts",
+    "./xapi/v2_0": "./src/xapi/v2_0/index.ts",
+    "./lti": "./src/lti/index.ts",
+    "./lti/ags/v2_0": "./src/lti/ags/v2_0/index.ts",
+    "./lti/deep-linking/v2_0": "./src/lti/deep-linking/v2_0/index.ts",
+    "./lti/nrps/v2_0": "./src/lti/nrps/v2_0/index.ts",
+    "./lti/proctoring/v1_0": "./src/lti/proctoring/v1_0/index.ts",
+    "./lti/v1_3": "./src/lti/v1_3/index.ts",
+    "./open-badges/v3_0": "./src/open-badges/v3_0/index.ts",
+    "./oneroster/v1_2": "./src/oneroster/v1_2/index.ts",
+    "./qti/v2_1": "./src/qti/v2_1/index.ts",
+    "./qti/v2_2": "./src/qti/v2_2/index.ts",
+    "./qti/v3_0_1": "./src/qti/v3_0_1/index.ts",
+    "./vc-data-model/v2_0": "./src/vc-data-model/v2_0/index.ts"
   },
   "scripts": {
     "build": "tsgo --noEmit",
@@ -12,5 +35,8 @@
     "lint": "oxlint --config ../../.oxlintrc.jsonc .",
     "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
     "test": "bun test"
+  },
+  "devDependencies": {
+    "fast-xml-parser": "^5.3.1"
   }
 }

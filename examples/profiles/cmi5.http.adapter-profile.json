@@ -1,0 +1,37 @@
+{
+  "$schema": "../../schemas/v1/adapter-profile.schema.json",
+  "contractVersion": "1.0.0",
+  "profileVersion": "1.0.0",
+  "suite": "cmi5",
+  "adapter": {
+    "name": "cmi5-adapter-reference",
+    "version": "0.1.0",
+    "transport": "http-json"
+  },
+  "interoperability": {
+    "statementRetrieval": "adapter-api",
+    "packageUpload": "inline-base64"
+  },
+  "operations": [
+    {
+      "name": "package.upload.inline-base64",
+      "path": "/v1/cmi5/packages",
+      "method": "POST",
+      "description": "Upload and validate a cmi5 package via inline base64 payload"
+    },
+    {
+      "name": "launch.create",
+      "path": "/v1/cmi5/launches",
+      "method": "POST"
+    },
+    {
+      "name": "statements.list",
+      "path": "/v1/cmi5/statements",
+      "method": "GET",
+      "description": "Retrieve xAPI statements through adapter API"
+    }
+  ],
+  "artifacts": {
+    "requirementTraceRequired": true
+  }
+}

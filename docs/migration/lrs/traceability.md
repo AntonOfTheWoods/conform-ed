@@ -1,3 +1,3 @@
 # LRS Traceability
 
-Map requirement IDs to executable cases and status.
+Requirement-to-case traceability will be populated once the new runtime integration is complete.

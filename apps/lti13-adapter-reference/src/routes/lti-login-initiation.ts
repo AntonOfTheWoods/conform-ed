@@ -1,3 +1,10 @@
 export function loginInitiationRoute(): Response {
-  return Response.json({ status: "not_implemented", operation: "lti.login.initiation" }, { status: 501 });
+  return Response.json({
+    operation: "lti.login.initiation",
+    login: {
+      loginUrl: "https://example.platform/oidc/auth",
+      state: "state-demo-123",
+      nonce: "nonce-demo-123",
+    },
+  });
 }

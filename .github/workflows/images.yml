@@ -46,3 +46,19 @@ jobs:
           IMAGE_REGISTRY: ghcr.io
           IMAGE_NAMESPACE: ${{ github.repository_owner }}
           GITHUB_SHA: ${{ github.sha }}
+      - name: Write release manifest
+        run: bun run images:manifest
+        env:
+          IMAGE_REGISTRY: ghcr.io
+          IMAGE_NAMESPACE: ${{ github.repository_owner }}
+          VERSION_TAG: ${{ env.VERSION_TAG }}
+          GITHUB_SHA: ${{ github.sha }}
+          IMAGE_RELEASE_MANIFEST_PATH: tmp/agents/releases/oci-release-manifest.json
+      - name: Smoke verify published images
+        run: bun run images:smoke
+        env:
+          IMAGE_REGISTRY: ghcr.io
+          IMAGE_NAMESPACE: ${{ github.repository_owner }}
+          VERSION_TAG: ${{ env.VERSION_TAG }}
+          GITHUB_SHA: ${{ github.sha }}
+          IMAGE_RELEASE_MANIFEST_PATH: tmp/agents/releases/oci-release-manifest.json

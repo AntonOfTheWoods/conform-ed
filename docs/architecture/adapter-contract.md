@@ -23,6 +23,8 @@ All adapters must expose:
 - `GET /health`
 - `GET /v1/capabilities`
 
+Adapters should also publish a profile document aligned to `schemas/v1/adapter-profile.schema.json`.
+
 ## Authentication Contract
 
 Default mode is token-auth required.
@@ -52,6 +54,26 @@ Behavioral rules:
 - `operations`
 
 Runners should verify capabilities before running target flows.
+
+## Adapter Profile Document
+
+Adapter profile documents formalize interoperability requirements by suite.
+
+Required fields:
+
+- `contractVersion`
+- `profileVersion`
+- `suite`
+- `adapter`
+- `interoperability`
+- `operations`
+- `artifacts`
+
+Current locked decisions for cmi5 profile v1:
+
+1. statements are retrieved through adapter APIs (`statementRetrieval=adapter-api`).
+2. package ingestion is inline base64 (`packageUpload=inline-base64`).
+3. requirement trace artifact is mandatory (`requirementTraceRequired=true`).
 
 ## Error Shape
 

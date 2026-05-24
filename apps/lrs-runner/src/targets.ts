@@ -1,1 +1,1 @@
-export const lrsTargets = ["all", "smoke"] as const;
+export const lrsTargets = ["all", "smoke", "lrsql", "external"] as const;

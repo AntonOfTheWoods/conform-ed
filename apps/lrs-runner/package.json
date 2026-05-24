@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
+    "dev": "bun --watch src/cli.ts",
     "build": "tsgo --noEmit",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config ../../.oxlintrc.jsonc .",
@@ -11,9 +11,6 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@conform-ed/cli": "workspace:*",
-    "@conform-ed/contracts": "workspace:*",
-    "@conform-ed/core": "workspace:*",
-    "@conform-ed/reporting": "workspace:*"
+    "zod": "^4.4.3"
   }
 }

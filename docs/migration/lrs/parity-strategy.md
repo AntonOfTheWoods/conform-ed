@@ -1,3 +1,3 @@
 # LRS Parity Strategy
 
-Define and track requirement-level parity against upstream references.
+Define requirement-level parity strategy after the new runtime implementation is integrated.

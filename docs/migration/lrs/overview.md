@@ -1,3 +1,3 @@
 # LRS Migration Overview
 
-Tracks migration from upstream legacy suite and TS rewrite references into conform-ed.
+Tracks migration of the LRS runner from scaffold-reset state into the next runtime implementation.

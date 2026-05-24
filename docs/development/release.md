@@ -25,7 +25,9 @@ Examples:
 3. Run versioning step: `bun run version-packages`.
 4. Build images: `bun run images:build`.
 5. Publish images to GHCR: `bun run images:publish:ghcr`.
-6. Publish release notes/changelog.
+6. Emit release manifest: `bun run images:manifest`.
+7. Run pull-based smoke verification: `bun run images:smoke`.
+8. Publish release notes/changelog.
 
 ## Image Metadata
 
@@ -35,6 +37,14 @@ Image builds should include OCI labels:
 - revision SHA
 - version tag
 - creation timestamp
+
+Release tooling now emits a machine-readable OCI release manifest (default path:
+`tmp/agents/releases/oci-release-manifest.json`) including image refs and compatibility hints.
+
+Smoke verification validates:
+
+- each published tag is pullable
+- required OCI labels are present (`title`, `version`, `revision`, `source`, `created`)
 
 ## Rollback Guidance
 

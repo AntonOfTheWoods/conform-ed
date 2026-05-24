@@ -8,6 +8,7 @@ import { nrpsMembershipsRoute } from "./routes/lti-nrps-memberships";
 import { registrationResolveRoute } from "./routes/lti-registration-resolve";
 import { capabilitiesRoute } from "./routes/capabilities";
 import { healthRoute } from "./routes/health";
+import { profileRoute } from "./routes/profile";
 
 const port = Number(process.env.PORT ?? 4600);
 
@@ -19,6 +20,9 @@ Bun.serve({
     },
     "/v1/capabilities": {
       GET: (request) => requireBearer(request) ?? capabilitiesRoute(),
+    },
+    "/v1/profile": {
+      GET: (request) => requireBearer(request) ?? profileRoute(),
     },
     "/v1/lti/registrations/resolve": {
       POST: (request) => requireBearer(request) ?? registrationResolveRoute(),

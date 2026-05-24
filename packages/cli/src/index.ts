@@ -4,3 +4,8 @@ export * from "./validate-config-command";
 export * from "./print-schema-command";
 export * from "./list-targets-command";
 export * from "./version-command";
+export * from "./qti-coverage-report-command";
+export * from "./qti-inventory-command";
+export * from "./qti-validate-file-command";
+export * from "./qti-validate-folder-command";
+export * from "./qti-validate-package-command";

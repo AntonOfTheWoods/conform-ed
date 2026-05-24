@@ -1,0 +1,16 @@
+services:
+  mongo:
+    image: docker.io/library/mongo:7
+
+  ltijs-tool:
+    build:
+      context: ../..
+      dockerfile: infra/container/lti13-oss-tool-ltijs/Containerfile
+    depends_on:
+      - mongo
+    environment:
+      PORT: "15610"
+      MONGODB_URI: "mongodb://mongo:27017/ltijs"
+      LTIJS_KEY: "conform-ed-ltijs-key"
+    ports:
+      - "127.0.0.1:15610:15610"

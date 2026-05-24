@@ -41,7 +41,12 @@ Runner output must be machine-readable and deterministic:
 
 - JSON command responses for non-run commands.
 - `summary.json` shape aligned to `schemas/v1/summary.schema.json`.
+- `requirement-trace.json` aligned to `schemas/v1/requirement-trace.schema.json`.
+- `run-metadata.json` aligned to `schemas/v1/run-metadata.schema.json`.
 - optional JUnit output.
+
+For adapter-driven suites, execution expectations are additionally constrained by
+`schemas/v1/adapter-profile.schema.json`.
 
 ## Exit Semantics
 

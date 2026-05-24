@@ -1,10 +1,4 @@
-const images = [
-  "lrs-runner",
-  "cmi5-runner",
-  "lti13-runner",
-  "cmi5-adapter-reference",
-  "lti13-adapter-reference",
-] as const;
+import { imageRef, imageTags, ociImages } from "./image-catalog";
 
 function run(command: string[], dryRun: boolean): void {
   if (dryRun) {
@@ -22,10 +16,6 @@ function run(command: string[], dryRun: boolean): void {
   }
 }
 
-function makeRef(image: string, tag: string, registry: string, namespace: string): string {
-  return `${registry}/${namespace}/${image}:${tag}`;
-}
-
 const registry = process.env.IMAGE_REGISTRY ?? "ghcr.io";
 const namespace = process.env.IMAGE_NAMESPACE ?? "conform-ed";
 const versionTag = process.env.VERSION_TAG ?? "local";
@@ -37,17 +27,11 @@ const source =
 const created = new Date().toISOString();
 const dryRun = process.env.IMAGE_DRY_RUN !== "0";
 const latestTagEnabled = process.env.IMAGE_TAG_LATEST === "1";
-const shortSha = revision.slice(0, 12);
+const tags = imageTags(versionTag, revision, latestTagEnabled);
 
-for (const image of images) {
+for (const image of ociImages) {
   const containerfile = `infra/container/${image}/Containerfile`;
-  const tags = [
-    makeRef(image, versionTag, registry, namespace),
-    makeRef(image, `sha-${shortSha}`, registry, namespace),
-  ];
-  if (latestTagEnabled) {
-    tags.push(makeRef(image, "latest", registry, namespace));
-  }
+  const refs = tags.map((tag) => imageRef(image, tag, registry, namespace));
 
   const command = [
     "podman",
@@ -64,7 +48,7 @@ for (const image of images) {
     `org.opencontainers.image.source=${source}`,
     "--label",
     `org.opencontainers.image.created=${created}`,
-    ...tags.flatMap((tag) => ["-t", tag]),
+    ...refs.flatMap((ref) => ["-t", ref]),
     ".",
   ];
 

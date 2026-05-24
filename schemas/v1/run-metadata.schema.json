@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://conform-ed.dev/schemas/v1/run-metadata.schema.json",
+  "title": "Conform-ed Run Metadata",
+  "type": "object",
+  "required": ["runId", "startedAt", "finishedAt", "image", "standards", "runner"],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "image": {
+      "type": "object",
+      "required": ["reference", "digest", "source"],
+      "properties": {
+        "reference": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "standards": {
+      "type": "object",
+      "required": ["suiteSourceRevision", "requirementsRevision", "profileVersion"],
+      "properties": {
+        "suiteSourceRevision": { "type": "string", "minLength": 1 },
+        "requirementsRevision": { "type": "string", "minLength": 1 },
+        "profileVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
+      },
+      "additionalProperties": false
+    },
+    "runner": {
+      "type": "object",
+      "required": ["version", "revision"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

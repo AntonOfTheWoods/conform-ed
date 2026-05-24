@@ -12,5 +12,8 @@
     "lint": "oxlint --config ../../.oxlintrc.jsonc .",
     "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
     "test": "bun test"
+  },
+  "dependencies": {
+    "@conform-ed/qti-xml": "workspace:*"
   }
 }

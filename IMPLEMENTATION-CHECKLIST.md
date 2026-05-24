@@ -9,7 +9,7 @@ Status: approved baseline
 - Docs: markdown only (no docs site framework in v0.x)
 - Adapters: separate Bun HTTP apps
 - License: MIT
-- Constraints: do not modify `/home/anton/dev/tmp/lrs-conformance-ts` or `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`
+- Constraints: treat external reference repositories as read-only unless explicitly approved.
 
 ## 0. Repository Bootstrapping (ordered)
 
@@ -106,7 +106,7 @@ tmp/agents/
 - `format`
 - `test`
 
-3. Add shared TS config in `tsconfig.base.json` based on lrs-conformance-ts conventions:
+3. Add shared TS config in `tsconfig.base.json` based on established project conventions:
 
 - `target` ESNext
 - `moduleResolution` bundler
@@ -417,8 +417,8 @@ Create:
 
 Policy to include in `source-policy.md`:
 
-- `/home/anton/dev/tmp/lrs-conformance-ts` is read-only reference
-- `/home/anton/dev/tmp/lrs-conformance-test-suite-orig` is read-only reference
+- external reference repositories are read-only by default
+- copy/import operations require explicit review before production use
 
 ## 8. GitHub Automation
 

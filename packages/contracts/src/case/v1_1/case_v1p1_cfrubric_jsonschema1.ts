@@ -1,0 +1,1 @@
+export { CFRubricSchema } from "./shared";

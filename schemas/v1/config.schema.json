@@ -3,26 +3,134 @@
   "$id": "https://conform-ed.dev/schemas/v1/config.schema.json",
   "title": "Conform-ed Runner Config",
   "type": "object",
-  "required": ["suite"],
+  "required": ["contractVersion", "suite", "sut", "artifacts"],
   "properties": {
-    "contractVersion": { "type": "string", "default": "1.0.0" },
+    "contractVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "default": "1.0.0" },
     "suite": {
       "type": "object",
       "required": ["name", "target"],
       "properties": {
         "name": { "enum": ["lrs", "cmi5", "lti13"] },
-        "target": { "type": "string" }
+        "target": { "type": "string", "minLength": 1 }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
-    "sut": { "type": "object" },
+    "sut": { "type": "object", "minProperties": 1 },
     "auth": { "type": "object" },
-    "selection": { "type": "object" },
-    "timeouts": { "type": "object" },
-    "artifacts": { "type": "object" },
-    "debug": { "type": "object" },
-    "adapter": { "type": ["object", "null"] },
+    "selection": {
+      "type": "object",
+      "properties": {
+        "includeRequirementIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "excludeRequirementIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false,
+      "default": {}
+    },
+    "timeouts": {
+      "type": "object",
+      "properties": {
+        "connectMs": { "type": "integer", "minimum": 100, "maximum": 120000, "default": 5000 },
+        "readMs": { "type": "integer", "minimum": 100, "maximum": 120000, "default": 30000 },
+        "operationMs": { "type": "integer", "minimum": 100, "maximum": 600000, "default": 120000 },
+        "assertionMs": { "type": "integer", "minimum": 100, "maximum": 600000, "default": 60000 },
+        "retryMaxAttempts": { "type": "integer", "minimum": 0, "maximum": 10, "default": 2 },
+        "retryBackoffMs": { "type": "integer", "minimum": 0, "maximum": 60000, "default": 1000 }
+      },
+      "additionalProperties": false,
+      "default": {}
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["outputDir"],
+      "properties": {
+        "outputDir": { "type": "string", "minLength": 1 },
+        "summaryFile": { "type": "string", "minLength": 1, "default": "summary.json" },
+        "junitFile": { "type": "string", "minLength": 1, "default": "junit.xml" },
+        "requirementTraceFile": { "type": "string", "minLength": 1, "default": "requirement-trace.json" },
+        "runMetadataFile": { "type": "string", "minLength": 1, "default": "run-metadata.json" }
+      },
+      "additionalProperties": false
+    },
+    "debug": {
+      "type": "object",
+      "properties": {
+        "logLevel": { "enum": ["error", "warn", "info", "debug"], "default": "info" },
+        "redactionEnabled": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false,
+      "default": {}
+    },
+    "adapter": {
+      "type": ["object", "null"],
+      "properties": {
+        "kind": { "const": "http", "default": "http" },
+        "baseUrl": { "type": "string", "format": "uri" },
+        "profileVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "default": "1.0.0" },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "mode": { "enum": ["none", "bearer"], "default": "bearer" },
+            "tokenFromEnv": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
     "suiteConfig": { "type": "object" }
   },
-  "additionalProperties": true
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "suite": {
+            "properties": {
+              "name": { "const": "cmi5" }
+            },
+            "required": ["name"]
+          }
+        }
+      },
+      "then": {
+        "required": ["adapter"],
+        "properties": {
+          "suite": {
+            "properties": {
+              "target": { "enum": ["runtime", "package", "all"] }
+            }
+          },
+          "adapter": {
+            "not": { "type": "null" },
+            "properties": {
+              "auth": {
+                "if": {
+                  "properties": {
+                    "mode": { "const": "bearer" }
+                  }
+                },
+                "then": {
+                  "required": ["tokenFromEnv"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

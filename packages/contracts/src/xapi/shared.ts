@@ -1,0 +1,389 @@
+import { z } from "zod";
+
+export function strictObject<T extends z.ZodRawShape>(shape: T) {
+  return z.object(shape).strict();
+}
+
+const UriSchema = z.string().regex(/^[a-zA-Z][a-zA-Z0-9+.-]*:.+$/u);
+
+export const NonEmptyStringSchema = z.string().min(1);
+export const UuidSchema = z.string().uuid();
+export const UriSchemaStrict = UriSchema;
+export const IriSchema = UriSchema;
+export const MediaTypeSchema = z.string().min(1);
+export const LanguageTagSchema = z.string().regex(/^[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*$/u);
+export const XapiVersionSchema = z.string().regex(/^\d+\.\d+(?:\.\d+)?$/u);
+export const Iso8601TimestampSchema = z.string().datetime();
+export const Iso8601DurationSchema = z
+  .string()
+  .regex(/^P(?=.+)(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/u);
+
+export const LanguageMapSchema = z.record(LanguageTagSchema, z.string());
+export const ExtensionsSchema = z.record(UriSchema, z.unknown());
+export const AttachmentSha2Schema = z.string().regex(/^[A-Fa-f0-9]{64}$/u);
+
+export const AgentAccountSchema = strictObject({
+  homePage: UriSchema,
+  name: NonEmptyStringSchema,
+});
+
+function hasDefined(value: unknown): boolean {
+  return value !== undefined && value !== null;
+}
+
+function hasNonEmptyArray(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0;
+}
+
+export const AgentSchema = strictObject({
+  objectType: z.literal("Agent").optional(),
+  name: NonEmptyStringSchema.optional(),
+  mbox: z
+    .string()
+    .regex(/^mailto:.+@.+$/u)
+    .optional(),
+  mbox_sha1sum: z
+    .string()
+    .regex(/^[A-Fa-f0-9]{40}$/u)
+    .optional(),
+  openid: UriSchema.optional(),
+  account: AgentAccountSchema.optional(),
+}).refine(
+  (value) =>
+    hasDefined(value.mbox) || hasDefined(value.mbox_sha1sum) || hasDefined(value.openid) || hasDefined(value.account),
+  {
+    message: "An xAPI Agent requires at least one identifier",
+  },
+);
+
+export const GroupSchema = strictObject({
+  objectType: z.literal("Group").optional(),
+  name: NonEmptyStringSchema.optional(),
+  mbox: z
+    .string()
+    .regex(/^mailto:.+@.+$/u)
+    .optional(),
+  mbox_sha1sum: z
+    .string()
+    .regex(/^[A-Fa-f0-9]{40}$/u)
+    .optional(),
+  openid: UriSchema.optional(),
+  account: AgentAccountSchema.optional(),
+  member: z.array(AgentSchema).min(1).optional(),
+}).refine(
+  (value) =>
+    hasDefined(value.mbox) ||
+    hasDefined(value.mbox_sha1sum) ||
+    hasDefined(value.openid) ||
+    hasDefined(value.account) ||
+    hasDefined(value.member),
+  {
+    message: "An xAPI Group requires an identifier or member list",
+  },
+);
+
+export const PersonSchema = strictObject({
+  objectType: z.literal("Person"),
+  name: z.array(NonEmptyStringSchema).min(1).optional(),
+  mbox: z
+    .array(z.string().regex(/^mailto:.+@.+$/u))
+    .min(1)
+    .optional(),
+  mbox_sha1sum: z
+    .array(z.string().regex(/^[A-Fa-f0-9]{40}$/u))
+    .min(1)
+    .optional(),
+  openid: z.array(UriSchema).min(1).optional(),
+  account: z.array(AgentAccountSchema).min(1).optional(),
+}).refine(
+  (value) =>
+    hasNonEmptyArray(value.name) ||
+    hasNonEmptyArray(value.mbox) ||
+    hasNonEmptyArray(value.mbox_sha1sum) ||
+    hasNonEmptyArray(value.openid) ||
+    hasNonEmptyArray(value.account),
+  {
+    message: "An xAPI Person requires at least one populated identifier or name array",
+  },
+);
+
+export const VerbSchema = strictObject({
+  id: IriSchema,
+  display: LanguageMapSchema.optional(),
+});
+
+export const InteractionTypeSchema = z.enum([
+  "true-false",
+  "choice",
+  "fill-in",
+  "long-fill-in",
+  "matching",
+  "performance",
+  "sequencing",
+  "likert",
+  "numeric",
+  "other",
+]);
+
+export const InteractionComponentSchema = strictObject({
+  id: NonEmptyStringSchema,
+  description: LanguageMapSchema.optional(),
+});
+
+export const ActivityDefinitionSchema = strictObject({
+  name: LanguageMapSchema.optional(),
+  description: LanguageMapSchema.optional(),
+  type: IriSchema.optional(),
+  moreInfo: IriSchema.optional(),
+  interactionType: InteractionTypeSchema.optional(),
+  correctResponsesPattern: z.array(NonEmptyStringSchema).min(1).optional(),
+  choices: z.array(InteractionComponentSchema).min(1).optional(),
+  scale: z.array(InteractionComponentSchema).min(1).optional(),
+  source: z.array(InteractionComponentSchema).min(1).optional(),
+  target: z.array(InteractionComponentSchema).min(1).optional(),
+  steps: z.array(InteractionComponentSchema).min(1).optional(),
+  extensions: ExtensionsSchema.optional(),
+});
+
+export const ActivitySchema = strictObject({
+  objectType: z.literal("Activity").optional(),
+  id: IriSchema,
+  definition: ActivityDefinitionSchema.optional(),
+});
+
+export const StatementRefSchema = strictObject({
+  objectType: z.literal("StatementRef"),
+  id: UuidSchema,
+});
+
+export const ScoreSchema = strictObject({
+  scaled: z.number().min(-1).max(1).optional(),
+  raw: z.number().optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+});
+
+export const ResultSchema = strictObject({
+  score: ScoreSchema.optional(),
+  success: z.boolean().optional(),
+  completion: z.boolean().optional(),
+  response: z.string().optional(),
+  duration: Iso8601DurationSchema.optional(),
+  extensions: ExtensionsSchema.optional(),
+});
+
+export const ContextActivitiesSchema = strictObject({
+  parent: z.array(ActivitySchema).min(1).optional(),
+  category: z.array(ActivitySchema).min(1).optional(),
+  grouping: z.array(ActivitySchema).min(1).optional(),
+  other: z.array(ActivitySchema).min(1).optional(),
+});
+
+export const ContextSchema = strictObject({
+  registration: UuidSchema.optional(),
+  instructor: z.union([AgentSchema, GroupSchema]).optional(),
+  team: z.union([AgentSchema, GroupSchema]).optional(),
+  contextActivities: ContextActivitiesSchema.optional(),
+  revision: NonEmptyStringSchema.optional(),
+  platform: NonEmptyStringSchema.optional(),
+  language: LanguageTagSchema.optional(),
+  statement: StatementRefSchema.optional(),
+  extensions: ExtensionsSchema.optional(),
+});
+
+export const AttachmentSchema = strictObject({
+  usageType: IriSchema,
+  display: LanguageMapSchema,
+  description: LanguageMapSchema.optional(),
+  contentType: MediaTypeSchema,
+  length: z.number().int().nonnegative(),
+  sha2: AttachmentSha2Schema,
+  fileUrl: z.url().optional(),
+});
+
+export const XapiDocumentSchema = strictObject({
+  contentType: MediaTypeSchema,
+  body: z.unknown(),
+  etag: NonEmptyStringSchema.optional(),
+  lastModified: Iso8601TimestampSchema.optional(),
+});
+
+export const StatementSubmissionSchema = z.union([
+  z.lazy(() => StatementSchema),
+  z.array(z.lazy(() => StatementSchema)).min(1),
+]);
+
+export const AboutResourceSchema = strictObject({
+  version: z.array(XapiVersionSchema).min(1),
+  extensions: ExtensionsSchema.optional(),
+});
+
+export const StatementsQueryFormatSchema = z.enum(["ids", "exact", "canonical"]);
+
+export const StatementsQuerySchema = strictObject({
+  statementId: UuidSchema.optional(),
+  voidedStatementId: UuidSchema.optional(),
+  agent: AgentSchema.optional(),
+  verb: IriSchema.optional(),
+  activity: IriSchema.optional(),
+  registration: UuidSchema.optional(),
+  related_activities: z.boolean().optional(),
+  related_agents: z.boolean().optional(),
+  since: Iso8601TimestampSchema.optional(),
+  until: Iso8601TimestampSchema.optional(),
+  limit: z.number().int().positive().optional(),
+  format: StatementsQueryFormatSchema.optional(),
+  attachments: z.boolean().optional(),
+  ascending: z.boolean().optional(),
+}).refine((value) => !(hasDefined(value.statementId) && hasDefined(value.voidedStatementId)), {
+  message: "Statements queries cannot specify both statementId and voidedStatementId",
+});
+
+export const AgentsResourceQuerySchema = strictObject({
+  agent: AgentSchema,
+});
+
+export const ActivitiesResourceQuerySchema = strictObject({
+  activityId: IriSchema,
+});
+
+export const StateDocumentQuerySchema = strictObject({
+  activityId: IriSchema,
+  agent: AgentSchema,
+  registration: UuidSchema.optional(),
+  stateId: NonEmptyStringSchema.optional(),
+});
+
+export const StateDocumentListingQuerySchema = strictObject({
+  activityId: IriSchema,
+  agent: AgentSchema,
+  registration: UuidSchema.optional(),
+  since: Iso8601TimestampSchema.optional(),
+});
+
+export const AgentProfileDocumentQuerySchema = strictObject({
+  agent: AgentSchema,
+  profileId: NonEmptyStringSchema.optional(),
+});
+
+export const AgentProfileDocumentListingQuerySchema = strictObject({
+  agent: AgentSchema,
+  since: Iso8601TimestampSchema.optional(),
+});
+
+export const ActivityProfileDocumentQuerySchema = strictObject({
+  activityId: IriSchema,
+  profileId: NonEmptyStringSchema.optional(),
+});
+
+export const ActivityProfileDocumentListingQuerySchema = strictObject({
+  activityId: IriSchema,
+  since: Iso8601TimestampSchema.optional(),
+});
+
+export const XapiDocumentIdListSchema = z.array(NonEmptyStringSchema);
+
+export const SubStatementSchema = strictObject({
+  objectType: z.literal("SubStatement"),
+  actor: z.union([AgentSchema, GroupSchema]),
+  verb: VerbSchema,
+  object: z.union([ActivitySchema, AgentSchema, GroupSchema, StatementRefSchema]),
+  result: ResultSchema.optional(),
+  context: ContextSchema.optional(),
+  timestamp: Iso8601TimestampSchema.optional(),
+});
+
+export const StatementObjectSchema = z.union([
+  ActivitySchema,
+  AgentSchema,
+  GroupSchema,
+  StatementRefSchema,
+  SubStatementSchema,
+]);
+
+export const StatementSchema = strictObject({
+  id: UuidSchema.optional(),
+  actor: z.union([AgentSchema, GroupSchema]),
+  verb: VerbSchema,
+  object: StatementObjectSchema,
+  result: ResultSchema.optional(),
+  context: ContextSchema.optional(),
+  timestamp: Iso8601TimestampSchema.optional(),
+  stored: Iso8601TimestampSchema.optional(),
+  authority: z.union([AgentSchema, GroupSchema]).optional(),
+  version: XapiVersionSchema.optional(),
+  attachments: z.array(AttachmentSchema).min(1).optional(),
+});
+
+export const StatementResultMoreSchema = z.string().regex(/^$|^(?![A-Za-z][A-Za-z0-9+.-]*:)\S+$/u);
+
+export const StatementResultSchema = strictObject({
+  statements: z.array(StatementSchema),
+  more: StatementResultMoreSchema.optional(),
+});
+
+export const XapiHttpMethodSchema = z.enum(["GET", "HEAD", "PUT", "POST", "DELETE"]);
+
+export const XapiResourceSchema = strictObject({
+  name: NonEmptyStringSchema,
+  description: NonEmptyStringSchema,
+  methods: z.array(XapiHttpMethodSchema).min(1),
+});
+
+export const XapiRequestHeaderSchema = z.enum([
+  "Accept",
+  "Accept-Encoding",
+  "Accept-Language",
+  "Authorization",
+  "Content-Type",
+  "Content-Length",
+  "Content-Transfer-Encoding",
+  "If-Match",
+  "If-None-Match",
+  "X-Experience-API-Hash",
+  "X-Experience-API-Version",
+]);
+
+export const XapiResponseHeaderSchema = z.enum([
+  "Content-Type",
+  "Content-Length",
+  "Last-Modified",
+  "ETag",
+  "Status",
+  "X-Experience-API-Version",
+  "X-Experience-API-Consistent-Through",
+]);
+
+export const XapiErrorCodeSchema = z.enum(["400", "401", "403", "404", "409", "411", "412", "413", "500", "501"]);
+
+export const XapiErrorResponseSchema = strictObject({
+  code: XapiErrorCodeSchema,
+  message: NonEmptyStringSchema,
+  details: NonEmptyStringSchema.optional(),
+});
+
+export const XapiConcurrencySchema = strictObject({
+  etag: NonEmptyStringSchema.optional(),
+  ifMatch: NonEmptyStringSchema.optional(),
+  ifNoneMatch: NonEmptyStringSchema.optional(),
+});
+
+export const XapiMultipartAttachmentPartSchema = strictObject({
+  headers: strictObject({
+    "Content-Type": MediaTypeSchema,
+    "Content-Transfer-Encoding": z.literal("binary"),
+    "X-Experience-API-Hash": AttachmentSha2Schema,
+  }),
+  body: z.unknown(),
+});
+
+export const XapiMultipartRequestSchema = strictObject({
+  contentType: z.literal("multipart/mixed"),
+  parts: z.tuple([
+    strictObject({
+      contentType: z.literal("application/json"),
+      body: z.union([StatementSchema, z.array(StatementSchema).min(1)]),
+    }),
+    z.array(XapiMultipartAttachmentPartSchema).min(1),
+  ]),
+});

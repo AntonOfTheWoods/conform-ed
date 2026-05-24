@@ -1,0 +1,1 @@
+export { GetOpenBadgeCredentialsResponseSchema } from "./shared";

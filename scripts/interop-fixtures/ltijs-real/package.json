@@ -1,0 +1,12 @@
+{
+  "name": "@conform-ed/ltijs-real-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/server.ts"
+  },
+  "dependencies": {
+    "ltijs": "^5.9.9",
+    "mongoose": "^8.17.0"
+  }
+}

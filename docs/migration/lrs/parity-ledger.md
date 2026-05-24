@@ -1,3 +1,5 @@
 # LRS Parity Ledger
 
-Seed ledger for parity tracking.
+Parity tracking is temporarily reset while old integration artifacts are removed.
+
+Populate this ledger after the new runtime integration lands.
