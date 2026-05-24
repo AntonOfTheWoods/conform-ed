@@ -1,0 +1,16 @@
+{
+  "name": "@conform-ed/contracts",
+  "private": true,
+  "type": "module",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsgo --noEmit",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint --config ../../.oxlintrc.jsonc .",
+    "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
+    "test": "bun test"
+  }
+}

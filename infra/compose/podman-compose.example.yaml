@@ -1,0 +1,4 @@
+services:
+  lrs-runner:
+    image: ghcr.io/conform-ed/lrs-runner:latest
+    command: ["run", "--config", "/config/config.json", "--output", "/artifacts"]

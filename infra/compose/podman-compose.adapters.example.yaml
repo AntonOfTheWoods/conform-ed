@@ -1,0 +1,5 @@
+services:
+  cmi5-adapter-reference:
+    image: ghcr.io/conform-ed/cmi5-adapter-reference:latest
+    environment:
+      ADAPTER_AUTH_TOKEN: change-me

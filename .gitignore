@@ -1,0 +1,12 @@
+node_modules/
+.bun/
+.turbo/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
+tmp/**
+!tmp/agents/
+!tmp/agents/.gitkeep

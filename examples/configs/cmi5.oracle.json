@@ -1,0 +1,13 @@
+{
+  "$schema": "../../schemas/v1/config.schema.json",
+  "contractVersion": "1.0.0",
+  "suite": { "name": "cmi5", "target": "all" },
+  "sut": {
+    "publicUrls": {
+      "api": "http://127.0.0.1:4301",
+      "runtime": "http://127.0.0.1:4312",
+      "lrs": "http://127.0.0.1:4311/xapi"
+    }
+  },
+  "adapter": { "kind": "http", "baseUrl": "http://127.0.0.1:4500" }
+}

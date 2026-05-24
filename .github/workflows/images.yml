@@ -1,0 +1,48 @@
+name: Images
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install
+      - name: Resolve image version tag
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "VERSION_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "VERSION_TAG=v0.0.0-rc.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          fi
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build images
+        run: bun run images:build
+        env:
+          IMAGE_DRY_RUN: "0"
+          IMAGE_REGISTRY: ghcr.io
+          IMAGE_NAMESPACE: ${{ github.repository_owner }}
+          GITHUB_SHA: ${{ github.sha }}
+      - name: Publish images
+        run: bun run images:publish:ghcr
+        env:
+          IMAGE_DRY_RUN: "0"
+          IMAGE_REGISTRY: ghcr.io
+          IMAGE_NAMESPACE: ${{ github.repository_owner }}
+          GITHUB_SHA: ${{ github.sha }}

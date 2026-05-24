@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/v1/config.schema.json",
+  "contractVersion": "1.0.0",
+  "suite": { "name": "lrs", "target": "all" },
+  "sut": { "publicUrls": { "lrs": "http://127.0.0.1:4001/xapi" } },
+  "auth": { "basic": { "username": { "fromEnv": "LRS_USER" }, "password": { "fromEnv": "LRS_PASSWORD" } } }
+}

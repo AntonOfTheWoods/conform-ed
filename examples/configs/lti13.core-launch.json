@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/v1/config.schema.json",
+  "contractVersion": "1.0.0",
+  "suite": { "name": "lti13", "target": "core-launch" },
+  "sut": { "publicUrls": { "tool": "http://127.0.0.1:4401" } },
+  "adapter": { "kind": "http", "baseUrl": "http://127.0.0.1:4600" }
+}

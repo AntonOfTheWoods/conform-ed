@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://conform-ed.dev/schemas/v1/summary.schema.json",
+  "title": "Conform-ed Runner Summary",
+  "type": "object",
+  "required": ["contractVersion", "runner", "result"],
+  "properties": {
+    "contractVersion": { "type": "string" },
+    "runner": {
+      "type": "object",
+      "required": ["suite", "version"],
+      "properties": {
+        "suite": { "type": "string" },
+        "version": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "result": {
+      "type": "object",
+      "required": ["status", "passed", "failed", "skipped"],
+      "properties": {
+        "status": { "enum": ["passed", "failed", "error"] },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "additionalProperties": true
+}

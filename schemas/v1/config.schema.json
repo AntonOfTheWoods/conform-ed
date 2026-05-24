@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://conform-ed.dev/schemas/v1/config.schema.json",
+  "title": "Conform-ed Runner Config",
+  "type": "object",
+  "required": ["suite"],
+  "properties": {
+    "contractVersion": { "type": "string", "default": "1.0.0" },
+    "suite": {
+      "type": "object",
+      "required": ["name", "target"],
+      "properties": {
+        "name": { "enum": ["lrs", "cmi5", "lti13"] },
+        "target": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "sut": { "type": "object" },
+    "auth": { "type": "object" },
+    "selection": { "type": "object" },
+    "timeouts": { "type": "object" },
+    "artifacts": { "type": "object" },
+    "debug": { "type": "object" },
+    "adapter": { "type": ["object", "null"] },
+    "suiteConfig": { "type": "object" }
+  },
+  "additionalProperties": true
+}
