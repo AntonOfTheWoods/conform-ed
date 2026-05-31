@@ -313,3 +313,33 @@ export const ErrorResponseSchema = strictObject({
   statusCode: z.number().int(),
   details: z.record(z.string(), z.unknown()).optional(),
 });
+// Inferred types from exported Zod validators.
+export type Uuid = z.infer<typeof UuidSchema>;
+export type DateTime = z.infer<typeof DateTimeSchema>;
+export type ExtensionEnum = z.infer<typeof ExtensionEnumSchema>;
+export type OutcomeVariableType = z.infer<typeof OutcomeVariableTypeSchema>;
+export type OutcomeCardinality = z.infer<typeof OutcomeCardinalitySchema>;
+export type AssessmentResultType = z.infer<typeof AssessmentResultTypeSchema>;
+export type OutcomeVariable = z.infer<typeof OutcomeVariableSchema>;
+export type ResponseVariable = z.infer<typeof ResponseVariableSchema>;
+export type ItemRef = z.infer<typeof ItemRefSchema>;
+export type CatConstraint = z.infer<typeof CatConstraintSchema>;
+export type ItemPool = z.infer<typeof ItemPoolSchema>;
+export type SectionData = z.infer<typeof SectionDataSchema>;
+export type ItemStage = z.infer<typeof ItemStageSchema>;
+export type AssessmentResult = z.infer<typeof AssessmentResultSchema>;
+export type CatEngineResultReport = z.infer<typeof CatEngineResultReportSchema>;
+export type SessionInfo = z.infer<typeof SessionInfoSchema>;
+export type CreateSectionRequest = z.infer<typeof CreateSectionRequestSchema>;
+export type GetSectionRequest = z.infer<typeof GetSectionRequestSchema>;
+export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;
+export type SubmitResultsRequest = z.infer<typeof SubmitResultsRequestSchema>;
+export type EndSessionRequest = z.infer<typeof EndSessionRequestSchema>;
+export type EndSectionRequest = z.infer<typeof EndSectionRequestSchema>;
+export type CreateSectionResponse = z.infer<typeof CreateSectionResponseSchema>;
+export type GetSectionResponse = z.infer<typeof GetSectionResponseSchema>;
+export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>;
+export type SubmitResultsResponse = z.infer<typeof SubmitResultsResponseSchema>;
+export type EndSessionResponse = z.infer<typeof EndSessionResponseSchema>;
+export type EndSectionResponse = z.infer<typeof EndSectionResponseSchema>;
+export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;

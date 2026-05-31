@@ -75,3 +75,9 @@ export type AdapterCapability = z.infer<typeof AdapterCapabilitySchema>;
 export type AdapterOperation = z.infer<typeof AdapterOperationSchema>;
 export type AdapterProfile = z.infer<typeof AdapterProfileSchema>;
 export type AdapterError = z.infer<typeof AdapterErrorSchema>;
+// Inferred types from exported Zod validators.
+export type AdapterProfileSuite = z.infer<typeof AdapterProfileSuiteSchema>;
+export type AdapterTransport = z.infer<typeof AdapterTransportSchema>;
+export type StatementRetrievalMode = z.infer<typeof StatementRetrievalModeSchema>;
+export type PackageUploadMode = z.infer<typeof PackageUploadModeSchema>;
+export type AdapterErrorCategory = z.infer<typeof AdapterErrorCategorySchema>;

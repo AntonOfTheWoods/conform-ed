@@ -40,3 +40,10 @@ export const ImsxStatusInfoSchema = strictObject({
   imsx_description: TextValueSchema.optional(),
   imsx_codeMinor: ImsxCodeMinorSchema.optional(),
 });
+// Inferred types from exported Zod validators.
+export type ImsxCodeMajor = z.infer<typeof ImsxCodeMajorSchema>;
+export type ImsxSeverity = z.infer<typeof ImsxSeveritySchema>;
+export type ImsxCodeMinorFieldValue = z.infer<typeof ImsxCodeMinorFieldValueSchema>;
+export type ImsxCodeMinorField = z.infer<typeof ImsxCodeMinorFieldSchema>;
+export type ImsxCodeMinor = z.infer<typeof ImsxCodeMinorSchema>;
+export type ImsxStatusInfo = z.infer<typeof ImsxStatusInfoSchema>;

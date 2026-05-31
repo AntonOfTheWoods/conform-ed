@@ -64,3 +64,10 @@ export const QtiMetadataSchema = strictObject({
 export const QtiMetadataDocumentSchema = strictObject({
   qtiMetadata: QtiMetadataSchema,
 });
+// Inferred types from exported Zod validators.
+export type QtiMetadataInteractionType = z.infer<typeof QtiMetadataInteractionTypeSchema>;
+export type QtiMetadataFeedbackType = z.infer<typeof QtiMetadataFeedbackTypeSchema>;
+export type QtiMetadataScoringMode = z.infer<typeof QtiMetadataScoringModeSchema>;
+export type QtiPortableCustomInteractionContext = z.infer<typeof QtiPortableCustomInteractionContextSchema>;
+export type QtiMetadata = z.infer<typeof QtiMetadataSchema>;
+export type QtiMetadataDocument = z.infer<typeof QtiMetadataDocumentSchema>;

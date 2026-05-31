@@ -1,6 +1,15 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { spawn, spawnSync } from "node:child_process";
+import { mkdirSync } from "node:fs";
+import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+import {
+  parsePort,
+  readFlagValue,
+  repoRoot,
+  resolveTmpArtifactPath,
+  spawnReferenceAdapter,
+  waitForAdapter,
+  writeJson,
+} from "./cmi5-lane-common";
 
 type TestTarget = "all" | "package" | "runtime";
 
@@ -63,26 +72,7 @@ type CatapultStyleLaneReport = {
   testTarget: TestTarget;
 };
 
-const repoRoot = resolve(import.meta.dir, "..");
 const defaultOutputDir = resolve(repoRoot, "tmp", "agents", `cmi5-catapult-style-${Date.now()}`);
-
-function readFlagValue(args: string[], index: number, flag: string): string {
-  const value = args[index + 1]?.trim();
-  if (!value) {
-    throw new Error(`${flag} requires a value.`);
-  }
-
-  return value;
-}
-
-function parsePort(rawValue: string, flag: string): number {
-  const parsed = Number.parseInt(rawValue, 10);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
-    throw new Error(`${flag} must be an integer between 1 and 65535.`);
-  }
-
-  return parsed;
-}
 
 function parseTestTarget(rawValue: string, flag: string): TestTarget {
   if (rawValue === "all" || rawValue === "runtime" || rawValue === "package") {
@@ -126,11 +116,11 @@ function parseArgs(argv: string[]): ParsedArgs {
         index += 1;
         break;
       case "--output-dir":
-        parsed.outputDir = resolve(repoRoot, readFlagValue(argv, index, arg));
+        parsed.outputDir = resolveTmpArtifactPath(readFlagValue(argv, index, arg), arg);
         index += 1;
         break;
       case "--report-file":
-        parsed.reportFile = resolve(repoRoot, readFlagValue(argv, index, arg));
+        parsed.reportFile = resolveTmpArtifactPath(readFlagValue(argv, index, arg), arg);
         index += 1;
         break;
       case "--readiness-timeout-ms": {
@@ -160,38 +150,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     }
   }
 
-  if (!parsed.reportFile.startsWith(resolve(repoRoot, "tmp") + "/")) {
-    throw new Error("--report-file must be under tmp/");
-  }
-
-  if (!parsed.outputDir.startsWith(resolve(repoRoot, "tmp") + "/")) {
-    throw new Error("--output-dir must be under tmp/");
-  }
-
   return parsed;
-}
-
-async function waitForAdapter(baseUrl: string, timeoutMs: number): Promise<boolean> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(`${baseUrl}/health`);
-      if (response.ok) {
-        return true;
-      }
-    } catch {
-      // Continue retrying until timeout.
-    }
-
-    await Bun.sleep(250);
-  }
-
-  return false;
-}
-
-function writeJson(path: string, value: unknown): void {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
 function asNumber(value: unknown): number {
@@ -232,17 +191,7 @@ async function run(): Promise<void> {
   writeJson(configPath, configPayload);
 
   const adapterProcess =
-    args.adapterBaseUrl === null
-      ? spawn("bun", ["--cwd", "apps/cmi5-adapter-reference", "src/index.ts"], {
-          cwd: repoRoot,
-          env: {
-            ...process.env,
-            PORT: String(args.adapterPort),
-            ADAPTER_AUTH_TOKEN: args.adapterToken,
-          },
-          stdio: "inherit",
-        })
-      : null;
+    args.adapterBaseUrl === null ? spawnReferenceAdapter(args.adapterPort, args.adapterToken) : null;
 
   const adapterReady = await waitForAdapter(adapterBaseUrl, args.readinessTimeoutMs);
 

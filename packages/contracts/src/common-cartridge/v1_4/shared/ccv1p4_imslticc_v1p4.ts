@@ -36,3 +36,10 @@ export const CartridgeBasicLTILinkDocumentSchema = strictObject({
 export const CartridgeToolLocatorDocumentSchema = strictObject({
   lti_tool_locator: CartridgeToolLocatorSchema,
 });
+// Inferred types from exported Zod validators.
+export type CartridgeResourceRef = z.infer<typeof CartridgeResourceRefSchema>;
+export type CartridgeBasicLtiMetadata = z.infer<typeof CartridgeBasicLtiMetadataSchema>;
+export type CartridgeBasicLTILink = z.infer<typeof CartridgeBasicLTILinkSchema>;
+export type CartridgeToolLocator = z.infer<typeof CartridgeToolLocatorSchema>;
+export type CartridgeBasicLTILinkDocument = z.infer<typeof CartridgeBasicLTILinkDocumentSchema>;
+export type CartridgeToolLocatorDocument = z.infer<typeof CartridgeToolLocatorDocumentSchema>;

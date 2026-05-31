@@ -2,6 +2,16 @@ name: Images
 
 on:
   workflow_dispatch:
+    inputs:
+      version_tag:
+        description: Release tag to publish (for example v0.1.0)
+        required: true
+        type: string
+      publish_latest:
+        description: Also publish latest tags
+        required: false
+        default: false
+        type: boolean
   push:
     tags:
       - "v*"
@@ -23,11 +33,16 @@ jobs:
           bun-version: 1.3.14
       - run: bun install
       - name: Resolve image version tag
+        env:
+          EVENT_VERSION_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.version_tag || github.ref_name }}
         run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "VERSION_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
-          else
-            echo "VERSION_TAG=v0.0.0-rc.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "VERSION_TAG=${EVENT_VERSION_TAG}" >> "$GITHUB_ENV"
+      - name: Resolve latest tagging
+        env:
+          SHOULD_PUBLISH_LATEST: ${{ github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_latest) }}
+        run: |
+          if [[ "${SHOULD_PUBLISH_LATEST}" == "true" ]]; then
+            echo "IMAGE_TAG_LATEST=1" >> "$GITHUB_ENV"
           fi
       - name: Login to GHCR
         run: |

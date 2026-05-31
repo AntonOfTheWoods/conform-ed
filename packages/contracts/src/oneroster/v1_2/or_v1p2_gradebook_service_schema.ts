@@ -210,3 +210,34 @@ export const SingleAssessmentLineItemSchema = strictObject({
 export const SingleAssessmentResultSchema = strictObject({
   assessmentResult: AssessmentResultSchema,
 });
+// Inferred types from exported Zod validators.
+export type AssessmentLineItemGuidRef = z.infer<typeof AssessmentLineItemGuidRefSchema>;
+export type CategoryGuidRef = z.infer<typeof CategoryGuidRefSchema>;
+export type LineItemGuidRef = z.infer<typeof LineItemGuidRefSchema>;
+export type ScoreScaleGuidRef = z.infer<typeof ScoreScaleGuidRefSchema>;
+export type ScoreStatus = z.infer<typeof ScoreStatusSchema>;
+export type LearningObjectiveSource = z.infer<typeof LearningObjectiveSourceSchema>;
+export type LearningObjectiveResults = z.infer<typeof LearningObjectiveResultsSchema>;
+export type LearningObjectiveScoreSet = z.infer<typeof LearningObjectiveScoreSetSchema>;
+export type LearningObjectiveSet = z.infer<typeof LearningObjectiveSetSchema>;
+export type Category = z.infer<typeof CategorySchema>;
+export type ScoreScaleValue = z.infer<typeof ScoreScaleValueSchema>;
+export type ScoreScale = z.infer<typeof ScoreScaleSchema>;
+export type LineItem = z.infer<typeof LineItemSchema>;
+export type Result = z.infer<typeof ResultSchema>;
+export type AssessmentLineItem = z.infer<typeof AssessmentLineItemSchema>;
+export type AssessmentResult = z.infer<typeof AssessmentResultSchema>;
+export type GuidPair = z.infer<typeof GuidPairSchema>;
+export type CategorySet = z.infer<typeof CategorySetSchema>;
+export type ScoreScaleSet = z.infer<typeof ScoreScaleSetSchema>;
+export type LineItemSet = z.infer<typeof LineItemSetSchema>;
+export type ResultSet = z.infer<typeof ResultSetSchema>;
+export type AssessmentLineItemSet = z.infer<typeof AssessmentLineItemSetSchema>;
+export type AssessmentResultSet = z.infer<typeof AssessmentResultSetSchema>;
+export type GuidPairSet = z.infer<typeof GuidPairSetSchema>;
+export type SingleCategory = z.infer<typeof SingleCategorySchema>;
+export type SingleScoreScale = z.infer<typeof SingleScoreScaleSchema>;
+export type SingleLineItem = z.infer<typeof SingleLineItemSchema>;
+export type SingleResult = z.infer<typeof SingleResultSchema>;
+export type SingleAssessmentLineItem = z.infer<typeof SingleAssessmentLineItemSchema>;
+export type SingleAssessmentResult = z.infer<typeof SingleAssessmentResultSchema>;

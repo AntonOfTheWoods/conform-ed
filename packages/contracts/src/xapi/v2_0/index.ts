@@ -244,3 +244,13 @@ export {
 export const Schemas = XapiV2_0.Schemas;
 export const Shared = XapiV2_0.Shared;
 export const DerivedZodTemplates = XapiV2_0DerivedZodTemplates;
+// Inferred types from exported Zod validators.
+export type ContextAgent = z.infer<typeof ContextAgentSchema>;
+export type ContextGroup = z.infer<typeof ContextGroupSchema>;
+export type ContextV2 = z.infer<typeof ContextV2Schema>;
+export type SubStatementV2 = z.infer<typeof SubStatementV2Schema>;
+export type StatementObjectV2 = z.infer<typeof StatementObjectV2Schema>;
+export type StatementV2 = z.infer<typeof StatementV2Schema>;
+export type StatementSubmissionV2 = z.infer<typeof StatementSubmissionV2Schema>;
+export type StatementResultV2 = z.infer<typeof StatementResultV2Schema>;
+export type XapiMultipartRequestV2 = z.infer<typeof XapiMultipartRequestV2Schema>;

@@ -27,3 +27,9 @@ export const LineItemSchema = strictObject({
 export const LineItemDocumentSchema = strictObject({
   lineItem: LineItemSchema,
 });
+// Inferred types from exported Zod validators.
+export type AgsExtensionPropertyJsonType = z.infer<typeof AgsExtensionPropertyJsonTypeSchema>;
+export type AgsExtensionProperty = z.infer<typeof AgsExtensionPropertySchema>;
+export type AgsExtensions = z.infer<typeof AgsExtensionsSchema>;
+export type LineItem = z.infer<typeof LineItemSchema>;
+export type LineItemDocument = z.infer<typeof LineItemDocumentSchema>;

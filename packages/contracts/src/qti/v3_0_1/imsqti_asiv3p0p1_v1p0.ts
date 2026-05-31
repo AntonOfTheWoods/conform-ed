@@ -48,3 +48,10 @@ export const QtiAsiProfileDocumentSchema = z.union([
   QtiOutcomeProcessingDocumentSchema,
   QtiResponseProcessingDocumentSchema,
 ]);
+// Inferred types from exported Zod validators.
+export type QtiAssessmentItemStandaloneDocument = z.infer<typeof QtiAssessmentItemStandaloneDocumentSchema>;
+export type QtiAssessmentSectionStandaloneDocument = z.infer<typeof QtiAssessmentSectionStandaloneDocumentSchema>;
+export type QtiAssessmentStimulusStandaloneDocument = z.infer<typeof QtiAssessmentStimulusStandaloneDocumentSchema>;
+export type QtiAssessmentTestStandaloneDocument = z.infer<typeof QtiAssessmentTestStandaloneDocumentSchema>;
+export type QtiOutcomeDeclarationStandaloneDocument = z.infer<typeof QtiOutcomeDeclarationStandaloneDocumentSchema>;
+export type QtiAsiProfileDocument = z.infer<typeof QtiAsiProfileDocumentSchema>;

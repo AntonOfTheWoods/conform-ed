@@ -247,3 +247,28 @@ export const QtiOutcomeDeclarationSchema = QtiOutcomeDeclarationRawSchema.superR
     addIssue(context, ["normalMaximum"], "normalMaximum must be greater than or equal to normalMinimum.");
   }
 });
+// Inferred types from exported Zod validators.
+export type QtiValue = z.infer<typeof QtiValueSchema>;
+export type QtiDefaultValue = z.infer<typeof QtiDefaultValueSchema>;
+export type QtiCorrectResponse = z.infer<typeof QtiCorrectResponseSchema>;
+export type QtiAreaMapEntry = z.infer<typeof QtiAreaMapEntrySchema>;
+export type QtiAreaMapping = z.infer<typeof QtiAreaMappingSchema>;
+export type QtiMapEntry = z.infer<typeof QtiMapEntrySchema>;
+export type QtiMapping = z.infer<typeof QtiMappingSchema>;
+export type QtiInterpolationTableEntry = z.infer<typeof QtiInterpolationTableEntrySchema>;
+export type QtiInterpolationTable = z.infer<typeof QtiInterpolationTableSchema>;
+export type QtiMatchTableEntry = z.infer<typeof QtiMatchTableEntrySchema>;
+export type QtiMatchTable = z.infer<typeof QtiMatchTableSchema>;
+export type QtiStyleSheet = z.infer<typeof QtiStyleSheetSchema>;
+export type QtiCatalog = z.infer<typeof QtiCatalogSchema>;
+export type QtiCatalogInfo = z.infer<typeof QtiCatalogInfoSchema>;
+export type QtiItemSessionControl = z.infer<typeof QtiItemSessionControlSchema>;
+export type QtiTimeLimits = z.infer<typeof QtiTimeLimitsSchema>;
+export type QtiVariableMapping = z.infer<typeof QtiVariableMappingSchema>;
+export type QtiWeight = z.infer<typeof QtiWeightSchema>;
+export type QtiContextDeclaration = z.infer<typeof QtiContextDeclarationSchema>;
+export type QtiTemplateDeclaration = z.infer<typeof QtiTemplateDeclarationSchema>;
+export type QtiResponseDeclarationRaw = z.infer<typeof QtiResponseDeclarationRawSchema>;
+export type QtiResponseDeclaration = z.infer<typeof QtiResponseDeclarationSchema>;
+export type QtiOutcomeDeclarationRaw = z.infer<typeof QtiOutcomeDeclarationRawSchema>;
+export type QtiOutcomeDeclaration = z.infer<typeof QtiOutcomeDeclarationSchema>;

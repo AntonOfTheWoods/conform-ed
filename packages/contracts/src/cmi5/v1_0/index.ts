@@ -119,3 +119,16 @@ export const Cmi5V1_0DerivedZodTemplates = {
 } as const;
 
 export const DerivedZodTemplates = Cmi5V1_0DerivedZodTemplates;
+// Inferred types from exported Zod validators.
+export type Cmi5LanguageString = z.infer<typeof Cmi5LanguageStringSchema>;
+export type Cmi5Text = z.infer<typeof Cmi5TextSchema>;
+export type Cmi5Objective = z.infer<typeof Cmi5ObjectiveSchema>;
+export type Cmi5ObjectiveReference = z.infer<typeof Cmi5ObjectiveReferenceSchema>;
+export type Cmi5KeywordReference = z.infer<typeof Cmi5KeywordReferenceSchema>;
+export type Cmi5KeywordDefinition = z.infer<typeof Cmi5KeywordDefinitionSchema>;
+export type Cmi5KeywordExtension = z.infer<typeof Cmi5KeywordExtensionSchema>;
+export type Cmi5Au = z.infer<typeof Cmi5AuSchema>;
+export type Cmi5CourseStructureItem = z.infer<typeof Cmi5CourseStructureItemSchema>;
+export type Cmi5Course = z.infer<typeof Cmi5CourseSchema>;
+export type Cmi5CourseStructure = z.infer<typeof Cmi5CourseStructureSchema>;
+export type Cmi5CourseStructureDocument = z.infer<typeof Cmi5CourseStructureDocumentSchema>;

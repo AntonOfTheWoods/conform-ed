@@ -1,3 +1,4 @@
+import type { z } from "zod";
 export {
   QtiResponseConditionSchema,
   QtiResponseElseSchema,
@@ -12,3 +13,5 @@ import { QtiResponseProcessingSchema } from "./processing-internal";
 export const QtiResponseProcessingDocumentSchema = strictObject({
   responseProcessing: QtiResponseProcessingSchema,
 });
+// Inferred types from exported Zod validators.
+export type QtiResponseProcessingDocument = z.infer<typeof QtiResponseProcessingDocumentSchema>;

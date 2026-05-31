@@ -11,10 +11,10 @@ services:
       timeout: 3s
       retries: 30
     volumes:
-      - lrsql-db-data:/var/lib/postgresql/data:Z
+      - lrsql-db-data:/var/lib/postgresql:Z
 
   lrs:
-    image: ${LRSQL_IMAGE:-yetanalytics/lrsql:latest}
+    image: ${LRSQL_IMAGE:-docker.io/yetanalytics/lrsql:latest}
     command:
       - /lrsql/bin/run_postgres.sh
     depends_on:
@@ -46,6 +46,24 @@ services:
       interval: 3s
       timeout: 3s
       retries: 40
+
+  lrs-runner:
+    profiles: ["lrs-runner"]
+    build:
+      context: ../..
+      dockerfile: infra/container/lrs-runner/Containerfile
+    depends_on:
+      lrs:
+        condition: service_healthy
+    environment:
+      LRS_BASE_URL: ${LRS_BASE_URL:-http://lrs:8080/xapi}
+      LRS_USERNAME: ${LRS_USERNAME:-janedoe}
+      LRS_PASSWORD: ${LRS_PASSWORD:-supersecret}
+      LRS_SPEC_VERSIONS: ${LRS_SPEC_VERSIONS:-1.0.3,2.0.0}
+      LRS_TIMEOUT_SECONDS: ${LRS_TIMEOUT_SECONDS:-60}
+      LRS_TOTAL_TIMEOUT_SECONDS: ${LRS_TOTAL_TIMEOUT_SECONDS:-300}
+      LRS_RUN_OUT_DIR: ${LRS_RUN_OUT_DIR:-tmp/agents}
+    entrypoint: ["bash", "./scripts/run-lrs-runner-dual.sh"]
 
 volumes:
   lrsql-db-data:

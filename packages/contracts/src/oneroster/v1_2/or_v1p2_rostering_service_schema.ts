@@ -254,3 +254,35 @@ export const SingleDemographicsSchema = strictObject({
 export const SingleEnrollmentSchema = strictObject({
   enrollment: EnrollmentSchema,
 });
+// Inferred types from exported Zod validators.
+export type AcademicSessionType = z.infer<typeof AcademicSessionTypeSchema>;
+export type ClassType = z.infer<typeof ClassTypeSchema>;
+export type DemographicsSex = z.infer<typeof DemographicsSexSchema>;
+export type EnrollmentRole = z.infer<typeof EnrollmentRoleSchema>;
+export type OrganizationType = z.infer<typeof OrganizationTypeSchema>;
+export type UserOrganizationRole = z.infer<typeof UserOrganizationRoleSchema>;
+export type Credential = z.infer<typeof CredentialSchema>;
+export type UserId = z.infer<typeof UserIdSchema>;
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+export type Role = z.infer<typeof RoleSchema>;
+export type User = z.infer<typeof UserSchema>;
+export type Org = z.infer<typeof OrgSchema>;
+export type AcademicSession = z.infer<typeof AcademicSessionSchema>;
+export type Course = z.infer<typeof CourseSchema>;
+export type Class = z.infer<typeof ClassSchema>;
+export type Demographics = z.infer<typeof DemographicsSchema>;
+export type Enrollment = z.infer<typeof EnrollmentSchema>;
+export type UserSet = z.infer<typeof UserSetSchema>;
+export type OrgSet = z.infer<typeof OrgSetSchema>;
+export type AcademicSessionSet = z.infer<typeof AcademicSessionSetSchema>;
+export type CourseSet = z.infer<typeof CourseSetSchema>;
+export type ClassSet = z.infer<typeof ClassSetSchema>;
+export type DemographicsSet = z.infer<typeof DemographicsSetSchema>;
+export type EnrollmentSet = z.infer<typeof EnrollmentSetSchema>;
+export type SingleUser = z.infer<typeof SingleUserSchema>;
+export type SingleOrg = z.infer<typeof SingleOrgSchema>;
+export type SingleAcademicSession = z.infer<typeof SingleAcademicSessionSchema>;
+export type SingleCourse = z.infer<typeof SingleCourseSchema>;
+export type SingleClass = z.infer<typeof SingleClassSchema>;
+export type SingleDemographics = z.infer<typeof SingleDemographicsSchema>;
+export type SingleEnrollment = z.infer<typeof SingleEnrollmentSchema>;

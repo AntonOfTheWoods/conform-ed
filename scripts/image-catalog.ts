@@ -1,10 +1,4 @@
-export const ociImages = [
-  "lrs-runner",
-  "cmi5-runner",
-  "lti13-runner",
-  "cmi5-adapter-reference",
-  "lti13-adapter-reference",
-] as const;
+export const ociImages = ["lrs-runner", "cmi5-runner"] as const;
 
 export type OciImageName = (typeof ociImages)[number];
 

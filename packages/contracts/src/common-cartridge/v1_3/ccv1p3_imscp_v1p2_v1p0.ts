@@ -334,3 +334,19 @@ export const CommonCartridgeManifestRawDocumentSchema = strictObject({
 export const CommonCartridgeManifestProfileDocumentSchema = strictObject({
   manifest: CommonCartridgeManifestProfileSchema,
 });
+// Inferred types from exported Zod validators.
+export type CommonCartridgeResourceType = z.infer<typeof CommonCartridgeResourceTypeSchema>;
+export type CommonCartridgeIntendedUse = z.infer<typeof CommonCartridgeIntendedUseSchema>;
+export type CommonCartridgeGenericMetadata = z.infer<typeof CommonCartridgeGenericMetadataSchema>;
+export type CommonCartridgeDependency = z.infer<typeof CommonCartridgeDependencySchema>;
+export type CommonCartridgeFile = z.infer<typeof CommonCartridgeFileSchema>;
+export type CommonCartridgeOrganization = z.infer<typeof CommonCartridgeOrganizationSchema>;
+export type CommonCartridgeOrganizations = z.infer<typeof CommonCartridgeOrganizationsSchema>;
+export type CommonCartridgeManifestMetadata = z.infer<typeof CommonCartridgeManifestMetadataSchema>;
+export type CommonCartridgeResourceMetadata = z.infer<typeof CommonCartridgeResourceMetadataSchema>;
+export type CommonCartridgeResource = z.infer<typeof CommonCartridgeResourceSchema>;
+export type CommonCartridgeResources = z.infer<typeof CommonCartridgeResourcesSchema>;
+export type CommonCartridgeManifestRaw = z.infer<typeof CommonCartridgeManifestRawSchema>;
+export type CommonCartridgeManifestProfile = z.infer<typeof CommonCartridgeManifestProfileSchema>;
+export type CommonCartridgeManifestRawDocument = z.infer<typeof CommonCartridgeManifestRawDocumentSchema>;
+export type CommonCartridgeManifestProfileDocument = z.infer<typeof CommonCartridgeManifestProfileDocumentSchema>;

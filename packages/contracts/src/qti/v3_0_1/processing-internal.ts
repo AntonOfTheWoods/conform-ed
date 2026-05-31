@@ -630,3 +630,38 @@ export const QtiTemplateRuleSchema: z.ZodTypeAny = z.lazy(() =>
 export const QtiTemplateProcessingSchema = strictObject({
   rules: z.array(QtiTemplateRuleSchema).min(1),
 });
+// Inferred types from exported Zod validators.
+export type QtiInclude = z.infer<typeof QtiIncludeSchema>;
+export type QtiNullExpression = z.infer<typeof QtiNullExpressionSchema>;
+export type QtiBaseValueExpression = z.infer<typeof QtiBaseValueExpressionSchema>;
+export type QtiVariableExpression = z.infer<typeof QtiVariableExpressionSchema>;
+export type QtiCorrectExpression = z.infer<typeof QtiCorrectExpressionSchema>;
+export type QtiDefaultExpression = z.infer<typeof QtiDefaultExpressionSchema>;
+export type QtiMapResponseExpression = z.infer<typeof QtiMapResponseExpressionSchema>;
+export type QtiMapResponsePointExpression = z.infer<typeof QtiMapResponsePointExpressionSchema>;
+export type QtiRandomIntegerExpression = z.infer<typeof QtiRandomIntegerExpressionSchema>;
+export type QtiRandomFloatExpression = z.infer<typeof QtiRandomFloatExpressionSchema>;
+export type QtiMathConstantExpression = z.infer<typeof QtiMathConstantExpressionSchema>;
+export type QtiNumberCorrectExpression = z.infer<typeof QtiNumberCorrectExpressionSchema>;
+export type QtiNumberIncorrectExpression = z.infer<typeof QtiNumberIncorrectExpressionSchema>;
+export type QtiNumberPresentedExpression = z.infer<typeof QtiNumberPresentedExpressionSchema>;
+export type QtiNumberRespondedExpression = z.infer<typeof QtiNumberRespondedExpressionSchema>;
+export type QtiNumberSelectedExpression = z.infer<typeof QtiNumberSelectedExpressionSchema>;
+export type QtiOutcomeMinimumExpression = z.infer<typeof QtiOutcomeMinimumExpressionSchema>;
+export type QtiOutcomeMaximumExpression = z.infer<typeof QtiOutcomeMaximumExpressionSchema>;
+export type QtiTestVariablesExpression = z.infer<typeof QtiTestVariablesExpressionSchema>;
+export type QtiPreCondition = z.infer<typeof QtiPreConditionSchema>;
+export type QtiBranchRule = z.infer<typeof QtiBranchRuleSchema>;
+export type QtiLookupOutcomeValue = z.infer<typeof QtiLookupOutcomeValueSchema>;
+export type QtiSetOutcomeValue = z.infer<typeof QtiSetOutcomeValueSchema>;
+export type QtiSetTemplateValue = z.infer<typeof QtiSetTemplateValueSchema>;
+export type QtiSetDefaultValue = z.infer<typeof QtiSetDefaultValueSchema>;
+export type QtiSetCorrectResponse = z.infer<typeof QtiSetCorrectResponseSchema>;
+export type QtiTemplateDefault = z.infer<typeof QtiTemplateDefaultSchema>;
+export type QtiTemplateConstraint = z.infer<typeof QtiTemplateConstraintSchema>;
+export type QtiExitResponse = z.infer<typeof QtiExitResponseSchema>;
+export type QtiExitTemplate = z.infer<typeof QtiExitTemplateSchema>;
+export type QtiExitTest = z.infer<typeof QtiExitTestSchema>;
+export type QtiResponseProcessing = z.infer<typeof QtiResponseProcessingSchema>;
+export type QtiOutcomeProcessing = z.infer<typeof QtiOutcomeProcessingSchema>;
+export type QtiTemplateProcessing = z.infer<typeof QtiTemplateProcessingSchema>;

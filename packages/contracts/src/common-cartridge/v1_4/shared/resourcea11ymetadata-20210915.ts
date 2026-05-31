@@ -99,3 +99,12 @@ export const ResourceAccessibilityMetadataSchema = strictObject({
 export const ResourceAccessibilityMetadataDocumentSchema = strictObject({
   ResourceAccessibilityMetadata: ResourceAccessibilityMetadataSchema,
 });
+// Inferred types from exported Zod validators.
+export type AccessibilityFeature = z.infer<typeof AccessibilityFeatureSchema>;
+export type AccessibilityHazard = z.infer<typeof AccessibilityHazardSchema>;
+export type AccessibilityApi = z.infer<typeof AccessibilityApiSchema>;
+export type AccessibilityControl = z.infer<typeof AccessibilityControlSchema>;
+export type AccessMode = z.infer<typeof AccessModeSchema>;
+export type AccessModeSufficient = z.infer<typeof AccessModeSufficientSchema>;
+export type ResourceAccessibilityMetadata = z.infer<typeof ResourceAccessibilityMetadataSchema>;
+export type ResourceAccessibilityMetadataDocument = z.infer<typeof ResourceAccessibilityMetadataDocumentSchema>;

@@ -1490,3 +1490,20 @@ export const QtiAssessmentTestSchema: z.ZodTypeAny = QtiAssessmentTestRawSchema.
     validateOutcomeReferences(testValue.outcomeProcessing, outcomes, context, ["outcomeProcessing"]);
   },
 );
+// Inferred types from exported Zod validators.
+export type QtiPrintedVariable = z.infer<typeof QtiPrintedVariableSchema>;
+export type QtiInteractionModule = z.infer<typeof QtiInteractionModuleSchema>;
+export type QtiInteractionModules = z.infer<typeof QtiInteractionModulesSchema>;
+export type QtiGap = z.infer<typeof QtiGapSchema>;
+export type QtiHotspotChoice = z.infer<typeof QtiHotspotChoiceSchema>;
+export type QtiAssociableHotspot = z.infer<typeof QtiAssociableHotspotSchema>;
+export type QtiTextEntryInteraction = z.infer<typeof QtiTextEntryInteractionSchema>;
+export type QtiGapChoice = z.infer<typeof QtiGapChoiceSchema>;
+export type QtiCompanionMaterialsInfo = z.infer<typeof QtiCompanionMaterialsInfoSchema>;
+export type QtiAdaptiveHref = z.infer<typeof QtiAdaptiveHrefSchema>;
+export type QtiAdaptiveSelection = z.infer<typeof QtiAdaptiveSelectionSchema>;
+export type QtiSelection = z.infer<typeof QtiSelectionSchema>;
+export type QtiOrdering = z.infer<typeof QtiOrderingSchema>;
+export type QtiAssessmentItemRef = z.infer<typeof QtiAssessmentItemRefSchema>;
+export type QtiAssessmentSectionRef = z.infer<typeof QtiAssessmentSectionRefSchema>;
+export type QtiAssessmentStimulusRef = z.infer<typeof QtiAssessmentStimulusRefSchema>;

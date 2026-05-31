@@ -115,3 +115,32 @@ export function collectDuplicates(values: string[]): string[] {
 export function asArray<T>(value: readonly T[] | T[] | undefined | null): T[] {
   return Array.isArray(value) ? [...value] : [];
 }
+// Inferred types from exported Zod validators.
+export type NonEmptyString = z.infer<typeof NonEmptyStringSchema>;
+export type UriReference = z.infer<typeof UriReferenceSchema>;
+export type QtiIdentifier = z.infer<typeof QtiIdentifierSchema>;
+export type QtiIdentifierList = z.infer<typeof QtiIdentifierListSchema>;
+export type QtiStringList = z.infer<typeof QtiStringListSchema>;
+export type QtiCoords = z.infer<typeof QtiCoordsSchema>;
+export type QtiMimeType = z.infer<typeof QtiMimeTypeSchema>;
+export type QtiStringOrNumber = z.infer<typeof QtiStringOrNumberSchema>;
+export type QtiIntegerOrVariable = z.infer<typeof QtiIntegerOrVariableSchema>;
+export type QtiNumberOrVariable = z.infer<typeof QtiNumberOrVariableSchema>;
+export type QtiCardinality = z.infer<typeof QtiCardinalitySchema>;
+export type QtiBaseType = z.infer<typeof QtiBaseTypeSchema>;
+export type QtiShowHide = z.infer<typeof QtiShowHideSchema>;
+export type QtiView = z.infer<typeof QtiViewSchema>;
+export type QtiDirection = z.infer<typeof QtiDirectionSchema>;
+export type QtiOrientation = z.infer<typeof QtiOrientationSchema>;
+export type QtiNavigationMode = z.infer<typeof QtiNavigationModeSchema>;
+export type QtiSubmissionMode = z.infer<typeof QtiSubmissionModeSchema>;
+export type QtiSuppressTts = z.infer<typeof QtiSuppressTtsSchema>;
+export type QtiShape = z.infer<typeof QtiShapeSchema>;
+export type QtiExternalScored = z.infer<typeof QtiExternalScoredSchema>;
+export type QtiSessionStatus = z.infer<typeof QtiSessionStatusSchema>;
+export type QtiScoreStatus = z.infer<typeof QtiScoreStatusSchema>;
+export type QtiAnsweredStatus = z.infer<typeof QtiAnsweredStatusSchema>;
+export type QtiSupportAssignment = z.infer<typeof QtiSupportAssignmentSchema>;
+export type XmlForeignAttributes = z.infer<typeof XmlForeignAttributesSchema>;
+export type XmlExtensionNode = z.infer<typeof XmlExtensionNodeSchema>;
+export type XmlExtensionNodeList = z.infer<typeof XmlExtensionNodeListSchema>;

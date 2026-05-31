@@ -1664,3 +1664,20 @@ export function createQti2Schemas(config: Qti2Config) {
     QtiModalFeedbackDocumentSchema,
   } as const;
 }
+// Inferred types from exported Zod validators.
+export type NonEmptyString = z.infer<typeof NonEmptyStringSchema>;
+export type UriReference = z.infer<typeof UriReferenceSchema>;
+export type QtiIdentifier = z.infer<typeof QtiIdentifierSchema>;
+export type QtiBaseType = z.infer<typeof QtiBaseTypeSchema>;
+export type QtiCardinality = z.infer<typeof QtiCardinalitySchema>;
+export type QtiView = z.infer<typeof QtiViewSchema>;
+export type QtiShowHide = z.infer<typeof QtiShowHideSchema>;
+export type QtiOrientation = z.infer<typeof QtiOrientationSchema>;
+export type QtiNavigationMode = z.infer<typeof QtiNavigationModeSchema>;
+export type QtiSubmissionMode = z.infer<typeof QtiSubmissionModeSchema>;
+export type QtiSessionStatus = z.infer<typeof QtiSessionStatusSchema>;
+export type QtiFeedbackType = z.infer<typeof QtiFeedbackTypeSchema>;
+export type QtiScoringMode = z.infer<typeof QtiScoringModeSchema>;
+export type XmlForeignAttributes = z.infer<typeof XmlForeignAttributesSchema>;
+export type XmlExtensionNode = z.infer<typeof XmlExtensionNodeSchema>;
+export type XmlExtensionNodeList = z.infer<typeof XmlExtensionNodeListSchema>;

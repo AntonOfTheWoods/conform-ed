@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { imageRef } from "./image-catalog";
@@ -110,14 +110,14 @@ function parseArgs(argv: string[]): ParsedArgs {
   return parsed;
 }
 
-function runCommand(command: string[], envOverrides?: NodeJS.ProcessEnv): number {
+function runCommand(command: string[], envOverrides?: NodeJS.ProcessEnv): { exitCode: number; stdout: string } {
   const result = Bun.spawnSync(command, {
     cwd: repoRoot,
     env: {
       ...process.env,
       ...(envOverrides ?? {}),
     },
-    stdout: "inherit",
+    stdout: "pipe",
     stderr: "inherit",
   });
 
@@ -125,7 +125,18 @@ function runCommand(command: string[], envOverrides?: NodeJS.ProcessEnv): number
     throw result.error;
   }
 
-  return result.exitCode ?? 1;
+  const stdout =
+    typeof result.stdout === "string" ? result.stdout : result.stdout ? new TextDecoder().decode(result.stdout) : "";
+  if (typeof result.stdout === "string") {
+    process.stdout.write(result.stdout);
+  } else if (result.stdout) {
+    process.stdout.write(new TextDecoder().decode(result.stdout));
+  }
+
+  return {
+    exitCode: result.exitCode ?? 1,
+    stdout,
+  };
 }
 
 async function main(): Promise<number> {
@@ -134,7 +145,6 @@ async function main(): Promise<number> {
   const containerBaseUrl = toContainerBaseUrl(args.baseUrl);
 
   const artifactPath = resolve(args.outputDir, "lrs-oci-smoke-report.json");
-  const repoRelativeArtifactPath = artifactPath.slice(repoRoot.length + 1);
   const command = [
     "podman",
     "run",
@@ -145,31 +155,19 @@ async function main(): Promise<number> {
     `LRS_BASE_URL=${containerBaseUrl}`,
     "-e",
     `LRS_VERSION=${args.version}`,
-    "-e",
-    `LRS_RUN_OUT=/app/${repoRelativeArtifactPath}`,
-    "-v",
-    `${resolve(repoRoot, "tmp")}:/app/tmp:Z`,
     args.imageRef,
-    "bun",
-    "run",
-    "apps/lrs-runner/src/cli.ts",
-    "run",
-    "--base-url",
-    containerBaseUrl,
-    "--version",
-    args.version,
-    "--out",
-    repoRelativeArtifactPath,
   ];
 
   if (args.username) {
-    command.push("--username", args.username, "--password", args.password ?? "");
+    command.push("-e", `LRS_USERNAME=${args.username}`, "-e", `LRS_PASSWORD=${args.password ?? ""}`);
   }
 
-  const exitCode = runCommand(command);
-  if (exitCode !== 0) {
-    return exitCode;
+  const execution = runCommand(command);
+  if (execution.exitCode !== 0) {
+    return execution.exitCode;
   }
+
+  writeFileSync(artifactPath, execution.stdout, "utf8");
 
   console.log(
     JSON.stringify(

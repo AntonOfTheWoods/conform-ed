@@ -28,3 +28,9 @@ export const CurriculumStandardsMetadataSetSchema = strictObject({
 export const CurriculumStandardsMetadataSetDocumentSchema = strictObject({
   curriculumStandardsMetadataSet: CurriculumStandardsMetadataSetSchema,
 });
+// Inferred types from exported Zod validators.
+export type CurriculumStandardsLabelledGUID = z.infer<typeof CurriculumStandardsLabelledGUIDSchema>;
+export type CurriculumStandardsSetOfGUIDs = z.infer<typeof CurriculumStandardsSetOfGUIDsSchema>;
+export type CurriculumStandardsMetadata = z.infer<typeof CurriculumStandardsMetadataSchema>;
+export type CurriculumStandardsMetadataSet = z.infer<typeof CurriculumStandardsMetadataSetSchema>;
+export type CurriculumStandardsMetadataSetDocument = z.infer<typeof CurriculumStandardsMetadataSetDocumentSchema>;

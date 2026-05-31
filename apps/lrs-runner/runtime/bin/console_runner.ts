@@ -1,0 +1,6 @@
+#!/usr/bin/env bun
+
+import { main } from "../bun-runtime/console-runner.ts";
+
+const exitCode = await main(process.argv.slice(2));
+process.exit(exitCode);

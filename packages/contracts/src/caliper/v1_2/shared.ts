@@ -108,3 +108,15 @@ export const getReferenceType = (value: unknown): string | null => {
   const candidate = (value as { type?: unknown }).type;
   return typeof candidate === "string" ? candidate : null;
 };
+// Inferred types from exported Zod validators.
+export type CaliperContextString = z.infer<typeof CaliperContextStringSchema>;
+export type CaliperTopLevelContext = z.infer<typeof CaliperTopLevelContextSchema>;
+export type CaliperNestedContext = z.infer<typeof CaliperNestedContextSchema>;
+export type CaliperExtensions = z.infer<typeof CaliperExtensionsSchema>;
+export type CaliperDateTime = z.infer<typeof CaliperDateTimeSchema>;
+export type CaliperIri = z.infer<typeof CaliperIriSchema>;
+export type CaliperEventId = z.infer<typeof CaliperEventIdSchema>;
+export type CaliperReferenceObject = z.infer<typeof CaliperReferenceObjectSchema>;
+export type CaliperReference = z.infer<typeof CaliperReferenceSchema>;
+export type createCaliperEntity = z.infer<typeof createCaliperEntitySchema>;
+export type createCaliperEvent = z.infer<typeof createCaliperEventSchema>;

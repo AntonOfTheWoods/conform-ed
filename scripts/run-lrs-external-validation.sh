@@ -26,12 +26,11 @@ command=(
   "${LRS_BASE_URL}"
   --version
   "${LRS_VERSION}"
-  --out
-  "${LRS_RUN_OUT}"
 )
 
 if [[ -n "${LRS_USERNAME}" ]]; then
   command+=(--username "${LRS_USERNAME}" --password "${LRS_PASSWORD}")
 fi
 
-"${command[@]}"
+mkdir -p "$(dirname "${LRS_RUN_OUT}")"
+"${command[@]}" | tee "${LRS_RUN_OUT}"

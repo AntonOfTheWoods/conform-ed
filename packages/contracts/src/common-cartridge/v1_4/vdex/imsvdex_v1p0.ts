@@ -107,3 +107,18 @@ export const VdexSchema = looseObject({
 export const VdexDocumentSchema = strictObject({
   vdex: VdexSchema,
 });
+// Inferred types from exported Zod validators.
+export type VdexProfilesType = z.infer<typeof VdexProfilesTypeSchema>;
+export type VdexIdentifier = z.infer<typeof VdexIdentifierSchema>;
+export type VdexMediaLocator = z.infer<typeof VdexMediaLocatorSchema>;
+export type VdexLangString = z.infer<typeof VdexLangStringSchema>;
+export type VdexLangStringBag = z.infer<typeof VdexLangStringBagSchema>;
+export type VdexDescription = z.infer<typeof VdexDescriptionSchema>;
+export type VdexVocab = z.infer<typeof VdexVocabSchema>;
+export type VdexMetadata = z.infer<typeof VdexMetadataSchema>;
+export type VdexMediaDescriptor = z.infer<typeof VdexMediaDescriptorSchema>;
+export type VdexVocabIdentifier = z.infer<typeof VdexVocabIdentifierSchema>;
+export type VdexTermRef = z.infer<typeof VdexTermRefSchema>;
+export type VdexRelationship = z.infer<typeof VdexRelationshipSchema>;
+export type Vdex = z.infer<typeof VdexSchema>;
+export type VdexDocument = z.infer<typeof VdexDocumentSchema>;

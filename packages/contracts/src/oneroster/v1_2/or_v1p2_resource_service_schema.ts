@@ -40,3 +40,8 @@ export const ResourceSetSchema = strictObject({
 export const SingleResourceSchema = strictObject({
   resource: ResourceSchema,
 });
+// Inferred types from exported Zod validators.
+export type ResourceRole = z.infer<typeof ResourceRoleSchema>;
+export type Resource = z.infer<typeof ResourceSchema>;
+export type ResourceSet = z.infer<typeof ResourceSetSchema>;
+export type SingleResource = z.infer<typeof SingleResourceSchema>;

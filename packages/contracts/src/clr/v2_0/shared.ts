@@ -199,3 +199,8 @@ export {
   RubricCriterionLevelSchema,
   TermsOfUseSchema,
 };
+// Inferred types from exported Zod validators.
+export type AssociationType = z.infer<typeof AssociationTypeSchema>;
+export type Association = z.infer<typeof AssociationSchema>;
+export type VerifiableCredential = z.infer<typeof VerifiableCredentialSchema>;
+export type GetClrCredentialsResponse = z.infer<typeof GetClrCredentialsResponseSchema>;

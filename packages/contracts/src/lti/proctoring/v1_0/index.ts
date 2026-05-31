@@ -121,3 +121,11 @@ export const LtiProctoringV1_0DerivedZodTemplates = {
     "Control-service parameters are modeled separately from launch message payloads to keep request/response contracts explicit.",
   ],
 } as const;
+// Inferred types from exported Zod validators.
+export type AssessmentControlSeverity = z.infer<typeof AssessmentControlSeveritySchema>;
+export type AssessmentProctoringSettings = z.infer<typeof AssessmentProctoringSettingsSchema>;
+export type StartProctoringMessage = z.infer<typeof StartProctoringMessageSchema>;
+export type StartAssessmentMessage = z.infer<typeof StartAssessmentMessageSchema>;
+export type EndAssessmentMessage = z.infer<typeof EndAssessmentMessageSchema>;
+export type AssessmentControlRequest = z.infer<typeof AssessmentControlRequestSchema>;
+export type AssessmentControlResponse = z.infer<typeof AssessmentControlResponseSchema>;

@@ -189,3 +189,18 @@ export const VerifiablePresentationSchema = passthroughObject({
   verifiableCredential: oneOrMany(z.union([VerifiableCredentialSchema, CompactJwsValueSchema])).optional(),
   proof: oneOrMany(ProofSchema).optional(),
 });
+// Inferred types from exported Zod validators.
+export type LocaleTag = z.infer<typeof LocaleTagSchema>;
+export type NonEmptyLocalizedStringMap = z.infer<typeof NonEmptyLocalizedStringMapSchema>;
+export type W3cCredentialsV2Context = z.infer<typeof W3cCredentialsV2ContextSchema>;
+export type CompactJws = z.infer<typeof CompactJwsSchema>;
+export type CredentialSchema = z.infer<typeof CredentialSchemaSchema>;
+export type CredentialStatus = z.infer<typeof CredentialStatusSchema>;
+export type RefreshService = z.infer<typeof RefreshServiceSchema>;
+export type TermsOfUse = z.infer<typeof TermsOfUseSchema>;
+export type Proof = z.infer<typeof ProofSchema>;
+export type Evidence = z.infer<typeof EvidenceSchema>;
+export type CredentialSubject = z.infer<typeof CredentialSubjectSchema>;
+export type VerifiableCredential = z.infer<typeof VerifiableCredentialSchema>;
+export type Holder = z.infer<typeof HolderSchema>;
+export type VerifiablePresentation = z.infer<typeof VerifiablePresentationSchema>;

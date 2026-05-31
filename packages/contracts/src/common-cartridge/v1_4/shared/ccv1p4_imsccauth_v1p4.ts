@@ -19,3 +19,8 @@ export const CommonCartridgeAuthorizationsSchema = strictObject({
 export const CommonCartridgeAuthorizationsDocumentSchema = strictObject({
   authorizations: CommonCartridgeAuthorizationsSchema,
 });
+// Inferred types from exported Zod validators.
+export type CommonCartridgeAuthorizationAccess = z.infer<typeof CommonCartridgeAuthorizationAccessSchema>;
+export type CommonCartridgeAuthorization = z.infer<typeof CommonCartridgeAuthorizationSchema>;
+export type CommonCartridgeAuthorizations = z.infer<typeof CommonCartridgeAuthorizationsSchema>;
+export type CommonCartridgeAuthorizationsDocument = z.infer<typeof CommonCartridgeAuthorizationsDocumentSchema>;

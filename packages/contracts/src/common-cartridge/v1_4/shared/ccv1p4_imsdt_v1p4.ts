@@ -25,3 +25,9 @@ export const DiscussionTopicSchema = strictObject({
 export const DiscussionTopicDocumentSchema = strictObject({
   topic: DiscussionTopicSchema,
 });
+// Inferred types from exported Zod validators.
+export type DiscussionTopicAttachment = z.infer<typeof DiscussionTopicAttachmentSchema>;
+export type DiscussionTopicAttachments = z.infer<typeof DiscussionTopicAttachmentsSchema>;
+export type DiscussionTopicText = z.infer<typeof DiscussionTopicTextSchema>;
+export type DiscussionTopic = z.infer<typeof DiscussionTopicSchema>;
+export type DiscussionTopicDocument = z.infer<typeof DiscussionTopicDocumentSchema>;

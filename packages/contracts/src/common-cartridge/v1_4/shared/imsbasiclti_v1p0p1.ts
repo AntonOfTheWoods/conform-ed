@@ -19,3 +19,6 @@ export const BasicLTILinkSchema = strictObject({
 export const BasicLTILinkDocumentSchema = strictObject({
   basic_lti_link: BasicLTILinkSchema,
 });
+// Inferred types from exported Zod validators.
+export type BasicLTILink = z.infer<typeof BasicLTILinkSchema>;
+export type BasicLTILinkDocument = z.infer<typeof BasicLTILinkDocumentSchema>;

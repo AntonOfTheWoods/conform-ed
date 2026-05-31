@@ -427,3 +427,32 @@ export const GetOpenBadgeCredentialsResponseSchema = z
 
 export { OpenBadgesV30ContextUrlSchema };
 export { CredentialSchemaSchema, CredentialStatusSchema, ProofSchema, RefreshServiceSchema, TermsOfUseSchema };
+// Inferred types from exported Zod validators.
+export type IdentifierTypeEnum = z.infer<typeof IdentifierTypeEnumSchema>;
+export type AchievementType = z.infer<typeof AchievementTypeSchema>;
+export type AlignmentTargetType = z.infer<typeof AlignmentTargetTypeSchema>;
+export type ResultType = z.infer<typeof ResultTypeSchema>;
+export type ResultStatusType = z.infer<typeof ResultStatusTypeSchema>;
+export type OpenBadgesAchievementCredentialContext = z.infer<typeof OpenBadgesAchievementCredentialContextSchema>;
+export type OpenBadgesEndorsementCredentialContext = z.infer<typeof OpenBadgesEndorsementCredentialContextSchema>;
+export type OpenBadgesVerifiableCredentialContext = z.infer<typeof OpenBadgesVerifiableCredentialContextSchema>;
+export type Image = z.infer<typeof ImageSchema>;
+export type GeoCoordinates = z.infer<typeof GeoCoordinatesSchema>;
+export type Address = z.infer<typeof AddressSchema>;
+export type IdentifierEntry = z.infer<typeof IdentifierEntrySchema>;
+export type Criteria = z.infer<typeof CriteriaSchema>;
+export type Alignment = z.infer<typeof AlignmentSchema>;
+export type Related = z.infer<typeof RelatedSchema>;
+export type RubricCriterionLevel = z.infer<typeof RubricCriterionLevelSchema>;
+export type ResultDescription = z.infer<typeof ResultDescriptionSchema>;
+export type Evidence = z.infer<typeof EvidenceSchema>;
+export type EndorsementSubject = z.infer<typeof EndorsementSubjectSchema>;
+export type CredentialSubject = z.infer<typeof CredentialSubjectSchema>;
+export type Achievement = z.infer<typeof AchievementSchema>;
+export type IdentityObject = z.infer<typeof IdentityObjectSchema>;
+export type Result = z.infer<typeof ResultSchema>;
+export type AchievementSubject = z.infer<typeof AchievementSubjectSchema>;
+export type AchievementCredential = z.infer<typeof AchievementCredentialSchema>;
+export type OpenBadgeCredential = z.infer<typeof OpenBadgeCredentialSchema>;
+export type VerifiableCredential = z.infer<typeof VerifiableCredentialSchema>;
+export type GetOpenBadgeCredentialsResponse = z.infer<typeof GetOpenBadgeCredentialsResponseSchema>;

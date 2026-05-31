@@ -200,3 +200,23 @@ export const QtiAssessmentResultSchema = strictObject({
 export const QtiAssessmentResultDocumentSchema = strictObject({
   assessmentResult: QtiAssessmentResultSchema,
 });
+// Inferred types from exported Zod validators.
+export type QtiResultValue = z.infer<typeof QtiResultValueSchema>;
+export type QtiResultCandidateResponse = z.infer<typeof QtiResultCandidateResponseSchema>;
+export type QtiResultCorrectResponse = z.infer<typeof QtiResultCorrectResponseSchema>;
+export type QtiResultSessionIdentifier = z.infer<typeof QtiResultSessionIdentifierSchema>;
+export type QtiResultContext = z.infer<typeof QtiResultContextSchema>;
+export type QtiResultSupport = z.infer<typeof QtiResultSupportSchema>;
+export type QtiResultContextVariable = z.infer<typeof QtiResultContextVariableSchema>;
+export type QtiResultTemplateVariable = z.infer<typeof QtiResultTemplateVariableSchema>;
+export type QtiResultOutcomeInformation = z.infer<typeof QtiResultOutcomeInformationSchema>;
+export type QtiResultOutcomeVariable = z.infer<typeof QtiResultOutcomeVariableSchema>;
+export type QtiResultResponseVariable = z.infer<typeof QtiResultResponseVariableSchema>;
+export type QtiResultOutcomeVariableValidated = z.infer<typeof QtiResultOutcomeVariableValidatedSchema>;
+export type QtiResultContextVariableValidated = z.infer<typeof QtiResultContextVariableValidatedSchema>;
+export type QtiResultTemplateVariableValidated = z.infer<typeof QtiResultTemplateVariableValidatedSchema>;
+export type QtiResultResponseVariableValidated = z.infer<typeof QtiResultResponseVariableValidatedSchema>;
+export type QtiResultTestResult = z.infer<typeof QtiResultTestResultSchema>;
+export type QtiResultItemResult = z.infer<typeof QtiResultItemResultSchema>;
+export type QtiAssessmentResult = z.infer<typeof QtiAssessmentResultSchema>;
+export type QtiAssessmentResultDocument = z.infer<typeof QtiAssessmentResultDocumentSchema>;

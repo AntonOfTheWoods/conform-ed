@@ -225,3 +225,19 @@ export const ThinCommonCartridgeManifestRawDocumentSchema = strictObject({
 export const ThinCommonCartridgeManifestProfileDocumentSchema = strictObject({
   manifest: ThinCommonCartridgeManifestProfileSchema,
 });
+// Inferred types from exported Zod validators.
+export type ThinCommonCartridgeResourceType = z.infer<typeof ThinCommonCartridgeResourceTypeSchema>;
+export type ThinCommonCartridgeIntendedUse = z.infer<typeof ThinCommonCartridgeIntendedUseSchema>;
+export type ThinCommonCartridgeFile = z.infer<typeof ThinCommonCartridgeFileSchema>;
+export type ThinCommonCartridgeOrganization = z.infer<typeof ThinCommonCartridgeOrganizationSchema>;
+export type ThinCommonCartridgeOrganizations = z.infer<typeof ThinCommonCartridgeOrganizationsSchema>;
+export type ThinCommonCartridgeManifestMetadata = z.infer<typeof ThinCommonCartridgeManifestMetadataSchema>;
+export type ThinCommonCartridgeResourceMetadata = z.infer<typeof ThinCommonCartridgeResourceMetadataSchema>;
+export type ThinCommonCartridgeResource = z.infer<typeof ThinCommonCartridgeResourceSchema>;
+export type ThinCommonCartridgeResources = z.infer<typeof ThinCommonCartridgeResourcesSchema>;
+export type ThinCommonCartridgeManifestRaw = z.infer<typeof ThinCommonCartridgeManifestRawSchema>;
+export type ThinCommonCartridgeManifestProfile = z.infer<typeof ThinCommonCartridgeManifestProfileSchema>;
+export type ThinCommonCartridgeManifestRawDocument = z.infer<typeof ThinCommonCartridgeManifestRawDocumentSchema>;
+export type ThinCommonCartridgeManifestProfileDocument = z.infer<
+  typeof ThinCommonCartridgeManifestProfileDocumentSchema
+>;

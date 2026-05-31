@@ -92,3 +92,9 @@ export const LtiDeepLinkingV2_0DerivedZodTemplates = {
     "Content items reuse the AGS line-item schema when a deep-linked resource declares grading metadata.",
   ],
 } as const;
+// Inferred types from exported Zod validators.
+export type ContentItemType = z.infer<typeof ContentItemTypeSchema>;
+export type DeepLinkingSettings = z.infer<typeof DeepLinkingSettingsSchema>;
+export type DeepLinkingRequest = z.infer<typeof DeepLinkingRequestSchema>;
+export type ContentItem = z.infer<typeof ContentItemSchema>;
+export type DeepLinkingResponse = z.infer<typeof DeepLinkingResponseSchema>;

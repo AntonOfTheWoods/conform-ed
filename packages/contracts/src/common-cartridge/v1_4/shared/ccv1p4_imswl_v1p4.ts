@@ -17,3 +17,7 @@ export const WebLinkSchema = strictObject({
 export const WebLinkDocumentSchema = strictObject({
   webLink: WebLinkSchema,
 });
+// Inferred types from exported Zod validators.
+export type WebLinkUrl = z.infer<typeof WebLinkUrlSchema>;
+export type WebLink = z.infer<typeof WebLinkSchema>;
+export type WebLinkDocument = z.infer<typeof WebLinkDocumentSchema>;

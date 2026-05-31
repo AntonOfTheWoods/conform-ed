@@ -65,3 +65,13 @@ export const QtiUsageDataSchema = strictObject({
 export const QtiUsageDataDocumentSchema = strictObject({
   usageData: QtiUsageDataSchema,
 });
+// Inferred types from exported Zod validators.
+export type QtiUsageDate = z.infer<typeof QtiUsageDateSchema>;
+export type QtiUsageObjectType = z.infer<typeof QtiUsageObjectTypeSchema>;
+export type QtiUsageTargetObject = z.infer<typeof QtiUsageTargetObjectSchema>;
+export type QtiUsageMapping = z.infer<typeof QtiUsageMappingSchema>;
+export type QtiOrdinaryStatistic = z.infer<typeof QtiOrdinaryStatisticSchema>;
+export type QtiCategorizedStatistic = z.infer<typeof QtiCategorizedStatisticSchema>;
+export type QtiUsageStatistic = z.infer<typeof QtiUsageStatisticSchema>;
+export type QtiUsageData = z.infer<typeof QtiUsageDataSchema>;
+export type QtiUsageDataDocument = z.infer<typeof QtiUsageDataDocumentSchema>;

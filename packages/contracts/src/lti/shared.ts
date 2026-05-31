@@ -50,3 +50,17 @@ export const ImageResourceSchema = strictObject({
   height: z.number().int().positive().optional(),
   alt: z.string().optional(),
 });
+// Inferred types from exported Zod validators.
+export type NonEmptyString = z.infer<typeof NonEmptyStringSchema>;
+export type Url = z.infer<typeof UrlSchema>;
+export type UriReference = z.infer<typeof UriReferenceSchema>;
+export type LtiVersion = z.infer<typeof LtiVersionSchema>;
+export type DocumentTarget = z.infer<typeof DocumentTargetSchema>;
+export type RoleUri = z.infer<typeof RoleUriSchema>;
+export type ResourceLink = z.infer<typeof ResourceLinkSchema>;
+export type Context = z.infer<typeof ContextSchema>;
+export type LaunchPresentation = z.infer<typeof LaunchPresentationSchema>;
+export type Lis = z.infer<typeof LisSchema>;
+export type Roles = z.infer<typeof RolesSchema>;
+export type CustomParameters = z.infer<typeof CustomParametersSchema>;
+export type ImageResource = z.infer<typeof ImageResourceSchema>;

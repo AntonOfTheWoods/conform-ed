@@ -17,3 +17,7 @@ export const PlatformPropertySetSchema = strictObject({
   platform: NonEmptyStringSchema,
   foreignAttributes: XmlForeignAttributesSchema.optional(),
 });
+// Inferred types from exported Zod validators.
+export type Property = z.infer<typeof PropertySchema>;
+export type PropertySet = z.infer<typeof PropertySetSchema>;
+export type PlatformPropertySet = z.infer<typeof PlatformPropertySetSchema>;

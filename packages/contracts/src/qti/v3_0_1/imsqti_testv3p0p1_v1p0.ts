@@ -43,3 +43,7 @@ export const QtiTestProfileDocumentSchema = z.union([
   QtiOutcomeDeclarationDocumentSchema,
   QtiOutcomeProcessingDocumentSchema,
 ]);
+// Inferred types from exported Zod validators.
+export type QtiAssessmentTestDocument = z.infer<typeof QtiAssessmentTestDocumentSchema>;
+export type QtiOutcomeProcessingDocument = z.infer<typeof QtiOutcomeProcessingDocumentSchema>;
+export type QtiTestProfileDocument = z.infer<typeof QtiTestProfileDocumentSchema>;

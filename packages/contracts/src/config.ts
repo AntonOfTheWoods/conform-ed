@@ -116,3 +116,6 @@ export const RunnerConfigSchema = z
   });
 
 export type RunnerConfig = z.infer<typeof RunnerConfigSchema>;
+// Inferred types from exported Zod validators.
+export type SuiteName = z.infer<typeof SuiteNameSchema>;
+export type LogLevel = z.infer<typeof LogLevelSchema>;

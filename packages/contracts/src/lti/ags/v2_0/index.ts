@@ -86,3 +86,12 @@ export const LtiAgsV2_0DerivedZodTemplates = {
     "Score and result payloads are strict JSON objects suitable for adapter/reference app contracts.",
   ],
 } as const;
+// Inferred types from exported Zod validators.
+export type AgsScope = z.infer<typeof AgsScopeSchema>;
+export type Endpoint = z.infer<typeof EndpointSchema>;
+export type LineItem = z.infer<typeof LineItemSchema>;
+export type ScoreProgress = z.infer<typeof ScoreProgressSchema>;
+export type GradingProgress = z.infer<typeof GradingProgressSchema>;
+export type ScoreSubmission = z.infer<typeof ScoreSubmissionSchema>;
+export type Score = z.infer<typeof ScoreSchema>;
+export type Result = z.infer<typeof ResultSchema>;

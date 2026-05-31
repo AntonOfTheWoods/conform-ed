@@ -1,3 +1,3 @@
-# LRS Parity Strategy
+# LRS Strategy
 
-Define requirement-level parity strategy after the new runtime implementation is integrated.
+Define how the LRS tester should behave across direct CLI runs, OCI runs, and compose runs, with stdout JSON as the primary contract.

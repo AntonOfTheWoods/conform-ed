@@ -1,134 +1,106 @@
+import { resolve } from "node:path";
+
 export type LrsSpecVersion = "1.0.3" | "2.0.0";
 
 export interface LrsRunConfig {
   baseUrl: string;
+  directory?: string[];
+  file?: string[];
+  grep?: string;
   password?: string;
   timeoutMs?: number;
   username?: string;
   version: LrsSpecVersion;
 }
 
-export interface LrsRunEvent {
-  kind: "request" | "response" | "result";
-  message: string;
-  at: string;
-  status?: number;
-}
-
-export interface LrsRunResult {
-  generatedAt: string;
-  root: {
-    status: "passed" | "failed";
-    children: Array<{ title: string; status: "passed" | "failed" }>;
-  };
-  run: {
-    events: LrsRunEvent[];
-    status: "passed" | "failed";
-    version: LrsSpecVersion;
-  };
-  target: {
-    baseUrl: string;
-    authMode: "basic" | "default";
-    version: LrsSpecVersion;
-  };
+export interface LrsRunExecution {
+  command: string[];
+  exitCode: number;
+  stderr: string;
+  stdout: string;
 }
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/u, "");
 }
 
-function buildAuthHeader(username?: string, password?: string): string | undefined {
-  if (!username || !password) {
+function parseTimeoutMs(value: string | undefined): number | undefined {
+  if (!value) {
     return undefined;
   }
 
-  return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
 }
 
-export async function runLrs(config: LrsRunConfig): Promise<LrsRunResult> {
+export async function runLrs(config: LrsRunConfig): Promise<LrsRunExecution> {
   const baseUrl = trimTrailingSlash(config.baseUrl);
-  const aboutUrl = `${baseUrl}/about`;
-  const startedAt = new Date().toISOString();
-  const events: LrsRunEvent[] = [];
-  const headers = new Headers({
-    "X-Experience-API-Version": config.version,
-  });
-  const authorization = buildAuthHeader(config.username, config.password);
+  const runtimeRoot = resolve(import.meta.dir, "..", "runtime");
+  const command = [
+    "bun",
+    "run",
+    resolve(runtimeRoot, "bin", "console_runner.ts"),
+    "--endpoint",
+    baseUrl,
+    "--xapiVersion",
+    config.version,
+  ];
 
-  if (authorization) {
-    headers.set("Authorization", authorization);
+  if (config.username && config.password) {
+    command.push("--basicAuth", "--authUser", config.username, "--authPassword", config.password);
   }
 
-  events.push({
-    kind: "request",
-    message: `GET ${aboutUrl}`,
-    at: startedAt,
-  });
-
-  let response: Response;
-  try {
-    response = await fetch(aboutUrl, {
-      headers,
-      signal: config.timeoutMs ? AbortSignal.timeout(config.timeoutMs) : undefined,
-    });
-  } catch (error) {
-    const endedAt = new Date().toISOString();
-    events.push({
-      kind: "result",
-      message: error instanceof Error ? error.message : String(error),
-      at: endedAt,
-    });
-
-    return {
-      generatedAt: endedAt,
-      root: {
-        status: "failed",
-        children: [{ title: "LRS about endpoint reachable", status: "failed" }],
-      },
-      run: {
-        events,
-        status: "failed",
-        version: config.version,
-      },
-      target: {
-        baseUrl,
-        authMode: authorization ? "basic" : "default",
-        version: config.version,
-      },
-    };
+  if (config.grep) {
+    command.push("--grep", config.grep);
   }
 
-  await response.text();
-  const endedAt = new Date().toISOString();
-  const passed = response.ok;
-  events.push({
-    kind: "response",
-    message: `${response.status} ${response.statusText}`,
-    at: endedAt,
-    status: response.status,
+  if (config.directory && config.directory.length > 0) {
+    command.push("--directory", config.directory.join(","));
+  }
+
+  if (config.file && config.file.length > 0) {
+    command.push("--file", config.file.join(","));
+  }
+
+  const timeoutMs = config.timeoutMs ?? parseTimeoutMs(process.env["LRS_RUN_TIMEOUT_MS"]);
+  const childProcess = Bun.spawn(command, {
+    cwd: runtimeRoot,
+    env: {
+      ...process.env,
+      LRS_ENDPOINT: baseUrl,
+      XAPI_VERSION: config.version,
+    },
+    stderr: "pipe",
+    stdout: "pipe",
   });
-  events.push({
-    kind: "result",
-    message: passed ? "passed" : "failed",
-    at: endedAt,
-    status: response.status,
-  });
+
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  if (timeoutMs && timeoutMs > 0) {
+    timeoutHandle = setTimeout(() => {
+      timedOut = true;
+      childProcess.kill("SIGTERM");
+    }, timeoutMs);
+  }
+
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(childProcess.stdout).text(),
+    new Response(childProcess.stderr).text(),
+    childProcess.exited,
+  ]);
+
+  if (timeoutHandle) {
+    clearTimeout(timeoutHandle);
+  }
 
   return {
-    generatedAt: endedAt,
-    root: {
-      status: passed ? "passed" : "failed",
-      children: [{ title: "LRS about endpoint reachable", status: passed ? "passed" : "failed" }],
-    },
-    run: {
-      events,
-      status: passed ? "passed" : "failed",
-      version: config.version,
-    },
-    target: {
-      baseUrl,
-      authMode: authorization ? "basic" : "default",
-      version: config.version,
-    },
+    command,
+    exitCode: timedOut ? 124 : exitCode,
+    stderr: timedOut ? `${stderr}\nRun timed out after ${timeoutMs}ms.` : stderr,
+    stdout,
   };
 }

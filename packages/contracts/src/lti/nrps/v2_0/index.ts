@@ -61,3 +61,9 @@ export const LtiNrpsV2_0DerivedZodTemplates = {
     "The membership container matches the normalized JSON shape used by the adapter reference app.",
   ],
 } as const;
+// Inferred types from exported Zod validators.
+export type MembershipStatus = z.infer<typeof MembershipStatusSchema>;
+export type MembershipContext = z.infer<typeof MembershipContextSchema>;
+export type NamesRoleService = z.infer<typeof NamesRoleServiceSchema>;
+export type Membership = z.infer<typeof MembershipSchema>;
+export type MembershipContainer = z.infer<typeof MembershipContainerSchema>;

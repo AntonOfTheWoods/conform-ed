@@ -48,3 +48,10 @@ export const IconSchema = strictObject({
   style: NonEmptyStringSchema.optional(),
   foreignAttributes: XmlForeignAttributesSchema.optional(),
 });
+// Inferred types from exported Zod validators.
+export type LocalizedString = z.infer<typeof LocalizedStringSchema>;
+export type Contact = z.infer<typeof ContactSchema>;
+export type Vendor = z.infer<typeof VendorSchema>;
+export type ProductInfo = z.infer<typeof ProductInfoSchema>;
+export type ToolLocator = z.infer<typeof ToolLocatorSchema>;
+export type Icon = z.infer<typeof IconSchema>;

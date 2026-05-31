@@ -4,6 +4,13 @@
 
 Release channel is OCI-only.
 
+Current OCI release surface:
+
+- `lrs-runner`
+- `cmi5-runner`
+
+These are the only OCI images published by the GitHub Actions image workflow.
+
 - publish target: GHCR
 - optional mirror: Docker Hub (disabled by default)
 - npm publish: deferred

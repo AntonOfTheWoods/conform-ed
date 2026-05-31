@@ -9,13 +9,13 @@ LRSQL_WAIT_MAX_ATTEMPTS="${LRSQL_WAIT_MAX_ATTEMPTS:-60}"
 
 attempt=1
 while [[ "${attempt}" -le "${LRSQL_WAIT_MAX_ATTEMPTS}" ]]; do
+  echo "Waiting for LRSQL to be ready on port ${LRSQL_PORT} (attempt ${attempt}/${LRSQL_WAIT_MAX_ATTEMPTS})..."
   if curl -fsS \
     --header "X-Experience-API-Version: ${LRS_VERSION}" \
     --user "${LRSQL_API_KEY}:${LRSQL_API_SECRET}" \
     "http://localhost:${LRSQL_PORT}/xapi/about" >/dev/null; then
     exit 0
   fi
-
   attempt=$((attempt + 1))
   sleep 2
 done

@@ -1,19 +1,31 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-
-import { runLrs } from "./run";
+import { runLrs } from "./run.ts";
 import { lrsTargets } from "./targets";
 import { lrsRunnerVersion } from "./version";
-const repoRoot = resolve(import.meta.dir, "..", "..", "..");
 
 type SupportedSpecVersion = "2.0.0" | "1.0.3";
 
 interface ExportRunConfig {
   baseUrl: string;
+  directory?: string[];
+  file?: string[];
+  grep?: string;
   version: SupportedSpecVersion;
-  outputPath: string;
   username?: string;
   password?: string;
+}
+
+function parseCsvFlag(args: string[], flag: string): string[] | undefined {
+  const value = getFlagValue(args, flag);
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = value
+    .split(",")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+
+  return parsed.length > 0 ? parsed : undefined;
 }
 
 function getFlagValue(args: string[], flag: string): string | undefined {
@@ -28,20 +40,24 @@ function getFlagValue(args: string[], flag: string): string | undefined {
 function usage(): string {
   return [
     "Usage:",
-    "  bun run apps/lrs-runner/src/cli.ts run --base-url <url> [--version 2.0.0|1.0.3] [--out <path>] [--username <user> --password <pass>]",
+    "  bun run apps/lrs-runner/src/cli.ts run --base-url <url> [--version 2.0.0|1.0.3] [--username <user> --password <pass>]",
+    "  Environment: LRS_BASE_URL, LRS_VERSION, LRS_USERNAME, LRS_PASSWORD",
+    "  Optional selection: --directory <csv> --file <csv> --grep <pattern>",
     "",
     "Examples:",
-    "  bun run apps/lrs-runner/src/cli.ts run --base-url http://localhost:8080/xapi --username janedoe --password supersecret --out tmp/agents/lrsql-run.json",
-    "  bun run apps/lrs-runner/src/cli.ts run --base-url http://localhost:8080/xapi --version 1.0.3 --out tmp/agents/lrsql-v103-run.json",
+    "  bun run apps/lrs-runner/src/cli.ts run --base-url http://localhost:8080/xapi --username janedoe --password supersecret",
+    "  bun run apps/lrs-runner/src/cli.ts run --base-url http://localhost:8080/xapi --version 1.0.3",
   ].join("\n");
 }
 
 function parseConfig(args: string[]): ExportRunConfig | undefined {
-  const baseUrl = getFlagValue(args, "--base-url");
-  const versionFlag = getFlagValue(args, "--version") ?? "2.0.0";
-  const outputPath = getFlagValue(args, "--out") ?? "tmp/agents/validate-run.json";
-  const username = getFlagValue(args, "--username");
-  const password = getFlagValue(args, "--password");
+  const baseUrl = getFlagValue(args, "--base-url") ?? process.env["LRS_BASE_URL"]?.trim();
+  const versionFlag = getFlagValue(args, "--version") ?? process.env["LRS_VERSION"]?.trim() ?? "2.0.0";
+  const directory = parseCsvFlag(args, "--directory");
+  const file = parseCsvFlag(args, "--file");
+  const grep = getFlagValue(args, "--grep");
+  const username = getFlagValue(args, "--username") ?? process.env["LRS_USERNAME"]?.trim();
+  const password = getFlagValue(args, "--password") ?? process.env["LRS_PASSWORD"]?.trim();
 
   if (!baseUrl) {
     return undefined;
@@ -57,8 +73,10 @@ function parseConfig(args: string[]): ExportRunConfig | undefined {
 
   return {
     baseUrl,
+    directory,
+    file,
+    grep,
     version: versionFlag,
-    outputPath,
     username,
     password,
   };
@@ -76,41 +94,25 @@ async function main(): Promise<number> {
         return 1;
       }
 
-      const scaffoldResult = await runLrs({
+      const execution = await runLrs({
         baseUrl: config.baseUrl,
+        directory: config.directory,
+        file: config.file,
+        grep: config.grep,
         version: config.version,
         username: config.username,
         password: config.password,
       });
 
-      const absoluteOutputPath = resolve(repoRoot, config.outputPath);
-      await mkdir(dirname(absoluteOutputPath), { recursive: true });
+      if (execution.stdout.length > 0) {
+        process.stdout.write(execution.stdout);
+      }
 
-      const payload = {
-        generatedAt: scaffoldResult.generatedAt,
-        target: scaffoldResult.target,
-        run: {
-          ...scaffoldResult.run,
-          root: scaffoldResult.root,
-        },
-      };
+      if (execution.stderr.length > 0) {
+        process.stderr.write(execution.stderr);
+      }
 
-      await writeFile(absoluteOutputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-
-      console.log(
-        JSON.stringify(
-          {
-            outputPath: absoluteOutputPath,
-            version: scaffoldResult.run.version,
-            status: scaffoldResult.run.status,
-            events: scaffoldResult.run.events.length,
-          },
-          null,
-          2,
-        ),
-      );
-
-      return scaffoldResult.run.status === "failed" ? 1 : 0;
+      return execution.exitCode;
     }
     case "validate-config": {
       parseConfig(args);

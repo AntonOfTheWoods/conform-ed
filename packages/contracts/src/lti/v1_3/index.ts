@@ -79,3 +79,6 @@ export const Lti13DerivedZodTemplates = {
     "Identity fields remain optional beyond the subject claim to keep the schema useful for adapter stubs and launch fixtures.",
   ],
 } as const;
+// Inferred types from exported Zod validators.
+export type CoreLaunchRequest = z.infer<typeof CoreLaunchRequestSchema>;
+export type CoreLaunchClaims = z.infer<typeof CoreLaunchClaimsSchema>;

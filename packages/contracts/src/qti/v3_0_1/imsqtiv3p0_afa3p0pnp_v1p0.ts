@@ -244,3 +244,26 @@ export const QtiAccessForAllPnpDocumentSchema = strictObject({
 export const QtiAccessForAllPnpRecordsDocumentSchema = strictObject({
   accessForAllPnpRecords: QtiAccessForAllPnpRecordsSchema,
 });
+// Inferred types from exported Zod validators.
+export type QtiPnpReplaceAccessMode = z.infer<typeof QtiPnpReplaceAccessModeSchema>;
+export type QtiPnpLanguageMode = z.infer<typeof QtiPnpLanguageModeSchema>;
+export type QtiPnpAdditionalTestingTime = z.infer<typeof QtiPnpAdditionalTestingTimeSchema>;
+export type QtiPnpBraille = z.infer<typeof QtiPnpBrailleSchema>;
+export type QtiPnpEnvironment = z.infer<typeof QtiPnpEnvironmentSchema>;
+export type QtiPnpFeatureName = z.infer<typeof QtiPnpFeatureNameSchema>;
+export type QtiPnpFeatureSet = z.infer<typeof QtiPnpFeatureSetSchema>;
+export type QtiPnpFontFace = z.infer<typeof QtiPnpFontFaceSchema>;
+export type QtiPnpInvertDisplayPolarity = z.infer<typeof QtiPnpInvertDisplayPolaritySchema>;
+export type QtiPnpLineReader = z.infer<typeof QtiPnpLineReaderSchema>;
+export type QtiPnpLongDescription = z.infer<typeof QtiPnpLongDescriptionSchema>;
+export type QtiPnpZoomAmount = z.infer<typeof QtiPnpZoomAmountSchema>;
+export type QtiPnpMagnification = z.infer<typeof QtiPnpMagnificationSchema>;
+export type QtiPnpSpoken = z.infer<typeof QtiPnpSpokenSchema>;
+export type QtiPnpTextAppearance = z.infer<typeof QtiPnpTextAppearanceSchema>;
+export type QtiPnpCalculator = z.infer<typeof QtiPnpCalculatorSchema>;
+export type QtiPnpPersonSourcedId = z.infer<typeof QtiPnpPersonSourcedIdSchema>;
+export type QtiAccessForAllPnp = z.infer<typeof QtiAccessForAllPnpSchema>;
+export type QtiAccessForAllPnpRecord = z.infer<typeof QtiAccessForAllPnpRecordSchema>;
+export type QtiAccessForAllPnpRecords = z.infer<typeof QtiAccessForAllPnpRecordsSchema>;
+export type QtiAccessForAllPnpDocument = z.infer<typeof QtiAccessForAllPnpDocumentSchema>;
+export type QtiAccessForAllPnpRecordsDocument = z.infer<typeof QtiAccessForAllPnpRecordsDocumentSchema>;

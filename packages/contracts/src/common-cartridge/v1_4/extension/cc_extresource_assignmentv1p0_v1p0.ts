@@ -47,3 +47,15 @@ export const AssignmentSchema = strictObject({
 export const AssignmentDocumentSchema = strictObject({
   assignment: AssignmentSchema,
 });
+// Inferred types from exported Zod validators.
+export type AssignmentTextType = z.infer<typeof AssignmentTextTypeSchema>;
+export type AssignmentAttachmentRole = z.infer<typeof AssignmentAttachmentRoleSchema>;
+export type AssignmentSubmissionFormatType = z.infer<typeof AssignmentSubmissionFormatTypeSchema>;
+export type AssignmentText = z.infer<typeof AssignmentTextSchema>;
+export type AssignmentAttachment = z.infer<typeof AssignmentAttachmentSchema>;
+export type AssignmentAttachments = z.infer<typeof AssignmentAttachmentsSchema>;
+export type AssignmentSubmissionFormat = z.infer<typeof AssignmentSubmissionFormatSchema>;
+export type AssignmentSubmissionFormats = z.infer<typeof AssignmentSubmissionFormatsSchema>;
+export type AssignmentExtensions = z.infer<typeof AssignmentExtensionsSchema>;
+export type Assignment = z.infer<typeof AssignmentSchema>;
+export type AssignmentDocument = z.infer<typeof AssignmentDocumentSchema>;

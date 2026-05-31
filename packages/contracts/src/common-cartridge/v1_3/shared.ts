@@ -57,3 +57,12 @@ export function collectDuplicates(values: string[]): string[] {
 export function asArray<T>(value: readonly T[] | T[] | undefined | null): T[] {
   return Array.isArray(value) ? [...value] : [];
 }
+// Inferred types from exported Zod validators.
+export type NonEmptyString = z.infer<typeof NonEmptyStringSchema>;
+export type UriReference = z.infer<typeof UriReferenceSchema>;
+export type YesNo = z.infer<typeof YesNoSchema>;
+export type LowerYesNo = z.infer<typeof LowerYesNoSchema>;
+export type XmlSpace = z.infer<typeof XmlSpaceSchema>;
+export type XmlForeignAttributes = z.infer<typeof XmlForeignAttributesSchema>;
+export type XmlExtensionNode = z.infer<typeof XmlExtensionNodeSchema>;
+export type XmlExtensionNodeList = z.infer<typeof XmlExtensionNodeListSchema>;
