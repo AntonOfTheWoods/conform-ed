@@ -45,8 +45,7 @@ Image builds should include OCI labels:
 - version tag
 - creation timestamp
 
-Release tooling now emits a machine-readable OCI release manifest (default path:
-`tmp/agents/releases/oci-release-manifest.json`) including image refs and compatibility hints.
+Release tooling now emits a machine-readable OCI release manifest including image refs and compatibility hints.
 
 Smoke verification validates:
 

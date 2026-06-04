@@ -17,7 +17,6 @@ The repository structure optimizes for three outcomes:
 - `infra/`: container and compose scaffolding.
 - `docs/`: architecture, suite, migration, and operational docs.
 - `scripts/`: release/image helper scripts.
-- `tmp/agents/`: temporary local artifacts.
 
 ## Application Layer
 

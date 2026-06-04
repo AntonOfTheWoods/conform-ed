@@ -1267,7 +1267,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           expect(stmt.actor).toEqual(canonicalActor);
           expect(stmt.verb.id).toEqual(mainVerb.id as string);
           expect(stmtSubStatement.verb.id).toEqual(subVerb.id as string);
-          expect(stmtSubStatement.object).toEqual(canonicalSubActivity);
+          expect(stmtSubStatement.object as unknown).toEqual(canonicalSubActivity);
           expect(stmtSubStatement.actor).toEqual(canonicalGroup);
         }
       });

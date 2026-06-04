@@ -16,7 +16,6 @@ The LRS runner now uses the copied upstream xAPI conformance harness to test a t
 - optional input: username and password for basic auth
 - env vars accepted by the tester: `LRS_BASE_URL`, `LRS_VERSION`, `LRS_USERNAME`, `LRS_PASSWORD`
 - optional selection flags: `--directory`, `--file`, `--grep`
-- artifacts and helper outputs should stay under repo-local `tmp/` paths when a file is needed
 
 ## Lanes
 

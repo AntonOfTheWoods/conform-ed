@@ -41,6 +41,16 @@ export const Cmi5KeywordExtensionSchema = strictObject({
 
 let Cmi5BlockSchema: z.ZodTypeAny;
 
+export const Cmi5MoveOnSchema = z.enum([
+  "NotApplicable",
+  "Passed",
+  "Completed",
+  "CompletedAndPassed",
+  "CompletedOrPassed",
+]);
+
+export const Cmi5LaunchMethodSchema = z.enum(["AnyWindow", "OwnWindow"]);
+
 export const Cmi5AuSchema = strictObject({
   id: UriSchema,
   title: Cmi5TextSchema,
@@ -49,9 +59,9 @@ export const Cmi5AuSchema = strictObject({
   url: UriSchema,
   launchParameters: z.string().optional(),
   entitlementKey: z.string().optional(),
-  moveOn: z.enum(["NotApplicable", "Passed", "Completed", "CompletedAndPassed", "CompletedOrPassed"]).optional(),
+  moveOn: Cmi5MoveOnSchema.optional(),
   masteryScore: z.number().min(0).max(1).optional(),
-  launchMethod: z.enum(["AnyWindow", "OwnWindow"]).optional(),
+  launchMethod: Cmi5LaunchMethodSchema.optional(),
   activityType: UriSchema.optional(),
   keywords: z.array(Cmi5KeywordReferenceSchema).min(1).optional(),
 });
@@ -97,6 +107,8 @@ export namespace Cmi5V1_0 {
     export const Block = Cmi5BlockSchema;
     export const CourseStructure = Cmi5CourseStructureSchema;
     export const CourseStructureDocument = Cmi5CourseStructureDocumentSchema;
+    export const MoveOn = Cmi5MoveOnSchema;
+    export const LaunchMethod = Cmi5LaunchMethodSchema;
   }
 }
 
@@ -127,6 +139,8 @@ export type Cmi5ObjectiveReference = z.infer<typeof Cmi5ObjectiveReferenceSchema
 export type Cmi5KeywordReference = z.infer<typeof Cmi5KeywordReferenceSchema>;
 export type Cmi5KeywordDefinition = z.infer<typeof Cmi5KeywordDefinitionSchema>;
 export type Cmi5KeywordExtension = z.infer<typeof Cmi5KeywordExtensionSchema>;
+export type Cmi5MoveOn = z.infer<typeof Cmi5MoveOnSchema>;
+export type Cmi5LaunchMethod = z.infer<typeof Cmi5LaunchMethodSchema>;
 export type Cmi5Au = z.infer<typeof Cmi5AuSchema>;
 export type Cmi5CourseStructureItem = z.infer<typeof Cmi5CourseStructureItemSchema>;
 export type Cmi5Course = z.infer<typeof Cmi5CourseSchema>;

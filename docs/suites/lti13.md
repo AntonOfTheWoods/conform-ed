@@ -13,7 +13,7 @@ LTI runner scaffolds module-oriented conformance execution for:
 
 - runner status: executable target matrix implemented (core-launch, deep-linking, AGS, NRPS)
 - adapter status: reference HTTP adapter with deterministic matrix responses
-- interop lane status: first orchestration entrypoint added via scripts/run-lti13-interop-lane.ts with role/profile metadata and machine-readable reports under tmp/agents
+- interop lane status: first orchestration entrypoint added via scripts/run-lti13-interop-lane.ts with role/profile metadata and machine-readable reports
 
 ## Milestones
 

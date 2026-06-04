@@ -239,6 +239,33 @@ test("xAPI statement result, person object, and resource queries validate missin
   ).toBe(true);
 });
 
+test("xAPI Agent schema enforces exactly one Inverse Functional Identifier", () => {
+  // exactly one — valid
+  expect(XapiV1_0_3.Schemas.Agent.safeParse({ mbox: "mailto:alice@example.com" }).success).toBe(true);
+  expect(XapiV1_0_3.Schemas.Agent.safeParse({ openid: "https://example.com/alice" }).success).toBe(true);
+  expect(XapiV1_0_3.Schemas.Agent.safeParse({ mbox_sha1sum: "da39a3ee5e6b4b0d3255bfef95601890afd80709" }).success).toBe(
+    true,
+  );
+  expect(
+    XapiV1_0_3.Schemas.Agent.safeParse({ account: { homePage: "https://lms.example.com", name: "alice" } }).success,
+  ).toBe(true);
+
+  // zero IFIs — invalid
+  expect(XapiV1_0_3.Schemas.Agent.safeParse({ objectType: "Agent", name: "Alice" }).success).toBe(false);
+
+  // two IFIs — invalid per spec: "An Agent MUST NOT include more than one Inverse Functional Identifier"
+  expect(
+    XapiV1_0_3.Schemas.Agent.safeParse({ mbox: "mailto:alice@example.com", openid: "https://example.com/alice" })
+      .success,
+  ).toBe(false);
+  expect(
+    XapiV2_0.Schemas.Agent.safeParse({
+      mbox: "mailto:alice@example.com",
+      account: { homePage: "https://lms.example.com", name: "alice" },
+    }).success,
+  ).toBe(false);
+});
+
 // LRS/Content schema tests
 test("xAPI HTTP method enum validates LRS operations", () => {
   expect(XapiV1_0_3.Schemas.HttpMethod.safeParse("GET").success).toBe(true);

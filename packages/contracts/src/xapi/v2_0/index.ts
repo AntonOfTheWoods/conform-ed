@@ -47,6 +47,8 @@ import {
   XapiResourceSchema,
   XapiResponseHeaderSchema,
   XapiVersionSchema,
+  AgentAsObjectSchema,
+  GroupAsObjectSchema,
 } from "../shared";
 
 export const ContextAgentSchema = strictObject({
@@ -70,7 +72,7 @@ export const SubStatementV2Schema = strictObject({
   objectType: z.literal("SubStatement"),
   actor: z.union([AgentSchema, GroupSchema]),
   verb: VerbSchema,
-  object: z.union([ActivitySchema, AgentSchema, GroupSchema, StatementRefSchema]),
+  object: z.union([ActivitySchema, AgentAsObjectSchema, GroupAsObjectSchema, StatementRefSchema]),
   result: ResultSchema.optional(),
   context: ContextV2Schema.optional(),
   timestamp: Iso8601TimestampSchema.optional(),
@@ -78,8 +80,8 @@ export const SubStatementV2Schema = strictObject({
 
 export const StatementObjectV2Schema = z.union([
   ActivitySchema,
-  AgentSchema,
-  GroupSchema,
+  AgentAsObjectSchema,
+  GroupAsObjectSchema,
   StatementRefSchema,
   SubStatementV2Schema,
 ]);

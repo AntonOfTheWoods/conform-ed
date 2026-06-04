@@ -43,8 +43,6 @@ infra/compose/
 schemas/
 schemas/v1/
 scripts/
-tmp/
-tmp/agents/
 ```
 
 2. Create root files:

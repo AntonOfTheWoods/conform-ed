@@ -48,13 +48,16 @@ export const AgentSchema = strictObject({
     .optional(),
   openid: UriSchema.optional(),
   account: AgentAccountSchema.optional(),
-}).refine(
-  (value) =>
-    hasDefined(value.mbox) || hasDefined(value.mbox_sha1sum) || hasDefined(value.openid) || hasDefined(value.account),
-  {
-    message: "An xAPI Agent requires at least one identifier",
-  },
-);
+}).superRefine((value, ctx) => {
+  const ifiCount = [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter(hasDefined).length;
+  if (ifiCount !== 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "An xAPI Agent requires exactly one Inverse Functional Identifier (mbox, mbox_sha1sum, openid, or account)",
+    });
+  }
+});
 
 export const GroupSchema = strictObject({
   objectType: z.literal("Group").optional(),
@@ -70,17 +73,21 @@ export const GroupSchema = strictObject({
   openid: UriSchema.optional(),
   account: AgentAccountSchema.optional(),
   member: z.array(AgentSchema).min(1).optional(),
-}).refine(
-  (value) =>
-    hasDefined(value.mbox) ||
-    hasDefined(value.mbox_sha1sum) ||
-    hasDefined(value.openid) ||
-    hasDefined(value.account) ||
-    hasDefined(value.member),
-  {
-    message: "An xAPI Group requires an identifier or member list",
-  },
-);
+}).superRefine((value, ctx) => {
+  const ifiCount = [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter(hasDefined).length;
+  if (ifiCount > 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "An identified xAPI Group MUST have exactly one Inverse Functional Identifier",
+    });
+  }
+  if (ifiCount === 0 && !hasDefined(value.member)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "An anonymous xAPI Group requires a member list",
+    });
+  }
+});
 
 export const PersonSchema = strictObject({
   objectType: z.literal("Person"),
@@ -130,6 +137,8 @@ export const InteractionComponentSchema = strictObject({
   description: LanguageMapSchema.optional(),
 });
 
+const interactionSubProperties = ["correctResponsesPattern", "choices", "scale", "source", "target", "steps"] as const;
+
 export const ActivityDefinitionSchema = strictObject({
   name: LanguageMapSchema.optional(),
   description: LanguageMapSchema.optional(),
@@ -143,6 +152,17 @@ export const ActivityDefinitionSchema = strictObject({
   target: z.array(InteractionComponentSchema).min(1).optional(),
   steps: z.array(InteractionComponentSchema).min(1).optional(),
   extensions: ExtensionsSchema.optional(),
+}).superRefine((value, ctx) => {
+  if (value.interactionType !== undefined) return;
+  for (const prop of interactionSubProperties) {
+    if (value[prop] !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Activity definition property '${prop}' requires interactionType to be set`,
+        path: [prop],
+      });
+    }
+  }
 });
 
 export const ActivitySchema = strictObject({
@@ -161,6 +181,29 @@ export const ScoreSchema = strictObject({
   raw: z.number().optional(),
   min: z.number().optional(),
   max: z.number().optional(),
+}).superRefine((value, ctx) => {
+  const { min, max, raw } = value;
+  if (min !== undefined && max !== undefined && min >= max) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Score max must be greater than min",
+      path: ["max"],
+    });
+  }
+  if (raw !== undefined && min !== undefined && raw < min) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Score raw must be greater than or equal to min",
+      path: ["raw"],
+    });
+  }
+  if (raw !== undefined && max !== undefined && raw > max) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Score raw must be less than or equal to max",
+      path: ["raw"],
+    });
+  }
 });
 
 export const ResultSchema = strictObject({
@@ -199,6 +242,7 @@ export const AttachmentSchema = strictObject({
   length: z.number().int().nonnegative(),
   sha2: AttachmentSha2Schema,
   fileUrl: z.url().optional(),
+  contentBase64: z.string().optional(),
 });
 
 export const XapiDocumentSchema = strictObject({
@@ -283,11 +327,16 @@ export const ActivityProfileDocumentListingQuerySchema = strictObject({
 
 export const XapiDocumentIdListSchema = z.array(NonEmptyStringSchema);
 
+// When Agent or Group is used as a Statement Object, objectType is required per spec.
+// "When Agent is used as a Statement Object, the objectType property MUST be included."
+export const AgentAsObjectSchema = AgentSchema.and(z.object({ objectType: z.literal("Agent") }));
+export const GroupAsObjectSchema = GroupSchema.and(z.object({ objectType: z.literal("Group") }));
+
 export const SubStatementSchema = strictObject({
   objectType: z.literal("SubStatement"),
   actor: z.union([AgentSchema, GroupSchema]),
   verb: VerbSchema,
-  object: z.union([ActivitySchema, AgentSchema, GroupSchema, StatementRefSchema]),
+  object: z.union([ActivitySchema, AgentAsObjectSchema, GroupAsObjectSchema, StatementRefSchema]),
   result: ResultSchema.optional(),
   context: ContextSchema.optional(),
   timestamp: Iso8601TimestampSchema.optional(),
@@ -295,8 +344,8 @@ export const SubStatementSchema = strictObject({
 
 export const StatementObjectSchema = z.union([
   ActivitySchema,
-  AgentSchema,
-  GroupSchema,
+  AgentAsObjectSchema,
+  GroupAsObjectSchema,
   StatementRefSchema,
   SubStatementSchema,
 ]);

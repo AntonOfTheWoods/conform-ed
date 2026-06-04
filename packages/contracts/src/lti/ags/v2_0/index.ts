@@ -29,7 +29,7 @@ export const LineItemSchema = strictObject({
   gradesReleased: z.boolean().optional(),
 });
 
-export const ScoreProgressSchema = z.enum(["Completed", "Failed", "InProgress", "Initialized", "Submitted", "Started"]);
+export const ScoreProgressSchema = z.enum(["Completed", "InProgress", "Initialized", "Submitted", "Started"]);
 export const GradingProgressSchema = z.enum(["Failed", "FullyGraded", "NotReady", "Pending", "PendingManual"]);
 
 export const ScoreSubmissionSchema = strictObject({
