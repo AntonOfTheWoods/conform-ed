@@ -11,7 +11,7 @@
  */
 
 import { join } from "path";
-import { readdirSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync } from "fs";
 
 const ROOT = join(import.meta.dir, "..");
 const DRY_RUN = process.env.DRY_RUN === "1";
@@ -37,7 +37,7 @@ function run(args: string[], opts: { cwd?: string; capture?: true } = {}): strin
 }
 
 function readJson(path: string): Record<string, unknown> {
-  return JSON.parse(Bun.fileSync(path).text());
+  return JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
 }
 
 function writeJson(path: string, value: Record<string, unknown>): void {
@@ -46,7 +46,7 @@ function writeJson(path: string, value: Record<string, unknown>): void {
     console.log(`[dry-run] write ${path} (version → ${(value as { version: string }).version})`);
     return;
   }
-  Bun.write(path, formatted);
+  writeFileSync(path, formatted, "utf8");
 }
 
 // --- validation --------------------------------------------------------------
