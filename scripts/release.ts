@@ -140,7 +140,7 @@ run(["git", "tag", version]);
 console.log(`Pushing commits and tag ${version}...`);
 // Push branch and the specific tag
 const branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"], { capture: true });
-run(["git", "push", "origin", branch, version]);
+run(["git", "push", "upstream", branch, version]);
 
 console.log(`\nTag ${version} pushed — OCI image CI builds will start automatically.\n`);
 
