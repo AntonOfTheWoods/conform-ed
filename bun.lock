@@ -68,8 +68,12 @@
     },
     "packages/contracts": {
       "name": "@conform-ed/contracts",
+      "version": "0.0.8",
       "devDependencies": {
         "fast-xml-parser": "^5.3.1",
+      },
+      "peerDependencies": {
+        "zod": ">=4.4.0",
       },
     },
     "packages/core": {
