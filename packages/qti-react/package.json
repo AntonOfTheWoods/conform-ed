@@ -1,0 +1,33 @@
+{
+  "name": "@conform-ed/qti-react",
+  "version": "0.0.0",
+  "files": [
+    "src",
+    "dist"
+  ],
+  "type": "module",
+  "module": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir dist --format esm --target browser --external react --external react-dom --external zod",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint --config ../../.oxlintrc.jsonc .",
+    "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19",
+    "react": "^19.2.7",
+    "react-dom": "^19"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "zod": ">=4.4.0"
+  }
+}

@@ -1,0 +1,44 @@
+/**
+ * Runtime view types for the headless core. These are structural views of the
+ * `@conform-ed/contracts` QTI 3.0.1 shapes — the runtime validates items with the
+ * contract schemas, but works against these narrowed types because several contract
+ * schemas are `z.lazy` (statically `any`). No React or Mantine here.
+ */
+
+/** A candidate response for one interaction, keyed in state by `responseIdentifier`. */
+export type ResponseValue = string | readonly string[] | null;
+
+export type Cardinality = "single" | "multiple" | "ordered" | "record";
+
+export interface CorrectResponseView {
+  readonly values: ReadonlyArray<{ readonly value: string }>;
+}
+
+export interface MapEntryView {
+  readonly mapKey: string;
+  readonly mappedValue: number;
+  readonly caseSensitive?: boolean;
+}
+
+export interface MappingView {
+  readonly mapEntries: readonly MapEntryView[];
+  readonly lowerBound?: number;
+  readonly upperBound?: number;
+  readonly defaultValue?: number;
+}
+
+export interface ResponseDeclarationView {
+  readonly identifier: string;
+  readonly cardinality: Cardinality;
+  readonly baseType?: string;
+  readonly correctResponse?: CorrectResponseView;
+  readonly mapping?: MappingView;
+}
+
+/** The scored outcome for one response variable. */
+export interface ScoreResult {
+  readonly identifier: string;
+  readonly score: number;
+  readonly maxScore: number;
+  readonly correct: boolean;
+}
