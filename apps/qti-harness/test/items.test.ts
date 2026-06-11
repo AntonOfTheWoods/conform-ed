@@ -33,7 +33,7 @@ describe("harness sample items", () => {
 
     expect(report.deliverable).toBe(false);
     expect(report.issues[0]?.type).toBe("unsupported-interaction");
-    expect(report.issues[0]?.name).toBe("drawingInteraction");
+    expect(report.issues[0]?.name).toBe("customInteraction");
   });
 
   test("the dice-roller PCI module resolves through the harness registry", () => {

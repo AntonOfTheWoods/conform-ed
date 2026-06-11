@@ -121,6 +121,7 @@ export {
 export {
   associateInteraction,
   choiceInteraction,
+  drawingInteraction,
   endAttemptInteraction,
   extendedTextInteraction,
   gapMatchInteraction,
@@ -144,6 +145,7 @@ export {
 export {
   AssociateReferenceSkin,
   ChoiceReferenceSkin,
+  DrawingReferenceSkin,
   EndAttemptReferenceSkin,
   ExtendedTextReferenceSkin,
   GapMatchReferenceSkin,

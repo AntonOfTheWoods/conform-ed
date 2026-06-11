@@ -799,17 +799,34 @@ export const harnessItems: readonly HarnessItem[] = [
     },
   },
   {
-    id: "unsupported",
-    title: "drawingInteraction — not yet supported (capability gate demo)",
+    id: "drawing",
+    title: "drawingInteraction — freehand canvas over a stage image",
     item: {
       responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "file" }],
       itemBody: {
         content: [
-          { kind: "xml", name: "p", value: "Sketch the kanji stroke order." },
+          { kind: "xml", name: "p", value: "Trace the two islands on the map." },
           {
             kind: "drawingInteraction",
             responseIdentifier: "RESPONSE",
-            object: { data: "images/grid.png", width: 200, height: 200 },
+            prompt: { content: [{ kind: "xml", name: "p", value: "Draw with the pointer; Clear restarts." }] },
+            object: { data: harnessStageImage, width: 400, height: 300 },
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "unsupported",
+    title: "customInteraction — not supported (capability gate demo)",
+    item: {
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "string" }],
+      itemBody: {
+        content: [
+          { kind: "xml", name: "p", value: "A vendor-specific custom interaction." },
+          {
+            kind: "customInteraction",
+            responseIdentifier: "RESPONSE",
           },
         ],
       },

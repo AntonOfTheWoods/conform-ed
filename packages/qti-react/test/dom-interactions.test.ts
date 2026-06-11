@@ -290,6 +290,7 @@ describe("registry completeness", () => {
     expect(qtiCoreInteractions.map((descriptor) => descriptor.kind).sort()).toEqual([
       "associateInteraction",
       "choiceInteraction",
+      "drawingInteraction",
       "endAttemptInteraction",
       "extendedTextInteraction",
       "gapMatchInteraction",

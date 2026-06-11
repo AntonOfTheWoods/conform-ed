@@ -158,6 +158,20 @@ function reshapeContentNode(node: Record<string, unknown>): Record<string, unkno
       return { ...rest, object: toStageObject(image) };
     }
 
+    case "drawingInteraction": {
+      // The stage arrives as generic content (<object> or <picture>/<img>); adapt it
+      // to the graphic-family object shape the descriptor expects.
+      const { content, ...rest } = node;
+      const media = asRecords(content).find(
+        (fragment) =>
+          fragment["kind"] === "xml" &&
+          typeof fragment["name"] === "string" &&
+          ["object", "picture", "img"].includes(fragment["name"]),
+      );
+
+      return { ...rest, object: toStageObject(media) };
+    }
+
     case "graphicGapMatchInteraction": {
       const { image, gapChoices, ...rest } = node;
       // Both gap choice kinds become tray entries: gapImg carries an image object,

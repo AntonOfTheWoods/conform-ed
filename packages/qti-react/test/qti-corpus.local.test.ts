@@ -106,10 +106,10 @@ corpusTest(
     expect(tests).toBeGreaterThanOrEqual(25);
 
     // The recorded floors (raise as the stack grows — they must never go down):
-    // items 309/312 (99.0%) after the XInclude rung; the 3 remaining are
-    // drawingInteraction (2) and customOperator (1).
+    // items 311/312 (99.7%) after the drawingInteraction rung; the 1 remaining is
+    // customOperator (vendor-defined RP, unsupported by policy).
     // tests 30/30 (100%) after the number* aggregate rung.
-    expect(deliverable).toBeGreaterThanOrEqual(309);
+    expect(deliverable).toBeGreaterThanOrEqual(311);
     expect(deliverableTests).toBeGreaterThanOrEqual(30);
   },
   60000,

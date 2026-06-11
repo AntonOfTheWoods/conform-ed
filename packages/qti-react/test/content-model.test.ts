@@ -22,7 +22,8 @@ describe("content model allowlist", () => {
     expect(isInteractionKind(v0ContentModel, "choiceInteraction")).toBe(true);
     expect(isInteractionKind(v0ContentModel, "uploadInteraction")).toBe(true);
     expect(isInteractionKind(v0ContentModel, "hotspotInteraction")).toBe(true);
-    expect(isInteractionKind(v0ContentModel, "drawingInteraction")).toBe(false);
+    expect(isInteractionKind(v0ContentModel, "drawingInteraction")).toBe(true);
+    expect(isInteractionKind(v0ContentModel, "customInteraction")).toBe(false);
   });
 });
 

@@ -9,6 +9,7 @@ import type { SkinRegistry } from "../runtime";
 
 import { AssociateReferenceSkin } from "./associate";
 import { ChoiceReferenceSkin } from "./choice";
+import { DrawingReferenceSkin } from "./drawing";
 import { EndAttemptReferenceSkin } from "./end-attempt";
 import { ExtendedTextReferenceSkin } from "./extended-text";
 import { GapMatchReferenceSkin } from "./gap-match";
@@ -30,6 +31,7 @@ import { UploadReferenceSkin } from "./upload";
 export { textOf } from "./content";
 export { AssociateReferenceSkin } from "./associate";
 export { ChoiceReferenceSkin } from "./choice";
+export { DrawingReferenceSkin } from "./drawing";
 export { EndAttemptReferenceSkin } from "./end-attempt";
 export { ExtendedTextReferenceSkin } from "./extended-text";
 export { GapMatchReferenceSkin } from "./gap-match";
@@ -52,6 +54,7 @@ export { UploadReferenceSkin } from "./upload";
 export const referenceSkin: SkinRegistry = {
   associateInteraction: AssociateReferenceSkin,
   choiceInteraction: ChoiceReferenceSkin,
+  drawingInteraction: DrawingReferenceSkin,
   endAttemptInteraction: EndAttemptReferenceSkin,
   extendedTextInteraction: ExtendedTextReferenceSkin,
   gapMatchInteraction: GapMatchReferenceSkin,
