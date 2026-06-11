@@ -14,7 +14,22 @@ export {
 
 export { foldString, mapResponse, matchCorrect, scoreResponse } from "./response-processing";
 
-export { createAttemptStore, type AttemptSnapshot, type AttemptStore } from "./store";
+export { collectRpIssues, executeResponseProcessing, resolveTemplate } from "./rp";
+
+export type {
+  OutcomeDeclarationView,
+  OutcomeValue,
+  ResponseNormalization,
+  ResponseProcessingContext,
+  ResponseProcessingResult,
+  ResponseProcessingView,
+  RpConditionBranch,
+  RpExpressionView,
+  RpRuleView,
+  RpScalar,
+} from "./rp";
+
+export { createAttemptStore, type AttemptSnapshot, type AttemptStore, type AttemptStoreOptions } from "./store";
 
 export {
   createQtiRuntime,
@@ -25,6 +40,7 @@ export {
   type CapabilityIssue,
   type CapabilityIssueType,
   type CapabilityReport,
+  type FeedbackView,
   type InteractionDescriptor,
   type InteractionNode,
   type InteractionRenderProps,

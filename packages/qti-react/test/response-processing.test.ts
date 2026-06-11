@@ -58,10 +58,17 @@ describe("matchCorrect", () => {
     expect(matchCorrect(singleChoice, "choiceb")).toBe(false);
   });
 
-  test("string base type folds case and diacritics", () => {
-    expect(matchCorrect(textEntry, "cafe")).toBe(true);
-    expect(matchCorrect(textEntry, "CAFÉ")).toBe(true);
+  test("string base type is spec-strict by default (ADR-0004)", () => {
+    expect(matchCorrect(textEntry, "café")).toBe(true);
+    expect(matchCorrect(textEntry, "cafe")).toBe(false);
+    expect(matchCorrect(textEntry, "CAFÉ")).toBe(false);
     expect(matchCorrect(textEntry, "tea")).toBe(false);
+  });
+
+  test("the Response Normalization hook restores leniency as an opt-in", () => {
+    expect(matchCorrect(textEntry, "cafe", foldString)).toBe(true);
+    expect(matchCorrect(textEntry, "CAFÉ", foldString)).toBe(true);
+    expect(matchCorrect(textEntry, "tea", foldString)).toBe(false);
   });
 
   test("multiple cardinality is order-independent and requires exact set", () => {

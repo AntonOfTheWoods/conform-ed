@@ -25,6 +25,8 @@ export const harnessItems: readonly HarnessItem[] = [
           correctResponse: { values: [{ value: "TOKYO" }] },
         },
       ],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+      responseProcessing: { template: "https://purl.imsglobal.org/spec/qti/v3p0/rptemplates/match_correct" },
       itemBody: {
         content: [
           { kind: "xml", name: "p", value: "Which city is the capital of Japan?" },
@@ -64,6 +66,8 @@ export const harnessItems: readonly HarnessItem[] = [
           },
         },
       ],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+      responseProcessing: { template: "https://purl.imsglobal.org/spec/qti/v3p0/rptemplates/map_response" },
       itemBody: {
         content: [
           { kind: "xml", name: "p", value: "Which scripts are Japanese syllabaries?" },
@@ -335,6 +339,89 @@ export const harnessItems: readonly HarnessItem[] = [
                 ],
               },
             ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "feedback",
+    title: "choiceInteraction — custom RP with feedback (ADR-0004)",
+    item: {
+      responseDeclarations: [
+        {
+          identifier: "RESPONSE",
+          cardinality: "single",
+          baseType: "identifier",
+          correctResponse: { values: [{ value: "GA" }] },
+        },
+      ],
+      outcomeDeclarations: [
+        { identifier: "SCORE", cardinality: "single", baseType: "float" },
+        { identifier: "FEEDBACK", cardinality: "single", baseType: "identifier" },
+      ],
+      responseProcessing: {
+        rules: [
+          {
+            kind: "responseCondition",
+            responseIf: {
+              expression: {
+                kind: "match",
+                expressions: [
+                  { kind: "variable", identifier: "RESPONSE" },
+                  { kind: "correct", identifier: "RESPONSE" },
+                ],
+              },
+              rules: [
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "SCORE",
+                  expression: { kind: "baseValue", baseType: "float", value: 1 },
+                },
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "FEEDBACK",
+                  expression: { kind: "baseValue", baseType: "identifier", value: "CORRECT" },
+                },
+              ],
+            },
+            responseElse: {
+              rules: [
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "FEEDBACK",
+                  expression: { kind: "baseValue", baseType: "identifier", value: "INCORRECT" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      modalFeedbacks: [
+        {
+          outcomeIdentifier: "FEEDBACK",
+          identifier: "CORRECT",
+          showHide: "show",
+          content: [{ kind: "xml", name: "p", value: "正解！ が marks the subject of すき." }],
+        },
+      ],
+      itemBody: {
+        content: [
+          { kind: "xml", name: "p", value: "ねこ ___ すき です。 (Choose the particle.)" },
+          {
+            kind: "choiceInteraction",
+            responseIdentifier: "RESPONSE",
+            simpleChoices: [
+              { identifier: "GA", content: [{ kind: "xml", name: "span", value: "が" }] },
+              { identifier: "WO", content: [{ kind: "xml", name: "span", value: "を" }] },
+            ],
+          },
+          {
+            kind: "feedbackBlock",
+            outcomeIdentifier: "FEEDBACK",
+            identifier: "INCORRECT",
+            showHide: "show",
+            content: [{ kind: "xml", name: "p", value: "Not quite — すき takes が for its object." }],
           },
         ],
       },

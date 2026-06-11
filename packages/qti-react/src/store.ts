@@ -8,12 +8,24 @@
  */
 
 import { scoreResponse } from "./response-processing";
+import { executeResponseProcessing } from "./rp";
+import type { OutcomeDeclarationView, OutcomeValue, ResponseNormalization, ResponseProcessingView } from "./rp";
 import type { ResponseDeclarationView, ResponseValue, ScoreResult } from "./types";
 
 export interface AttemptSnapshot {
   readonly responses: Readonly<Record<string, ResponseValue>>;
   readonly submitted: boolean;
+  /** Per-response heuristic results backing the per-interaction feedback chrome. */
   readonly scores: readonly ScoreResult[];
+  /** Item outcomes of record from the RP interpreter; empty before submit or without RP. */
+  readonly outcomes: Readonly<Record<string, OutcomeValue>>;
+}
+
+export interface AttemptStoreOptions {
+  readonly outcomeDeclarations?: readonly OutcomeDeclarationView[];
+  readonly responseProcessing?: ResponseProcessingView;
+  /** The Response Normalization hook (ADR-0004); applies to scores and outcomes alike. */
+  readonly normalization?: ResponseNormalization;
 }
 
 export interface AttemptStore {
@@ -29,6 +41,7 @@ export interface AttemptStore {
 export function createAttemptStore(
   declarations: readonly ResponseDeclarationView[],
   initialResponses: Readonly<Record<string, ResponseValue>>,
+  options?: AttemptStoreOptions,
 ): AttemptStore {
   const declarationsById = new Map(declarations.map((declaration) => [declaration.identifier, declaration]));
   const listeners = new Set<() => void>();
@@ -37,6 +50,7 @@ export function createAttemptStore(
     responses: { ...initialResponses },
     submitted: false,
     scores: [],
+    outcomes: {},
   };
 
   function emit(next: AttemptSnapshot): void {
@@ -49,8 +63,21 @@ export function createAttemptStore(
 
   function computeScores(responses: Readonly<Record<string, ResponseValue>>): readonly ScoreResult[] {
     return [...declarationsById.values()].map((declaration) =>
-      scoreResponse(declaration, responses[declaration.identifier] ?? null),
+      scoreResponse(declaration, responses[declaration.identifier] ?? null, options?.normalization),
     );
+  }
+
+  function computeOutcomes(responses: Readonly<Record<string, ResponseValue>>): Readonly<Record<string, OutcomeValue>> {
+    if (!options?.responseProcessing) {
+      return {};
+    }
+
+    return executeResponseProcessing(options.responseProcessing, {
+      responseDeclarations: declarations,
+      outcomeDeclarations: options.outcomeDeclarations ?? [],
+      responses,
+      normalization: options.normalization,
+    }).outcomes;
   }
 
   // Arrow-function properties: inherently bound, so they can be passed by reference
@@ -79,14 +106,15 @@ export function createAttemptStore(
 
     submit: () => {
       const scores = computeScores(snapshot.responses);
+      const outcomes = computeOutcomes(snapshot.responses);
 
-      emit({ ...snapshot, submitted: true, scores });
+      emit({ ...snapshot, submitted: true, scores, outcomes });
 
       return scores;
     },
 
     reset: () => {
-      emit({ responses: { ...initialResponses }, submitted: false, scores: [] });
+      emit({ responses: { ...initialResponses }, submitted: false, scores: [], outcomes: {} });
     },
   };
 }

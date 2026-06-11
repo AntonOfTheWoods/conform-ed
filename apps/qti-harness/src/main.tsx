@@ -36,6 +36,16 @@ function AttemptControls() {
           ))}
         </dl>
       ) : null}
+      {attempt.submitted && Object.keys(attempt.outcomes).length > 0 ? (
+        <dl data-testid="outcomes" aria-label="Item outcomes (RP interpreter)">
+          {Object.entries(attempt.outcomes).map(([identifier, value]) => (
+            <div key={identifier}>
+              <dt>{identifier}</dt>
+              <dd>{value === null ? "NULL" : Array.isArray(value) ? value.join(", ") : String(value)}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </footer>
   );
 }

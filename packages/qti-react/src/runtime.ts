@@ -20,9 +20,14 @@ import {
 } from "react";
 import type { ZodType } from "zod";
 
+import type { CapabilityIssue, CapabilityReport } from "./capability";
 import { isAllowedFlowElement, sanitizeAttributes, v0ContentModel, type ContentModel } from "./content-model";
+import { collectRpIssues } from "./rp";
+import type { OutcomeDeclarationView, OutcomeValue, ResponseNormalization, ResponseProcessingView } from "./rp";
 import { createAttemptStore, type AttemptSnapshot, type AttemptStore } from "./store";
 import type { Cardinality, ResponseDeclarationView, ResponseValue, ScoreResult } from "./types";
+
+export type { CapabilityIssue, CapabilityIssueType, CapabilityReport } from "./capability";
 
 // ---------- Node views (structural; validated upstream by @conform-ed/contracts) ----------
 
@@ -42,8 +47,19 @@ export interface InteractionNode {
 
 export type BodyNode = XmlContentNode | InteractionNode | { kind: string; value?: string; children?: BodyNode[] };
 
+/** A feedback element's view: feedbackInline/feedbackBlock in the body, or modalFeedback. */
+export interface FeedbackView {
+  outcomeIdentifier: string;
+  identifier: string;
+  showHide?: "show" | "hide";
+  content?: readonly BodyNode[];
+}
+
 export interface AssessmentItemView {
   responseDeclarations: readonly ResponseDeclarationView[];
+  outcomeDeclarations?: readonly OutcomeDeclarationView[];
+  responseProcessing?: ResponseProcessingView;
+  modalFeedbacks?: readonly FeedbackView[];
   itemBody: { content?: BodyNode[] };
 }
 
@@ -111,27 +127,18 @@ export interface QtiRuntimeConfig {
   readonly contentModel?: ContentModel;
   /** Replaces the default Unsupported Placeholder for interaction nodes this runtime cannot render. */
   readonly renderUnsupported?: (node: InteractionNode) => ReactNode;
-}
-
-// ---------- Capability Report (ADR-0003) ----------
-
-export type CapabilityIssueType = "unsupported-interaction" | "invalid-interaction" | "unsupported-element";
-
-export interface CapabilityIssue {
-  readonly type: CapabilityIssueType;
-  /** The interaction kind or element name at issue. */
-  readonly name: string;
-  readonly responseIdentifier?: string;
-  readonly detail?: string;
-}
-
-export interface CapabilityReport {
-  readonly deliverable: boolean;
-  readonly issues: readonly CapabilityIssue[];
+  /** The Response Normalization hook (ADR-0004): opt-in candidate-input leniency. */
+  readonly normalization?: ResponseNormalization;
 }
 
 export interface ItemRendererProps {
   item: AssessmentItemView;
+  /**
+   * An externally owned attempt store. Without it the renderer creates a fresh
+   * per-mount store; passing one enables review/replay modes (rehydrate a stored,
+   * already-submitted attempt) and server-side rendering of submitted states.
+   */
+  store?: AttemptStore;
   // Rendered inside the same runtime context as the item body, after it. Lets a consumer
   // drop controls (a Submit bar, a score panel) that call `useAttempt()` for this item —
   // the attempt store is per-item and scoped to this subtree.
@@ -196,6 +203,23 @@ function isInteractionNode(node: BodyNode): node is InteractionNode {
   return node.kind !== "xml" && typeof (node as { responseIdentifier?: unknown }).responseIdentifier === "string";
 }
 
+const feedbackKinds = new Set(["feedbackInline", "feedbackBlock"]);
+
+function isFeedbackNode(node: BodyNode): boolean {
+  return feedbackKinds.has(node.kind);
+}
+
+/** QTI showHide semantics: `show` reveals on a matched outcome, `hide` reveals on a miss. */
+function feedbackVisible(outcome: OutcomeValue, feedback: FeedbackView, submitted: boolean): boolean {
+  if (!submitted) {
+    return false;
+  }
+
+  const matched = Array.isArray(outcome) ? outcome.includes(feedback.identifier) : outcome === feedback.identifier;
+
+  return matched !== (feedback.showHide === "hide");
+}
+
 export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
   const model = config.contentModel ?? v0ContentModel;
   const descriptorsByKind = new Map(config.interactions.map((descriptor) => [descriptor.kind, descriptor]));
@@ -244,6 +268,15 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       return renderUnsupported(node, key);
     }
 
+    if (isFeedbackNode(node)) {
+      return createElement(FeedbackHost, {
+        key,
+        feedback: node as unknown as FeedbackView,
+        element: node.kind === "feedbackInline" ? "span" : "div",
+        overrides,
+      });
+    }
+
     if (node.kind === "xml") {
       return renderFlow(node as XmlContentNode, key, overrides);
     }
@@ -251,6 +284,46 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     const value = (node as { value?: string }).value;
 
     return typeof value === "string" ? value : null;
+  }
+
+  function FeedbackHost({
+    feedback,
+    element,
+    overrides,
+  }: {
+    feedback: FeedbackView;
+    element: "span" | "div";
+    overrides?: NodeOverrides;
+  }): ReactNode {
+    const { store } = useRuntimeContext();
+    const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+    const outcome = snapshot.outcomes[feedback.outcomeIdentifier] ?? null;
+
+    if (!feedbackVisible(outcome, feedback, snapshot.submitted)) {
+      return null;
+    }
+
+    return createElement(
+      element,
+      { "data-qti-feedback": feedback.identifier },
+      feedback.content?.map((child, index) => renderNode(child, index, overrides)),
+    );
+  }
+
+  function ModalFeedbackHost({ feedback }: { feedback: FeedbackView }): ReactNode {
+    const { store } = useRuntimeContext();
+    const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+    const outcome = snapshot.outcomes[feedback.outcomeIdentifier] ?? null;
+
+    if (!feedbackVisible(outcome, feedback, snapshot.submitted)) {
+      return null;
+    }
+
+    return createElement(
+      "div",
+      { role: "status", "data-qti-modal-feedback": feedback.identifier },
+      feedback.content?.map((child, index) => renderNode(child, index)),
+    );
   }
 
   function InteractionHost({ node }: { node: InteractionNode }): ReactNode {
@@ -342,17 +415,21 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     });
   }
 
-  function ItemRenderer({ item, children }: ItemRendererProps): ReactNode {
-    const store = useMemo(() => {
-      const initial: Record<string, ResponseValue> = {};
-
-      for (const node of item.itemBody.content ?? []) {
-        // initial responses are seeded lazily by skins; declarations drive scoring.
-        void node;
-      }
-
-      return createAttemptStore(item.responseDeclarations, initial);
-    }, [item]);
+  function ItemRenderer({ item, store: externalStore, children }: ItemRendererProps): ReactNode {
+    const store = useMemo(
+      () =>
+        externalStore ??
+        createAttemptStore(
+          item.responseDeclarations,
+          {},
+          {
+            outcomeDeclarations: item.outcomeDeclarations,
+            responseProcessing: item.responseProcessing,
+            normalization: config.normalization,
+          },
+        ),
+      [item, externalStore],
+    );
 
     const declarationsById = useMemo(
       () => new Map(item.responseDeclarations.map((declaration) => [declaration.identifier, declaration])),
@@ -360,8 +437,11 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     );
 
     const body = (item.itemBody.content ?? []).map((node, index) => renderNode(node, index));
+    const modals = (item.modalFeedbacks ?? []).map((feedback, index) =>
+      createElement(ModalFeedbackHost, { key: index, feedback }),
+    );
 
-    return createElement(RuntimeContext.Provider, { value: { store, declarationsById } }, body, children);
+    return createElement(RuntimeContext.Provider, { value: { store, declarationsById } }, body, modals, children);
   }
 
   function useAttempt(): AttemptController {
@@ -389,6 +469,14 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     }
 
     function walk(node: BodyNode): void {
+      if (isFeedbackNode(node)) {
+        for (const child of (node as unknown as FeedbackView).content ?? []) {
+          walk(child);
+        }
+
+        return;
+      }
+
       if (isInteractionNode(node)) {
         const descriptor = descriptorsByKind.get(node.kind);
 
@@ -434,6 +522,16 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
 
     for (const node of item.itemBody.content ?? []) {
       walk(node);
+    }
+
+    for (const feedback of item.modalFeedbacks ?? []) {
+      for (const child of feedback.content ?? []) {
+        walk(child);
+      }
+    }
+
+    for (const issue of collectRpIssues(item.responseProcessing)) {
+      report(issue);
     }
 
     return { deliverable: issues.length === 0, issues };

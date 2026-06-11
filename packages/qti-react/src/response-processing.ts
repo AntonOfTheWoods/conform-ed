@@ -1,17 +1,22 @@
 /**
- * Client-side response processing for the v0 standard scoring templates.
- *
- * Implements `match_correct` and `map_response` (QTI's two standard RP templates),
- * which cover the v0 interactions (choice, textEntry, inlineChoice). Pure functions:
- * deterministic given (declaration, response), so scoring is replayable and runs
- * fully offline in the headless core. Transitional: ADR-0004 replaces this with a
- * staged RP interpreter, and the case/diacritic folding below moves behind the
- * opt-in Response Normalization hook (spec-strict defaults).
+ * Standard-template scoring helpers, spec-strict by default (ADR-0004). `match_correct`
+ * is an exact match and mapping entries default to caseSensitive=true, per spec. The
+ * optional `normalize` parameter is the Response Normalization hook: a consumer-
+ * configured transform applied to both sides of string comparisons (off by default,
+ * always off in conformance runs). The RP interpreter (`src/rp/`) reuses these for its
+ * `mapResponse` operator; `scoreResponse` also backs the per-interaction feedback
+ * chrome in the runtime. Pure functions: deterministic given (declaration, response),
+ * so scoring is replayable and runs fully offline in the headless core.
  */
 
+import type { ResponseNormalization } from "./rp/types";
 import type { ResponseDeclarationView, ResponseValue, ScoreResult } from "./types";
 
-/** Lowercase + strip combining diacritics, for non-case/accent-sensitive comparison. */
+/**
+ * Lowercase + strip combining diacritics. Exported as a ready-made Response
+ * Normalization for language-learning leniency ("cafe" ≈ "Café") — a documented
+ * deviation a consumer must opt into.
+ */
 export function foldString(value: string): string {
   return value
     .normalize("NFD")
@@ -29,10 +34,6 @@ function asList(response: ResponseValue): string[] {
 
 function isStringBaseType(declaration: ResponseDeclarationView): boolean {
   return declaration.baseType === "string" || declaration.baseType === undefined;
-}
-
-function valuesEqual(a: string, b: string, fold: boolean): boolean {
-  return fold ? foldString(a) === foldString(b) : a === b;
 }
 
 /**
@@ -55,7 +56,10 @@ function pairsEqual(a: string, b: string, directed: boolean): boolean {
 }
 
 /** Value equality for one declared baseType, used by both match_correct and map_response. */
-function makeValueComparator(declaration: ResponseDeclarationView): (a: string, b: string) => boolean {
+function makeValueComparator(
+  declaration: ResponseDeclarationView,
+  normalize?: ResponseNormalization,
+): (a: string, b: string) => boolean {
   if (declaration.baseType === "pair") {
     return (a, b) => pairsEqual(a, b, false);
   }
@@ -64,24 +68,31 @@ function makeValueComparator(declaration: ResponseDeclarationView): (a: string, 
     return (a, b) => pairsEqual(a, b, true);
   }
 
-  const fold = isStringBaseType(declaration);
+  if (normalize && isStringBaseType(declaration)) {
+    return (a, b) => normalize(a, declaration) === normalize(b, declaration);
+  }
 
-  return (a, b) => valuesEqual(a, b, fold);
+  return (a, b) => a === b;
 }
 
 /**
  * `match_correct`: true when the response exactly matches `correctResponse`, respecting
- * cardinality. String base types fold case/diacritics (textEntry friendliness);
- * identifier base types compare exactly. Returns false when no correctResponse exists.
+ * cardinality and baseType. Spec-strict: no case or diacritic folding unless the
+ * consumer passes a Response Normalization. Returns false when no correctResponse
+ * exists.
  */
-export function matchCorrect(declaration: ResponseDeclarationView, response: ResponseValue): boolean {
+export function matchCorrect(
+  declaration: ResponseDeclarationView,
+  response: ResponseValue,
+  normalize?: ResponseNormalization,
+): boolean {
   const correct = declaration.correctResponse;
 
   if (!correct) {
     return false;
   }
 
-  const equals = makeValueComparator(declaration);
+  const equals = makeValueComparator(declaration, normalize);
   const expected = correct.values.map((entry) => entry.value);
   const actual = asList(response);
 
@@ -125,27 +136,48 @@ function clamp(value: number, lower: number | undefined, upper: number | undefin
 
 /**
  * `map_response`: sum the mapped values of the response's members, each member mapped at
- * most once. Honors per-entry `caseSensitive` (default: case/diacritic-insensitive),
- * applies the mapping's `defaultValue` to unmatched members, and clamps to
- * [lowerBound, upperBound]. Returns 0 when no mapping exists.
+ * most once. Per spec, entries default to caseSensitive=true; `caseSensitive: false`
+ * lowercases both sides. A Response Normalization, when configured, applies on top for
+ * string base types. Applies the mapping's `defaultValue` to unmatched members and
+ * clamps to [lowerBound, upperBound]. Returns 0 when no mapping exists.
  */
-export function mapResponse(declaration: ResponseDeclarationView, response: ResponseValue): number {
+export function mapResponse(
+  declaration: ResponseDeclarationView,
+  response: ResponseValue,
+  normalize?: ResponseNormalization,
+): number {
   const mapping = declaration.mapping;
 
   if (!mapping) {
     return 0;
   }
 
-  const defaultValue = mapping.defaultValue ?? 0;
   const isPairType = declaration.baseType === "pair" || declaration.baseType === "directedPair";
+  const applyNormalize = normalize && isStringBaseType(declaration) ? normalize : undefined;
+  const defaultValue = mapping.defaultValue ?? 0;
   let total = 0;
 
   for (const member of asList(response)) {
-    const entry = mapping.mapEntries.find((candidate) =>
-      isPairType
-        ? pairsEqual(candidate.mapKey, member, declaration.baseType === "directedPair")
-        : valuesEqual(candidate.mapKey, member, !candidate.caseSensitive),
-    );
+    const entry = mapping.mapEntries.find((candidate) => {
+      if (isPairType) {
+        return pairsEqual(candidate.mapKey, member, declaration.baseType === "directedPair");
+      }
+
+      let key = candidate.mapKey;
+      let candidateMember = member;
+
+      if (candidate.caseSensitive === false) {
+        key = key.toLocaleLowerCase();
+        candidateMember = candidateMember.toLocaleLowerCase();
+      }
+
+      if (applyNormalize) {
+        key = applyNormalize(key, declaration);
+        candidateMember = applyNormalize(candidateMember, declaration);
+      }
+
+      return key === candidateMember;
+    });
 
     total += entry ? entry.mappedValue : defaultValue;
   }
@@ -156,11 +188,17 @@ export function mapResponse(declaration: ResponseDeclarationView, response: Resp
 /**
  * Apply the appropriate standard template: `map_response` when a mapping is declared,
  * otherwise `match_correct`. `maxScore` is the mapping upper bound (or the sum of
- * positive mapped values) for mapped items, else 1 for match_correct.
+ * positive mapped values) for mapped items, else 1 for match_correct. This heuristic
+ * backs the per-interaction feedback chrome; item outcomes of record come from the RP
+ * interpreter when the item declares `responseProcessing`.
  */
-export function scoreResponse(declaration: ResponseDeclarationView, response: ResponseValue): ScoreResult {
+export function scoreResponse(
+  declaration: ResponseDeclarationView,
+  response: ResponseValue,
+  normalize?: ResponseNormalization,
+): ScoreResult {
   if (declaration.mapping) {
-    const score = mapResponse(declaration, response);
+    const score = mapResponse(declaration, response, normalize);
     const positiveSum = declaration.mapping.mapEntries.reduce((sum, entry) => sum + Math.max(entry.mappedValue, 0), 0);
     const maxScore = declaration.mapping.upperBound ?? positiveSum;
 
@@ -172,7 +210,7 @@ export function scoreResponse(declaration: ResponseDeclarationView, response: Re
     };
   }
 
-  const correct = matchCorrect(declaration, response);
+  const correct = matchCorrect(declaration, response, normalize);
 
   return {
     identifier: declaration.identifier,
