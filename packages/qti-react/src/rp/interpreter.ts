@@ -37,6 +37,12 @@ import {
 
 const supportedRuleKinds = new Set(["responseCondition", "setOutcomeValue", "exitResponse"]);
 
+/**
+ * RP additionally supports the random operators: the attempt store always provides a
+ * seed-derived source, so they stay deterministic per clone (seed = replay key).
+ */
+const rpExpressionKinds = new Set([...deterministicExpressionKinds, "random", "randomInteger", "randomFloat"]);
+
 class ExitResponseSignal extends Error {}
 
 function defaultOutcomes(declarations: readonly OutcomeDeclarationView[]): Map<string, MaybeRpValue> {
@@ -122,6 +128,7 @@ export function executeResponseProcessing(
     responseDeclaration: (identifier) => declarationsById.get(identifier),
     responseValue: (identifier) => context.responses[identifier] ?? null,
     normalization: context.normalization,
+    random: context.random,
   };
 
   function branchTaken(branch: RpConditionBranch): boolean {
@@ -205,12 +212,12 @@ export function collectRpIssues(view: ResponseProcessingView | undefined): reado
       }
 
       if (rule.expression) {
-        collectExpressionIssues(rule.expression, deterministicExpressionKinds, report);
+        collectExpressionIssues(rule.expression, rpExpressionKinds, report);
       }
 
       for (const branch of [rule.responseIf, ...(rule.responseElseIfs ?? [])]) {
         if (branch) {
-          collectExpressionIssues(branch.expression, deterministicExpressionKinds, report);
+          collectExpressionIssues(branch.expression, rpExpressionKinds, report);
           walkRules(branch.rules);
         }
       }

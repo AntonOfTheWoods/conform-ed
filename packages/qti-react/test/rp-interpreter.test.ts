@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { executeResponseProcessing } from "../src/rp";
+import { collectRpIssues, executeResponseProcessing, mulberry32 } from "../src/rp";
 import type { OutcomeDeclarationView, ResponseProcessingView } from "../src/rp";
 import type { ResponseDeclarationView, ResponseValue } from "../src/types";
 
@@ -384,5 +384,65 @@ describe("spec-strict string matching with opt-in normalization (ADR-0004)", () 
     });
 
     expect(result.outcomes["SCORE"]).toBe(1);
+  });
+});
+
+describe("seeded random in response processing (adaptive items)", () => {
+  const revealRules: ResponseProcessingView = {
+    rules: [
+      {
+        kind: "setOutcomeValue",
+        identifier: "REVEALED",
+        expression: {
+          kind: "random",
+          expressions: [
+            {
+              kind: "multiple",
+              expressions: [
+                { kind: "baseValue", baseType: "identifier", value: "DoorB" },
+                { kind: "baseValue", baseType: "identifier", value: "DoorC" },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  };
+  const revealed: OutcomeDeclarationView = { identifier: "REVEALED", cardinality: "single", baseType: "identifier" };
+
+  function runSeeded(random: () => number) {
+    return executeResponseProcessing(revealRules, {
+      responseDeclarations: [singleChoice],
+      outcomeDeclarations: [revealed],
+      responses: {},
+      random,
+    });
+  }
+
+  test("random picks from the container using the provided seeded source", () => {
+    const low = runSeeded(() => 0);
+    const high = runSeeded(() => 0.99);
+
+    expect(low.issues).toEqual([]);
+    expect(low.outcomes["REVEALED"]).toBe("DoorB");
+    expect(high.outcomes["REVEALED"]).toBe("DoorC");
+  });
+
+  test("the same seed replays the same outcome", () => {
+    const first = runSeeded(mulberry32(7));
+    const second = runSeeded(mulberry32(7));
+
+    expect(first.outcomes["REVEALED"]).toBe(second.outcomes["REVEALED"]);
+  });
+
+  test("without a random source the construct still aborts to defaults", () => {
+    const result = run(revealRules, {}, [singleChoice], [revealed]);
+
+    expect(result.issues[0]?.name).toBe("random");
+    expect(result.outcomes["REVEALED"]).toBeNull();
+  });
+
+  test("collectRpIssues accepts random — the attempt seed makes it deterministic", () => {
+    expect(collectRpIssues(revealRules)).toEqual([]);
   });
 });

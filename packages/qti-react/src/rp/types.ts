@@ -109,6 +109,12 @@ export interface ResponseProcessingContext {
   readonly templateValues?: Readonly<Record<string, OutcomeValue>>;
   /** Adaptive carry-over: outcome values from earlier attempts replace declared defaults. */
   readonly priorOutcomes?: Readonly<Record<string, OutcomeValue>>;
+  /**
+   * Random source for `random`/`randomInteger`/`randomFloat` in RP (adaptive items,
+   * e.g. Monty Hall door reveals). Seed it from the attempt seed: the seed plus the
+   * submission sequence then replays the exact same outcomes (ADR-0004 determinism).
+   */
+  readonly random?: () => number;
 }
 
 export interface ResponseProcessingResult {

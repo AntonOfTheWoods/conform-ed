@@ -13,7 +13,7 @@
  */
 
 import { scoreResponse } from "./response-processing";
-import { applyCorrectResponseOverrides, executeResponseProcessing, executeTemplateProcessing } from "./rp";
+import { applyCorrectResponseOverrides, executeResponseProcessing, executeTemplateProcessing, mulberry32 } from "./rp";
 import type {
   OutcomeDeclarationView,
   OutcomeValue,
@@ -89,6 +89,9 @@ export function createAttemptStore(
   const declarationsById = new Map(effectiveDeclarations.map((declaration) => [declaration.identifier, declaration]));
   const listeners = new Set<() => void>();
   const responseCollectors = new Map<string, () => ResponseValue | undefined>();
+  // RP's random stream: seed-derived but independent of template processing's, and
+  // continuous across attempts — seed + submission sequence replays exact outcomes.
+  const rpRandom = mulberry32((seed ^ 0x9e3779b9) >>> 0);
 
   let snapshot: AttemptSnapshot = {
     responses: { ...initialResponses },
@@ -129,6 +132,7 @@ export function createAttemptStore(
       templateDeclarations: options.templateDeclarations,
       templateValues: snapshot.templateValues,
       priorOutcomes,
+      random: rpRandom,
     }).outcomes;
   }
 
