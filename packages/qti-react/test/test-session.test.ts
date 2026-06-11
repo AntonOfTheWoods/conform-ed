@@ -237,3 +237,40 @@ describe("test session store", () => {
     expect(session.getSnapshot()).not.toBe(before);
   });
 });
+
+describe("test session store: simultaneous submission", () => {
+  const simultaneousView: AssessmentTestView = {
+    ...testView,
+    testParts: [
+      {
+        ...testView.testParts[0]!,
+        navigationMode: "linear",
+        submissionMode: "simultaneous",
+      },
+    ],
+  };
+
+  test("a local re-attempt before the part is submitted revises the pending outcomes", () => {
+    const controller = createTestController(simultaneousView, { seed: 42 });
+    const session = createTestSessionStore(controller, {
+      seed: 42,
+      resolveItem: (ref) => itemsByKey[ref.identifier] ?? null,
+    });
+    const store = session.itemStore("ITEM-1")!;
+
+    store.setResponse("RESPONSE", "B"); // wrong (correct is A)
+    store.submit();
+    expect(session.getSnapshot().state.pendingItemOutcomes["ITEM-1"]?.["SCORE"]).toBe(0);
+
+    store.reset();
+    store.setResponse("RESPONSE", "A");
+    store.submit();
+    expect(session.getSnapshot().state.pendingItemOutcomes["ITEM-1"]?.["SCORE"]).toBe(1);
+
+    session.end();
+
+    const { state } = session.getSnapshot();
+    expect(state.itemOutcomes["ITEM-1"]?.["SCORE"]).toBe(1);
+    expect(state.testOutcomes["TOTAL"]).toBe(1);
+  });
+});

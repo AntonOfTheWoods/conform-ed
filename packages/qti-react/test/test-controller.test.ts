@@ -441,6 +441,119 @@ describe("itemSessionControl and timeLimits", () => {
   });
 });
 
+describe("simultaneous submission", () => {
+  const totalProcessing = {
+    rules: [
+      {
+        kind: "setOutcomeValue",
+        identifier: "TOTAL",
+        expression: { kind: "sum", expressions: [{ kind: "testVariables", identifier: "SCORE" }] },
+      },
+    ],
+  } as const;
+
+  const simultaneous: AssessmentTestView = {
+    identifier: "T-SIM",
+    outcomeDeclarations: [{ identifier: "TOTAL", cardinality: "single", baseType: "float" }],
+    outcomeProcessing: totalProcessing,
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode: "linear",
+        submissionMode: "simultaneous",
+        assessmentSections: [{ kind: "assessmentSection", identifier: "S1", children: [itemRef("I1"), itemRef("I2")] }],
+      },
+    ],
+  };
+
+  test("submissions are held pending until the part is left, then commit together", () => {
+    const controller = createTestController(simultaneous, { seed: 1 });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+
+    // Held: the attempt registers, but nothing reaches outcome processing yet
+    // (sum over an empty testVariables set stays NULL, exactly as at start).
+    expect(state.attemptedItems).toEqual(["I1"]);
+    expect(state.itemOutcomes["I1"]).toBeUndefined();
+    expect(state.pendingItemOutcomes["I1"]).toEqual({ SCORE: 1 });
+    expect(state.testOutcomes["TOTAL"]).toBeNull();
+
+    state = controller.next(state);
+    state = controller.submitItem(state, "I2", { outcomes: { SCORE: 2 } });
+    state = controller.next(state); // leaves the part → flush
+
+    expect(state.status).toBe("ended");
+    expect(state.itemOutcomes["I1"]).toEqual({ SCORE: 1 });
+    expect(state.itemOutcomes["I2"]).toEqual({ SCORE: 2 });
+    expect(state.pendingItemOutcomes).toEqual({});
+    expect(state.attemptCounts).toEqual({ I1: 1, I2: 1 });
+    expect(state.testOutcomes["TOTAL"]).toBe(3);
+  });
+
+  test("pending submissions may be revised until the part is submitted", () => {
+    const controller = createTestController(simultaneous, { seed: 1 });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 0 } });
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } }); // revision, not a new attempt
+    expect(state.pendingItemOutcomes["I1"]).toEqual({ SCORE: 1 });
+    expect(state.attemptCounts["I1"]).toBeUndefined();
+
+    state = controller.end(state); // ending flushes whatever is pending
+
+    expect(state.itemOutcomes["I1"]).toEqual({ SCORE: 1 });
+    expect(state.testOutcomes["TOTAL"]).toBe(1);
+    expect(controller.submitItem(state, "I1", { outcomes: { SCORE: 9 } })).toBe(state);
+  });
+
+  test("crossing into the next part flushes the simultaneous part's pending outcomes", () => {
+    const twoParts: AssessmentTestView = {
+      ...simultaneous,
+      testParts: [
+        ...simultaneous.testParts,
+        {
+          identifier: "P2",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [{ kind: "assessmentSection", identifier: "S2", children: [itemRef("I3")] }],
+        },
+      ],
+    };
+    const controller = createTestController(twoParts, { seed: 1 });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+    state = controller.next(state);
+    state = controller.submitItem(state, "I2", { outcomes: { SCORE: 2 } });
+    state = controller.next(state); // P1 → P2 boundary
+
+    expect(state.status).toBe("in-progress");
+    expect(controller.currentItem(state)?.key).toBe("I3");
+    expect(state.itemOutcomes["I1"]).toEqual({ SCORE: 1 });
+    expect(state.pendingItemOutcomes).toEqual({});
+    expect(state.testOutcomes["TOTAL"]).toBe(3);
+  });
+
+  test("allowSkipping=false accepts a pending submission as the attempt", () => {
+    const strict: AssessmentTestView = {
+      ...simultaneous,
+      testParts: [
+        {
+          ...simultaneous.testParts[0]!,
+          itemSessionControl: { allowSkipping: false },
+        },
+      ],
+    };
+    const controller = createTestController(strict, { seed: 1 });
+    let state = controller.start();
+
+    expect(controller.canNext(state)).toBe(false);
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+    expect(controller.canNext(state)).toBe(true);
+  });
+});
+
 describe("outcome processing and test feedback", () => {
   test("testVariables aggregates item outcomes; feedback shows atEnd", () => {
     const scored: AssessmentTestView = {

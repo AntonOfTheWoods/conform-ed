@@ -158,6 +158,12 @@ export interface TestSessionState {
   readonly itemOutcomes: Readonly<Record<string, Readonly<Record<string, OutcomeValue>>>>;
   readonly attemptedItems: readonly string[];
   readonly attemptCounts: Readonly<Record<string, number>>;
+  /**
+   * Outcomes held back in simultaneous-submission parts (QTI: the part's responses are
+   * submitted together). They commit to `itemOutcomes` when the part is left or the
+   * test ends; until then they are invisible to outcome processing and feedback.
+   */
+  readonly pendingItemOutcomes: Readonly<Record<string, Readonly<Record<string, OutcomeValue>>>>;
   readonly testOutcomes: Readonly<Record<string, OutcomeValue>>;
 }
 

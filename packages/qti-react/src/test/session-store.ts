@@ -70,7 +70,8 @@ export function createTestSessionStore(controller: TestController, options: Test
 
   const itemViews = new Map<string, AssessmentItemView | null>();
   const itemStores = new Map<string, AttemptStore | null>();
-  const submittedAttempts = new Map<string, number>();
+  /** The last attempt snapshot forwarded per item — dedupes subscription firings. */
+  const forwardedAttempts = new Map<string, unknown>();
 
   let state = options.initialState ?? controller.start();
   let snapshot = buildSnapshot();
@@ -130,14 +131,14 @@ export function createTestSessionStore(controller: TestController, options: Test
       },
     );
 
-    // Every new submission flows into the controller, which re-runs test outcome
-    // processing; adaptive items resubmit per attempt, keyed by attemptCount. The
-    // controller may refuse (maxAttempts spent) — refused results never reach state.
+    // Every submitted snapshot flows into the controller, which decides what it means:
+    // an attempt (individual), a pending revision (simultaneous), or a refusal
+    // (maxAttempts spent) — refused results never reach session state.
     store.subscribe(() => {
       const attempt = store.getSnapshot();
 
-      if (attempt.submitted && submittedAttempts.get(itemKey) !== attempt.attemptCount) {
-        submittedAttempts.set(itemKey, attempt.attemptCount);
+      if (attempt.submitted && forwardedAttempts.get(itemKey) !== attempt) {
+        forwardedAttempts.set(itemKey, attempt);
 
         const next = controller.submitItem(state, itemKey, {
           outcomes: attempt.outcomes,

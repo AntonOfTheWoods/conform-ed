@@ -415,12 +415,52 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     return itemIndex === -1 ? null : { partIndex, itemIndex };
   }
 
+  /** Commit pending simultaneous outcomes for one part (or all parts when null). */
+  function flushPending(state: TestSessionState, partIndex: number | null): TestSessionState {
+    const pending = state.pendingItemOutcomes ?? {};
+    const keys = Object.keys(pending).filter((key) => partIndex === null || partIndexByItemKey.get(key) === partIndex);
+
+    if (keys.length === 0) {
+      return state;
+    }
+
+    const itemOutcomes = { ...state.itemOutcomes };
+    const attemptCounts = { ...(state.attemptCounts ?? {}) };
+    const remaining = { ...pending };
+
+    for (const key of keys) {
+      itemOutcomes[key] = pending[key]!;
+      attemptCounts[key] = (attemptCounts[key] ?? 0) + 1; // the part's single attempt
+      delete remaining[key];
+    }
+
+    return { ...state, itemOutcomes, attemptCounts, pendingItemOutcomes: remaining };
+  }
+
   function ended(state: TestSessionState): TestSessionState {
-    return { ...state, status: "ended", currentItemKey: null, testOutcomes: runOutcomeProcessing(state) };
+    const flushed = flushPending(state, null);
+
+    return { ...flushed, status: "ended", currentItemKey: null, testOutcomes: runOutcomeProcessing(flushed) };
   }
 
   function moveToItem(state: TestSessionState, item: TestPlanItem | null): TestSessionState {
-    return item === null ? ended(state) : { ...state, currentItemKey: item.key };
+    if (item === null) {
+      return ended(state);
+    }
+
+    // Crossing a part boundary submits the departed part's pending outcomes.
+    const fromPart = state.currentItemKey === null ? undefined : partIndexByItemKey.get(state.currentItemKey);
+    const toPart = partIndexByItemKey.get(item.key);
+
+    if (fromPart !== undefined && toPart !== fromPart) {
+      const flushed = flushPending(state, fromPart);
+
+      if (flushed !== state) {
+        return { ...flushed, currentItemKey: item.key, testOutcomes: runOutcomeProcessing(flushed) };
+      }
+    }
+
+    return { ...state, currentItemKey: item.key };
   }
 
   function nextState(state: TestSessionState): TestSessionState {
@@ -439,10 +479,11 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
     // allowSkipping=false in linear mode: the current item must be attempted before
     // moving past it (branch rules cannot fire off an unattempted, unskippable item).
+    // Attempted = in attemptedItems, so pending simultaneous submissions count.
     if (
       part.navigationMode === "linear" &&
       !currentItem.sessionControl.allowSkipping &&
-      attemptsOf(state, currentItem.key) === 0
+      !state.attemptedItems.includes(currentItem.key)
     ) {
       return state;
     }
@@ -490,7 +531,9 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     ) {
       const blocked = part.items.some(
         (item) =>
-          !item.sessionControl.allowSkipping && attemptsOf(state, item.key) === 0 && preConditionsPass(item, state),
+          !item.sessionControl.allowSkipping &&
+          !state.attemptedItems.includes(item.key) &&
+          preConditionsPass(item, state),
       );
 
       if (blocked) {
@@ -562,6 +605,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         itemOutcomes: {},
         attemptedItems: [],
         attemptCounts: {},
+        pendingItemOutcomes: {},
         testOutcomes: {},
       };
 
@@ -616,8 +660,30 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     canSubmitItem: (state, itemKey) => state.status !== "ended" && remainingAttempts(state, itemKey) > 0,
 
     submitItem: (state, itemKey, result) => {
+      if (state.status === "ended") {
+        return state;
+      }
+
+      const partIndex = partIndexByItemKey.get(itemKey);
+
+      // Simultaneous parts hold outcomes pending and allow revision until the part is
+      // left; the single attempt (spec) is only spent when the pending set flushes.
+      if (partIndex !== undefined && plan.parts[partIndex]!.submissionMode === "simultaneous") {
+        if (attemptsOf(state, itemKey) > 0) {
+          return state; // the part was already submitted
+        }
+
+        return {
+          ...state,
+          pendingItemOutcomes: { ...(state.pendingItemOutcomes ?? {}), [itemKey]: result.outcomes },
+          attemptedItems: state.attemptedItems.includes(itemKey)
+            ? state.attemptedItems
+            : [...state.attemptedItems, itemKey],
+        };
+      }
+
       // Adaptive items run their own attempt lifecycle, so maxAttempts is ignored (spec).
-      if (state.status === "ended" || (result.adaptive !== true && remainingAttempts(state, itemKey) <= 0)) {
+      if (result.adaptive !== true && remainingAttempts(state, itemKey) <= 0) {
         return state;
       }
 
