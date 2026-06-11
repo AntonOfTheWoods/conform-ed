@@ -19,6 +19,10 @@
     "./operator": {
       "types": "./src/operator.ts",
       "import": "./src/operator.ts"
+    },
+    "./module": {
+      "types": "./src/module-mathlive.ts",
+      "import": "./src/module-mathlive.ts"
     }
   },
   "scripts": {
@@ -28,10 +32,12 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@cortex-js/compute-engine": "^0.59.0"
+    "@cortex-js/compute-engine": "^0.59.0",
+    "mathlive": "^0.110.0"
   },
   "devDependencies": {
-    "@conform-ed/qti-react": "workspace:*"
+    "@conform-ed/qti-react": "workspace:*",
+    "happy-dom": "^20.10.2"
   },
   "peerDependencies": {
     "@conform-ed/qti-react": ">=0.0.12"

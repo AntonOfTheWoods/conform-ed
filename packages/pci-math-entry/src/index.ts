@@ -1,3 +1,5 @@
 export { checkMathExpression } from "./checker";
 export type { MathCheckMode, MathCheckOptions, MathCheckReason, MathCheckResult } from "./checker";
 export { mathEquivalentClass, mathEquivalentOperator } from "./operator";
+export { createMathEntryModule, mathEntryTypeIdentifier } from "./module";
+export type { MathInputFactory, MathInputHandle, MathInputOptions } from "./module";
