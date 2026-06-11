@@ -940,14 +940,16 @@ function validateOutcomeDeclarationConventions(
   path: Array<string | number>,
 ) {
   for (const [index, declaration] of declarations.entries()) {
+    // The information model recommends float, but the XSD does not enforce it and the
+    // official corpus ships integer SCOREs — require single numeric, nothing stricter.
     if (
       ["SCORE", "MAXSCORE"].includes(declaration.identifier) &&
-      (declaration.baseType !== "float" || declaration.cardinality !== "single")
+      (!["float", "integer"].includes(declaration.baseType ?? "") || declaration.cardinality !== "single")
     ) {
       addIssue(
         context,
         [...path, index],
-        `${declaration.identifier} should have baseType 'float' and cardinality 'single'.`,
+        `${declaration.identifier} should be a single numeric outcome (baseType 'float' or 'integer').`,
       );
     }
 
@@ -1195,8 +1197,12 @@ function validateResponseBinding(
   }
 }
 
-/** Built-in session outcomes every QTI item declares implicitly. */
-const builtInOutcomeIdentifiers = new Set(["completionStatus"]);
+/**
+ * Built-in session outcomes every QTI item declares implicitly. `completion_status`
+ * is the snake_case authoring of the same built-in that the official corpus ships
+ * (the runtime treats it as an alias when reading adaptive completion).
+ */
+const builtInOutcomeIdentifiers = new Set(["completionStatus", "completion_status"]);
 
 function validateOutcomeReferences(
   value: unknown,

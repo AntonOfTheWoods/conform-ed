@@ -193,7 +193,9 @@ export function createAttemptStore(
       const scores = computeScores(snapshot.responses);
       const priorOutcomes = options?.adaptive && snapshot.attemptCount > 0 ? snapshot.outcomes : undefined;
       const outcomes = computeOutcomes(snapshot.responses, priorOutcomes);
-      const completed = !options?.adaptive || outcomes["completionStatus"] === "completed";
+      // completion_status: the corpus's snake_case authoring of the same built-in.
+      const completionStatus = outcomes["completionStatus"] ?? outcomes["completion_status"];
+      const completed = !options?.adaptive || completionStatus === "completed";
 
       let responses = snapshot.responses;
 

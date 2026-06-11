@@ -600,6 +600,61 @@ test("built-in outcome completionStatus needs no declaration in processing rules
   expect(parsed.success).toBe(true);
 });
 
+test("an integer SCORE is accepted — the official corpus ships it", () => {
+  const parsed = QtiAssessmentItemDocumentSchema.safeParse({
+    assessmentItem: {
+      identifier: "integer-score-1",
+      title: "Integer score",
+      timeDependent: false,
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "identifier" }],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "integer" }],
+      itemBody: { content: [{ kind: "xml", name: "p", value: "Stem" }] },
+    },
+  });
+
+  expect(parsed.success).toBe(true);
+});
+
+test("a non-numeric or multiple SCORE is still rejected", () => {
+  const parsed = QtiAssessmentItemDocumentSchema.safeParse({
+    assessmentItem: {
+      identifier: "string-score-1",
+      title: "String score",
+      timeDependent: false,
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "identifier" }],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "string" }],
+      itemBody: { content: [{ kind: "xml", name: "p", value: "Stem" }] },
+    },
+  });
+
+  expect(parsed.success).toBe(false);
+});
+
+test("snake_case completion_status is accepted as the built-in's corpus alias", () => {
+  const parsed = QtiAssessmentItemDocumentSchema.safeParse({
+    assessmentItem: {
+      identifier: "adaptive-2",
+      title: "Adaptive item (snake_case authoring)",
+      timeDependent: false,
+      adaptive: true,
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "identifier" }],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+      itemBody: { content: [{ kind: "xml", name: "p", value: "Stem" }] },
+      responseProcessing: {
+        rules: [
+          {
+            kind: "setOutcomeValue",
+            identifier: "completion_status",
+            expression: { kind: "baseValue", baseType: "identifier", value: "completed" },
+          },
+        ],
+      },
+    },
+  });
+
+  expect(parsed.success).toBe(true);
+});
+
 test("maxChoices 0 means unbounded and never conflicts with minChoices", () => {
   const parsed = QtiAssessmentItemDocumentSchema.safeParse({
     assessmentItem: {
