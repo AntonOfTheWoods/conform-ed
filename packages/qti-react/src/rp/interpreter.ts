@@ -6,9 +6,15 @@
  */
 
 import type { CapabilityIssue } from "../capability";
-import { mapResponse, mapResponsePoint } from "../response-processing";
 import type { ResponseDeclarationView } from "../types";
 
+import {
+  RpUnsupportedError,
+  collectExpressionIssues,
+  deterministicExpressionKinds,
+  evaluateExpression,
+  type EvalEnv,
+} from "./evaluate";
 import { resolveTemplate } from "./templates";
 import type {
   OutcomeDeclarationView,
@@ -16,55 +22,20 @@ import type {
   ResponseProcessingResult,
   ResponseProcessingView,
   RpConditionBranch,
-  RpExpressionView,
   RpRuleView,
 } from "./types";
 import {
-  booleanValue,
   coerceScalar,
   floatValue,
+  fromFlatValue,
   fromResponse,
   isNumericBaseType,
-  scalarsEqual,
   singleBoolean,
-  singleNumber,
   toOutcomeValue,
-  valuesMatch,
   type MaybeRpValue,
-  type RpValue,
 } from "./values";
 
 const supportedRuleKinds = new Set(["responseCondition", "setOutcomeValue", "exitResponse"]);
-
-const supportedExpressionKinds = new Set([
-  "and",
-  "baseValue",
-  "correct",
-  "divide",
-  "gt",
-  "gte",
-  "isNull",
-  "lt",
-  "lte",
-  "mapResponse",
-  "mapResponsePoint",
-  "match",
-  "member",
-  "multiple",
-  "not",
-  "or",
-  "ordered",
-  "product",
-  "subtract",
-  "sum",
-  "variable",
-]);
-
-class RpUnsupportedError extends Error {
-  constructor(readonly kindName: string) {
-    super(`Unsupported response-processing construct: ${kindName}`);
-  }
-}
 
 class ExitResponseSignal extends Error {}
 
@@ -96,7 +67,25 @@ export function executeResponseProcessing(
   const declarationsById = new Map<string, ResponseDeclarationView>(
     context.responseDeclarations.map((declaration) => [declaration.identifier, declaration]),
   );
-  let outcomes = defaultOutcomes(context.outcomeDeclarations);
+  const templateDeclarationsById = new Map(
+    (context.templateDeclarations ?? []).map((declaration) => [declaration.identifier, declaration]),
+  );
+
+  function initialOutcomes(): Map<string, MaybeRpValue> {
+    const outcomes = defaultOutcomes(context.outcomeDeclarations);
+
+    // Adaptive carry-over: prior outcome values (from earlier attempts in the same
+    // item session) replace the declared defaults.
+    for (const [identifier, prior] of Object.entries(context.priorOutcomes ?? {})) {
+      const declaration = context.outcomeDeclarations.find((entry) => entry.identifier === identifier);
+
+      outcomes.set(identifier, fromFlatValue(prior, declaration?.cardinality ?? "single", declaration?.baseType));
+    }
+
+    return outcomes;
+  }
+
+  let outcomes = initialOutcomes();
 
   let rules: readonly RpRuleView[] = view?.rules ?? [];
 
@@ -110,209 +99,33 @@ export function executeResponseProcessing(
     }
   }
 
-  function evaluate(expression: RpExpressionView): MaybeRpValue {
-    switch (expression.kind) {
-      case "baseValue": {
-        const baseType = expression.baseType;
-        const value = expression.value;
+  const env: EvalEnv = {
+    lookupVariable: (identifier) => {
+      const declaration = declarationsById.get(identifier);
 
-        return value === undefined
-          ? null
-          : { cardinality: "single", baseType, values: [coerceScalar(value, baseType)] };
+      if (declaration) {
+        return fromResponse(declaration, context.responses[identifier] ?? null);
       }
 
-      case "variable": {
-        const identifier = expression.identifier ?? "";
-        const declaration = declarationsById.get(identifier);
+      const templateDeclaration = templateDeclarationsById.get(identifier);
 
-        if (declaration) {
-          return fromResponse(declaration, context.responses[identifier] ?? null);
-        }
-
-        return outcomes.get(identifier) ?? null;
-      }
-
-      case "correct": {
-        const declaration = declarationsById.get(expression.identifier ?? "");
-
-        if (!declaration?.correctResponse) {
-          return null;
-        }
-
-        return {
-          cardinality: declaration.cardinality,
-          baseType: declaration.baseType,
-          values: declaration.correctResponse.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
-        };
-      }
-
-      case "mapResponse": {
-        const identifier = expression.identifier ?? "";
-        const declaration = declarationsById.get(identifier);
-
-        if (!declaration) {
-          return null;
-        }
-
-        return floatValue(mapResponse(declaration, context.responses[identifier] ?? null, context.normalization));
-      }
-
-      case "mapResponsePoint": {
-        const identifier = expression.identifier ?? "";
-        const declaration = declarationsById.get(identifier);
-
-        if (!declaration) {
-          return null;
-        }
-
-        return floatValue(mapResponsePoint(declaration, context.responses[identifier] ?? null));
-      }
-
-      case "match": {
-        const [a, b] = (expression.expressions ?? []).map(evaluate);
-
-        if (a === undefined || b === undefined || a === null || b === null) {
-          return null;
-        }
-
-        return booleanValue(valuesMatch(a, b, context.normalization));
-      }
-
-      case "isNull": {
-        const operand = expression.expressions?.[0];
-
-        return booleanValue(operand === undefined || evaluate(operand) === null);
-      }
-
-      case "not": {
-        const operand = expression.expressions?.[0];
-        const value = operand === undefined ? null : singleBoolean(evaluate(operand));
-
-        return value === null ? null : booleanValue(!value);
-      }
-
-      case "and":
-      case "or": {
-        const members = (expression.expressions ?? []).map((child) => singleBoolean(evaluate(child)));
-
-        // NULL operands are treated as false; sufficient for the supported coverage.
-        return booleanValue(
-          expression.kind === "and"
-            ? members.every((member) => member === true)
-            : members.some((member) => member === true),
+      if (templateDeclaration) {
+        return fromFlatValue(
+          context.templateValues?.[identifier] ?? null,
+          templateDeclaration.cardinality,
+          templateDeclaration.baseType,
         );
       }
 
-      case "sum":
-      case "product": {
-        let result = expression.kind === "sum" ? 0 : 1;
-
-        for (const child of expression.expressions ?? []) {
-          const value = evaluate(child);
-
-          if (value === null) {
-            return null;
-          }
-
-          for (const member of value.values) {
-            if (typeof member !== "number") {
-              return null;
-            }
-
-            result = expression.kind === "sum" ? result + member : result * member;
-          }
-        }
-
-        return floatValue(result);
-      }
-
-      case "subtract":
-      case "divide": {
-        const [a, b] = (expression.expressions ?? []).map((child) => singleNumber(evaluate(child)));
-
-        if (a === undefined || b === undefined || a === null || b === null) {
-          return null;
-        }
-
-        if (expression.kind === "divide") {
-          return b === 0 ? null : floatValue(a / b);
-        }
-
-        return floatValue(a - b);
-      }
-
-      case "gt":
-      case "gte":
-      case "lt":
-      case "lte": {
-        const [a, b] = (expression.expressions ?? []).map((child) => singleNumber(evaluate(child)));
-
-        if (a === undefined || b === undefined || a === null || b === null) {
-          return null;
-        }
-
-        const comparisons = { gt: a > b, gte: a >= b, lt: a < b, lte: a <= b } as const;
-
-        return booleanValue(comparisons[expression.kind]);
-      }
-
-      case "member": {
-        const [needleExpression, containerExpression] = expression.expressions ?? [];
-
-        if (needleExpression === undefined || containerExpression === undefined) {
-          return null;
-        }
-
-        const needle = evaluate(needleExpression);
-        const container = evaluate(containerExpression);
-
-        if (needle === null || container === null) {
-          return null;
-        }
-
-        const scalar = needle.values[0];
-
-        if (scalar === undefined) {
-          return null;
-        }
-
-        const baseType = container.baseType ?? needle.baseType;
-
-        return booleanValue(
-          container.values.some((member) => scalarsEqual(member, scalar, baseType, context.normalization)),
-        );
-      }
-
-      case "multiple":
-      case "ordered": {
-        const members: RpValue["values"][number][] = [];
-        let baseType: string | undefined;
-
-        for (const child of expression.expressions ?? []) {
-          const value = evaluate(child);
-
-          if (value === null) {
-            continue; // spec: NULL sub-expressions are ignored by container constructors
-          }
-
-          baseType ??= value.baseType;
-          members.push(...value.values);
-        }
-
-        if (members.length === 0) {
-          return null;
-        }
-
-        return { cardinality: expression.kind, baseType, values: members };
-      }
-
-      default:
-        throw new RpUnsupportedError(expression.kind);
-    }
-  }
+      return outcomes.get(identifier) ?? null;
+    },
+    responseDeclaration: (identifier) => declarationsById.get(identifier),
+    responseValue: (identifier) => context.responses[identifier] ?? null,
+    normalization: context.normalization,
+  };
 
   function branchTaken(branch: RpConditionBranch): boolean {
-    if (singleBoolean(evaluate(branch.expression)) !== true) {
+    if (singleBoolean(evaluateExpression(branch.expression, env)) !== true) {
       return false;
     }
 
@@ -333,7 +146,7 @@ export function executeResponseProcessing(
 
       if (rule.kind === "setOutcomeValue") {
         if (rule.identifier !== undefined && rule.expression !== undefined) {
-          outcomes.set(rule.identifier, evaluate(rule.expression));
+          outcomes.set(rule.identifier, evaluateExpression(rule.expression, env));
         }
         continue;
       }
@@ -356,7 +169,7 @@ export function executeResponseProcessing(
   } catch (error) {
     if (error instanceof RpUnsupportedError) {
       issues.push({ type: "unsupported-rp", name: error.kindName });
-      outcomes = defaultOutcomes(context.outcomeDeclarations); // abort, never partial scoring
+      outcomes = initialOutcomes(); // abort, never partial scoring
     } else if (!(error instanceof ExitResponseSignal)) {
       throw error;
     }
@@ -384,16 +197,6 @@ export function collectRpIssues(view: ResponseProcessingView | undefined): reado
     }
   }
 
-  function walkExpression(expression: RpExpressionView): void {
-    if (!supportedExpressionKinds.has(expression.kind)) {
-      report(expression.kind);
-    }
-
-    for (const child of expression.expressions ?? []) {
-      walkExpression(child);
-    }
-  }
-
   function walkRules(rules: readonly RpRuleView[]): void {
     for (const rule of rules) {
       if (!supportedRuleKinds.has(rule.kind)) {
@@ -402,12 +205,12 @@ export function collectRpIssues(view: ResponseProcessingView | undefined): reado
       }
 
       if (rule.expression) {
-        walkExpression(rule.expression);
+        collectExpressionIssues(rule.expression, deterministicExpressionKinds, report);
       }
 
       for (const branch of [rule.responseIf, ...(rule.responseElseIfs ?? [])]) {
         if (branch) {
-          walkExpression(branch.expression);
+          collectExpressionIssues(branch.expression, deterministicExpressionKinds, report);
           walkRules(branch.rules);
         }
       }

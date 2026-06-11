@@ -563,6 +563,182 @@ export const harnessItems: readonly HarnessItem[] = [
     },
   },
   {
+    id: "templated",
+    title: "textEntryInteraction — templated clone (seeded randomInteger)",
+    item: {
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "integer" }],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+      templateDeclarations: [
+        { identifier: "A", cardinality: "single", baseType: "integer" },
+        { identifier: "B", cardinality: "single", baseType: "integer" },
+      ],
+      templateProcessing: {
+        rules: [
+          { kind: "setTemplateValue", identifier: "A", expression: { kind: "randomInteger", min: 2, max: 9 } },
+          { kind: "setTemplateValue", identifier: "B", expression: { kind: "randomInteger", min: 2, max: 9 } },
+          {
+            kind: "setCorrectResponse",
+            identifier: "RESPONSE",
+            expression: {
+              kind: "sum",
+              expressions: [
+                { kind: "variable", identifier: "A" },
+                { kind: "variable", identifier: "B" },
+              ],
+            },
+          },
+        ],
+      },
+      responseProcessing: { template: "https://purl.imsglobal.org/spec/qti/v3p0/rptemplates/match_correct" },
+      itemBody: {
+        content: [
+          {
+            kind: "xml",
+            name: "p",
+            children: [
+              { kind: "text", value: "What is " },
+              { kind: "printedVariable", identifier: "A" },
+              { kind: "text", value: " + " },
+              { kind: "printedVariable", identifier: "B" },
+              { kind: "text", value: "? (Reload to get a new clone.)" },
+            ],
+          },
+          { kind: "textEntryInteraction", responseIdentifier: "RESPONSE", expectedLength: 3 },
+        ],
+      },
+    },
+  },
+  {
+    id: "adaptive",
+    title: "choiceInteraction — adaptive with hint (endAttemptInteraction)",
+    item: {
+      adaptive: true,
+      responseDeclarations: [
+        {
+          identifier: "RESPONSE",
+          cardinality: "single",
+          baseType: "identifier",
+          correctResponse: { values: [{ value: "DESU" }] },
+        },
+        { identifier: "HINT", cardinality: "single", baseType: "boolean" },
+      ],
+      outcomeDeclarations: [
+        { identifier: "SCORE", cardinality: "single", baseType: "float" },
+        { identifier: "FEEDBACK", cardinality: "single", baseType: "identifier" },
+      ],
+      responseProcessing: {
+        rules: [
+          {
+            kind: "responseCondition",
+            responseIf: {
+              expression: {
+                kind: "match",
+                expressions: [
+                  { kind: "variable", identifier: "RESPONSE" },
+                  { kind: "correct", identifier: "RESPONSE" },
+                ],
+              },
+              rules: [
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "SCORE",
+                  expression: {
+                    kind: "sum",
+                    expressions: [
+                      { kind: "variable", identifier: "SCORE" },
+                      { kind: "baseValue", baseType: "float", value: 2 },
+                    ],
+                  },
+                },
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "completionStatus",
+                  expression: { kind: "baseValue", baseType: "identifier", value: "completed" },
+                },
+              ],
+            },
+            responseElseIfs: [
+              {
+                expression: {
+                  kind: "match",
+                  expressions: [
+                    { kind: "variable", identifier: "HINT" },
+                    { kind: "baseValue", baseType: "boolean", value: true },
+                  ],
+                },
+                rules: [
+                  {
+                    kind: "setOutcomeValue",
+                    identifier: "SCORE",
+                    expression: {
+                      kind: "subtract",
+                      expressions: [
+                        { kind: "variable", identifier: "SCORE" },
+                        { kind: "baseValue", baseType: "float", value: 1 },
+                      ],
+                    },
+                  },
+                  {
+                    kind: "setOutcomeValue",
+                    identifier: "FEEDBACK",
+                    expression: { kind: "baseValue", baseType: "identifier", value: "HINT" },
+                  },
+                  {
+                    kind: "setOutcomeValue",
+                    identifier: "completionStatus",
+                    expression: { kind: "baseValue", baseType: "identifier", value: "incomplete" },
+                  },
+                ],
+              },
+            ],
+            responseElse: {
+              rules: [
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "FEEDBACK",
+                  expression: { kind: "baseValue", baseType: "identifier", value: "WRONG" },
+                },
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "completionStatus",
+                  expression: { kind: "baseValue", baseType: "identifier", value: "incomplete" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      itemBody: {
+        content: [
+          { kind: "xml", name: "p", value: "ねこ ___ かわいい。 (Pick the copula. Wrong answers let you retry.)" },
+          {
+            kind: "choiceInteraction",
+            responseIdentifier: "RESPONSE",
+            simpleChoices: [
+              { identifier: "DESU", content: [{ kind: "xml", name: "span", value: "です" }] },
+              { identifier: "MASU", content: [{ kind: "xml", name: "span", value: "ます" }] },
+            ],
+          },
+          {
+            kind: "feedbackBlock",
+            outcomeIdentifier: "FEEDBACK",
+            identifier: "HINT",
+            showHide: "show",
+            content: [{ kind: "xml", name: "p", value: "Hint: the polite copula ends a noun-adjective sentence." }],
+          },
+          {
+            kind: "feedbackBlock",
+            outcomeIdentifier: "FEEDBACK",
+            identifier: "WRONG",
+            showHide: "show",
+            content: [{ kind: "xml", name: "p", value: "Not quite — try again." }],
+          },
+          { kind: "endAttemptInteraction", responseIdentifier: "HINT", title: "Show hint (−1 point)" },
+        ],
+      },
+    },
+  },
+  {
     id: "unsupported",
     title: "drawingInteraction — not yet supported (capability gate demo)",
     item: {

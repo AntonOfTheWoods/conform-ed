@@ -17,6 +17,7 @@
 export const v0InteractionKinds = [
   "associateInteraction",
   "choiceInteraction",
+  "endAttemptInteraction",
   "extendedTextInteraction",
   "gapMatchInteraction",
   "graphicAssociateInteraction",

@@ -2,6 +2,7 @@ import type { InteractionDescriptor } from "../runtime";
 
 import { associateInteraction } from "./associate";
 import { choiceInteraction } from "./choice";
+import { endAttemptInteraction } from "./end-attempt";
 import { extendedTextInteraction } from "./extended-text";
 import { gapMatchInteraction } from "./gap-match";
 import {
@@ -23,6 +24,7 @@ import { uploadInteraction } from "./upload";
 
 export { associateInteraction } from "./associate";
 export { choiceInteraction } from "./choice";
+export { endAttemptInteraction } from "./end-attempt";
 export { extendedTextInteraction } from "./extended-text";
 export { gapMatchInteraction } from "./gap-match";
 export {
@@ -46,6 +48,7 @@ export { uploadInteraction } from "./upload";
 export const qtiCoreInteractions: readonly InteractionDescriptor[] = [
   associateInteraction,
   choiceInteraction,
+  endAttemptInteraction,
   extendedTextInteraction,
   gapMatchInteraction,
   graphicAssociateInteraction,

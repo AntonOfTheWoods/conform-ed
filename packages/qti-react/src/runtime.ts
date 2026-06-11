@@ -22,8 +22,15 @@ import type { ZodType } from "zod";
 
 import type { CapabilityIssue, CapabilityReport } from "./capability";
 import { isAllowedFlowElement, sanitizeAttributes, v0ContentModel, type ContentModel } from "./content-model";
-import { collectRpIssues } from "./rp";
-import type { OutcomeDeclarationView, OutcomeValue, ResponseNormalization, ResponseProcessingView } from "./rp";
+import { collectRpIssues, collectTemplateIssues } from "./rp";
+import type {
+  OutcomeDeclarationView,
+  OutcomeValue,
+  ResponseNormalization,
+  ResponseProcessingView,
+  TemplateDeclarationView,
+  TemplateProcessingView,
+} from "./rp";
 import { createAttemptStore, type AttemptSnapshot, type AttemptStore } from "./store";
 import type { Cardinality, ResponseDeclarationView, ResponseValue, ScoreResult } from "./types";
 
@@ -59,6 +66,10 @@ export interface AssessmentItemView {
   responseDeclarations: readonly ResponseDeclarationView[];
   outcomeDeclarations?: readonly OutcomeDeclarationView[];
   responseProcessing?: ResponseProcessingView;
+  templateDeclarations?: readonly TemplateDeclarationView[];
+  templateProcessing?: TemplateProcessingView;
+  /** QTI adaptive item: multiple attempts until completionStatus reaches "completed". */
+  adaptive?: boolean;
   modalFeedbacks?: readonly FeedbackView[];
   itemBody: { content?: BodyNode[] };
 }
@@ -115,6 +126,8 @@ export interface InteractionRenderProps {
   renderContent: (nodes: readonly BodyNode[] | undefined, overrides?: NodeOverrides) => ReactNode;
   /** The runtime's Asset Resolver (identity when none configured) for skin-owned media. */
   resolveAsset: (href: string) => string;
+  /** Set this interaction's response to true and submit the attempt (endAttemptInteraction). */
+  endAttempt: () => void;
 }
 
 /** Per-kind render overrides a skin passes to `renderContent` for nodes it owns. */
@@ -146,6 +159,8 @@ export interface ItemRendererProps {
    * already-submitted attempt) and server-side rendering of submitted states.
    */
   store?: AttemptStore;
+  /** Clone seed for template processing; store it to replay the same clone. */
+  seed?: number;
   // Rendered inside the same runtime context as the item body, after it. Lets a consumer
   // drop controls (a Submit bar, a score panel) that call `useAttempt()` for this item —
   // the attempt store is per-item and scoped to this subtree.
@@ -294,6 +309,15 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       });
     }
 
+    if (node.kind === "printedVariable") {
+      const identifier = (node as { identifier?: unknown }).identifier;
+
+      return createElement(PrintedVariableHost, {
+        key,
+        identifier: typeof identifier === "string" ? identifier : "",
+      });
+    }
+
     if (node.kind === "xml") {
       return renderFlow(node as XmlContentNode, key, overrides);
     }
@@ -325,6 +349,15 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       { "data-qti-feedback": feedback.identifier },
       feedback.content?.map((child, index) => renderNode(child, index, overrides)),
     );
+  }
+
+  function PrintedVariableHost({ identifier }: { identifier: string }): ReactNode {
+    const { store } = useRuntimeContext();
+    const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+    const value = snapshot.templateValues[identifier] ?? snapshot.outcomes[identifier] ?? null;
+    const text = value === null ? "" : Array.isArray(value) ? value.join(" ") : String(value);
+
+    return createElement("span", { "data-qti-printed-variable": identifier }, text);
   }
 
   function ModalFeedbackHost({ feedback }: { feedback: FeedbackView }): ReactNode {
@@ -430,10 +463,14 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       getOptionProps,
       renderContent,
       resolveAsset,
+      endAttempt: () => {
+        store.setResponse(responseIdentifier, "true");
+        store.submit();
+      },
     });
   }
 
-  function ItemRenderer({ item, store: externalStore, children }: ItemRendererProps): ReactNode {
+  function ItemRenderer({ item, store: externalStore, seed, children }: ItemRendererProps): ReactNode {
     const store = useMemo(
       () =>
         externalStore ??
@@ -443,10 +480,14 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
           {
             outcomeDeclarations: item.outcomeDeclarations,
             responseProcessing: item.responseProcessing,
+            templateDeclarations: item.templateDeclarations,
+            templateProcessing: item.templateProcessing,
+            adaptive: item.adaptive,
+            seed,
             normalization: config.normalization,
           },
         ),
-      [item, externalStore],
+      [item, externalStore, seed],
     );
 
     const declarationsById = useMemo(
@@ -549,6 +590,10 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     }
 
     for (const issue of collectRpIssues(item.responseProcessing)) {
+      report(issue);
+    }
+
+    for (const issue of collectTemplateIssues(item.templateProcessing)) {
       report(issue);
     }
 

@@ -31,6 +31,10 @@ export interface RpExpressionView {
   readonly baseType?: string;
   readonly value?: RpScalar;
   readonly expressions?: readonly RpExpressionView[];
+  /** Bounds/step for the random operators (template processing). */
+  readonly min?: number;
+  readonly max?: number;
+  readonly step?: number;
 }
 
 export interface RpConditionBranch {
@@ -62,11 +66,23 @@ export interface ResponseProcessingView {
  */
 export type ResponseNormalization = (value: string, declaration?: ResponseDeclarationView) => string;
 
+export interface TemplateDeclarationView {
+  readonly identifier: string;
+  readonly cardinality: Cardinality;
+  readonly baseType?: string;
+  readonly defaultValue?: { readonly values: ReadonlyArray<{ readonly value: RpScalar }> };
+}
+
 export interface ResponseProcessingContext {
   readonly responseDeclarations: readonly ResponseDeclarationView[];
   readonly outcomeDeclarations: readonly OutcomeDeclarationView[];
   readonly responses: Readonly<Record<string, ResponseValue>>;
   readonly normalization?: ResponseNormalization;
+  /** Template variables for this clone (read by `variable` lookups). */
+  readonly templateDeclarations?: readonly TemplateDeclarationView[];
+  readonly templateValues?: Readonly<Record<string, OutcomeValue>>;
+  /** Adaptive carry-over: outcome values from earlier attempts replace declared defaults. */
+  readonly priorOutcomes?: Readonly<Record<string, OutcomeValue>>;
 }
 
 export interface ResponseProcessingResult {

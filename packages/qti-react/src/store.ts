@@ -5,11 +5,23 @@
  *
  * Backed by an external store so `useSyncExternalStore` can subscribe with narrow,
  * snapshot-stable reads. No React import here — the hook lives in the runtime.
+ *
+ * Template processing runs once at store creation under the given seed (ADR-0004):
+ * the seed is the replay key for a randomized clone. Adaptive items (`adaptive`)
+ * support multiple attempts: outcomes carry over between RP runs and the item locks
+ * only when `completionStatus` reaches "completed".
  */
 
 import { scoreResponse } from "./response-processing";
-import { executeResponseProcessing } from "./rp";
-import type { OutcomeDeclarationView, OutcomeValue, ResponseNormalization, ResponseProcessingView } from "./rp";
+import { applyCorrectResponseOverrides, executeResponseProcessing, executeTemplateProcessing } from "./rp";
+import type {
+  OutcomeDeclarationView,
+  OutcomeValue,
+  ResponseNormalization,
+  ResponseProcessingView,
+  TemplateDeclarationView,
+  TemplateProcessingView,
+} from "./rp";
 import type { ResponseDeclarationView, ResponseValue, ScoreResult } from "./types";
 
 export interface AttemptSnapshot {
@@ -19,6 +31,10 @@ export interface AttemptSnapshot {
   readonly scores: readonly ScoreResult[];
   /** Item outcomes of record from the RP interpreter; empty before submit or without RP. */
   readonly outcomes: Readonly<Record<string, OutcomeValue>>;
+  /** This clone's template variables (empty without templateProcessing). */
+  readonly templateValues: Readonly<Record<string, OutcomeValue>>;
+  /** Completed attempts so far (only ever exceeds 1 for adaptive items). */
+  readonly attemptCount: number;
 }
 
 export interface AttemptStoreOptions {
@@ -26,6 +42,12 @@ export interface AttemptStoreOptions {
   readonly responseProcessing?: ResponseProcessingView;
   /** The Response Normalization hook (ADR-0004); applies to scores and outcomes alike. */
   readonly normalization?: ResponseNormalization;
+  readonly templateDeclarations?: readonly TemplateDeclarationView[];
+  readonly templateProcessing?: TemplateProcessingView;
+  /** Clone seed for template processing; store it to replay the same clone. */
+  readonly seed?: number;
+  /** QTI adaptive item: multiple attempts, outcome carry-over, completionStatus lock. */
+  readonly adaptive?: boolean;
 }
 
 export interface AttemptStore {
@@ -43,7 +65,19 @@ export function createAttemptStore(
   initialResponses: Readonly<Record<string, ResponseValue>>,
   options?: AttemptStoreOptions,
 ): AttemptStore {
-  const declarationsById = new Map(declarations.map((declaration) => [declaration.identifier, declaration]));
+  const seed = options?.seed ?? Math.floor(Math.random() * 2 ** 31);
+  const templateResult = options?.templateProcessing
+    ? executeTemplateProcessing(options.templateProcessing, {
+        templateDeclarations: options.templateDeclarations ?? [],
+        responseDeclarations: declarations,
+        seed,
+      })
+    : null;
+  // The clone's effective declarations: setCorrectResponse overrides applied.
+  const effectiveDeclarations = templateResult
+    ? applyCorrectResponseOverrides(declarations, templateResult.correctResponseOverrides)
+    : declarations;
+  const declarationsById = new Map(effectiveDeclarations.map((declaration) => [declaration.identifier, declaration]));
   const listeners = new Set<() => void>();
 
   let snapshot: AttemptSnapshot = {
@@ -51,6 +85,8 @@ export function createAttemptStore(
     submitted: false,
     scores: [],
     outcomes: {},
+    templateValues: templateResult?.templateValues ?? {},
+    attemptCount: 0,
   };
 
   function emit(next: AttemptSnapshot): void {
@@ -67,16 +103,22 @@ export function createAttemptStore(
     );
   }
 
-  function computeOutcomes(responses: Readonly<Record<string, ResponseValue>>): Readonly<Record<string, OutcomeValue>> {
+  function computeOutcomes(
+    responses: Readonly<Record<string, ResponseValue>>,
+    priorOutcomes?: Readonly<Record<string, OutcomeValue>>,
+  ): Readonly<Record<string, OutcomeValue>> {
     if (!options?.responseProcessing) {
       return {};
     }
 
     return executeResponseProcessing(options.responseProcessing, {
-      responseDeclarations: declarations,
+      responseDeclarations: effectiveDeclarations,
       outcomeDeclarations: options.outcomeDeclarations ?? [],
       responses,
       normalization: options.normalization,
+      templateDeclarations: options.templateDeclarations,
+      templateValues: snapshot.templateValues,
+      priorOutcomes,
     }).outcomes;
   }
 
@@ -105,16 +147,50 @@ export function createAttemptStore(
     },
 
     submit: () => {
-      const scores = computeScores(snapshot.responses);
-      const outcomes = computeOutcomes(snapshot.responses);
+      if (snapshot.submitted) {
+        return snapshot.scores;
+      }
 
-      emit({ ...snapshot, submitted: true, scores, outcomes });
+      const scores = computeScores(snapshot.responses);
+      const priorOutcomes = options?.adaptive && snapshot.attemptCount > 0 ? snapshot.outcomes : undefined;
+      const outcomes = computeOutcomes(snapshot.responses, priorOutcomes);
+      const completed = !options?.adaptive || outcomes["completionStatus"] === "completed";
+
+      let responses = snapshot.responses;
+
+      if (options?.adaptive && !completed) {
+        // Between adaptive attempts, endAttempt-style boolean responses reset (spec:
+        // endAttemptInteraction response variables are false at the start of an attempt).
+        responses = { ...responses };
+
+        for (const declaration of effectiveDeclarations) {
+          if (declaration.baseType === "boolean") {
+            responses = { ...responses, [declaration.identifier]: null };
+          }
+        }
+      }
+
+      emit({
+        ...snapshot,
+        responses,
+        submitted: completed,
+        scores,
+        outcomes,
+        attemptCount: snapshot.attemptCount + 1,
+      });
 
       return scores;
     },
 
     reset: () => {
-      emit({ responses: { ...initialResponses }, submitted: false, scores: [], outcomes: {} });
+      emit({
+        responses: { ...initialResponses },
+        submitted: false,
+        scores: [],
+        outcomes: {},
+        templateValues: snapshot.templateValues,
+        attemptCount: 0,
+      });
     },
   };
 }

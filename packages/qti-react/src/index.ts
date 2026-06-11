@@ -16,7 +16,15 @@ export { foldString, mapResponse, matchCorrect, mapResponsePoint, scoreResponse 
 
 export { formatPoint, parseCoords, parsePoint, pointInShape, type Point, type QtiShape } from "./graphic";
 
-export { collectRpIssues, executeResponseProcessing, resolveTemplate } from "./rp";
+export {
+  applyCorrectResponseOverrides,
+  collectRpIssues,
+  collectTemplateIssues,
+  executeResponseProcessing,
+  executeTemplateProcessing,
+  mulberry32,
+  resolveTemplate,
+} from "./rp";
 
 export type {
   OutcomeDeclarationView,
@@ -29,6 +37,12 @@ export type {
   RpExpressionView,
   RpRuleView,
   RpScalar,
+  TemplateConditionBranch,
+  TemplateDeclarationView,
+  TemplateProcessingContext,
+  TemplateProcessingResult,
+  TemplateProcessingView,
+  TemplateRuleView,
 } from "./rp";
 
 export { createAttemptStore, type AttemptSnapshot, type AttemptStore, type AttemptStoreOptions } from "./store";
@@ -61,6 +75,7 @@ export {
 export {
   associateInteraction,
   choiceInteraction,
+  endAttemptInteraction,
   extendedTextInteraction,
   gapMatchInteraction,
   graphicAssociateInteraction,
@@ -83,6 +98,7 @@ export {
 export {
   AssociateReferenceSkin,
   ChoiceReferenceSkin,
+  EndAttemptReferenceSkin,
   ExtendedTextReferenceSkin,
   GapMatchReferenceSkin,
   GraphicAssociateReferenceSkin,

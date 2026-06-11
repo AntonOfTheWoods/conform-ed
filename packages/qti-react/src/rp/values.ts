@@ -162,6 +162,21 @@ export function valuesMatch(a: RpValue, b: RpValue, normalize?: ResponseNormaliz
   return true;
 }
 
+/** Rebuild a typed value from a flattened OutcomeValue (templates, adaptive carry-over). */
+export function fromFlatValue(value: OutcomeValue, cardinality: Cardinality, baseType?: string): MaybeRpValue {
+  if (value === null) {
+    return null;
+  }
+
+  const values = Array.isArray(value) ? [...value] : [value as RpScalar];
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  return { cardinality, baseType, values: values.map((member) => coerceScalar(member, baseType)) };
+}
+
 export function toOutcomeValue(value: MaybeRpValue): OutcomeValue {
   if (value === null || value.values.length === 0) {
     return null;
