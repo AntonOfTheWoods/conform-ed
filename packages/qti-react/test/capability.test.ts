@@ -120,3 +120,44 @@ describe("unsupported placeholder (no silent drops, ADR-0003)", () => {
     expect(html).not.toContain("data-qti-unsupported");
   });
 });
+
+describe("custom operators gate canDeliver by registered class", () => {
+  const casItem: AssessmentItemView = {
+    responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "float" }],
+    outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+    templateDeclarations: [{ identifier: "fAns", cardinality: "single", baseType: "float" }],
+    templateProcessing: {
+      rules: [
+        {
+          kind: "setTemplateValue",
+          identifier: "fAns",
+          expression: {
+            kind: "customOperator",
+            class: "org.example.cas",
+            expressions: [{ kind: "baseValue", baseType: "string", value: "sin(x)" }],
+          },
+        },
+      ],
+    },
+    itemBody: { content: [supportedChoiceNode as never] },
+  };
+
+  test("unregistered classes keep the item undeliverable", () => {
+    const report = runtime.canDeliver(casItem);
+
+    expect(report.deliverable).toBe(false);
+    expect(report.issues[0]).toMatchObject({ type: "unsupported-rp", name: "customOperator" });
+  });
+
+  test("a registered implementation opens the gate", () => {
+    const withCas = createQtiRuntime({
+      interactions: [choiceInteraction],
+      skin: { choiceInteraction: NoopSkin },
+      customOperators: {
+        "org.example.cas": () => ({ cardinality: "single", baseType: "float", values: [42] }),
+      },
+    });
+
+    expect(withCas.canDeliver(casItem).issues).toEqual([]);
+  });
+});

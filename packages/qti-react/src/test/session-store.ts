@@ -7,7 +7,7 @@
  * persistence stays with the consumer (store the seed and `snapshot.state`).
  */
 
-import type { ResponseNormalization, TemplateRuleView } from "../rp";
+import type { CustomOperatorImplementation, ResponseNormalization, TemplateRuleView } from "../rp";
 import type { AssessmentItemView } from "../runtime";
 import { createAttemptStore, type AttemptSnapshot, type AttemptStore } from "../store";
 import type { ResponseValue } from "../types";
@@ -25,6 +25,8 @@ export interface TestSessionStoreOptions {
   /** Resume a persisted session (item responses are session-local, not part of it). */
   readonly initialState?: TestSessionState;
   readonly normalization?: ResponseNormalization;
+  /** Registered vendor `customOperator` implementations by class (opt-in). */
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
 }
 
 export interface TestSessionSnapshot {
@@ -184,6 +186,7 @@ export function createTestSessionStore(controller: TestController, options: Test
         adaptive: view.adaptive,
         seed: deriveItemSeed(options.seed, itemKey),
         normalization: options.normalization,
+        customOperators: options.customOperators,
       },
     );
 

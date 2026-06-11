@@ -10,7 +10,7 @@ import { parseCoords, parsePoint, pointInShape } from "../graphic";
 import { mapResponse, mapResponsePoint } from "../response-processing";
 import type { ResponseDeclarationView, ResponseValue } from "../types";
 
-import type { ResponseNormalization, RpExpressionView } from "./types";
+import type { CustomOperatorImplementation, ResponseNormalization, RpExpressionView } from "./types";
 import {
   booleanValue,
   coerceScalar,
@@ -34,6 +34,8 @@ export interface EvalEnv {
   readonly testVariables?: (expression: RpExpressionView) => MaybeRpValue;
   /** The `number*` item-session aggregates; present only in test-level outcome processing. */
   readonly testAggregate?: (expression: RpExpressionView) => MaybeRpValue;
+  /** Registered vendor operators by class; unregistered classes stay unsupported. */
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
 }
 
 /** Expression kinds legal everywhere (deterministic). */
@@ -750,6 +752,16 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
       return env.testVariables(expression);
     }
 
+    case "customOperator": {
+      const implementation = env.customOperators?.[expression.class ?? ""];
+
+      if (!implementation) {
+        throw new RpUnsupportedError(expression.kind);
+      }
+
+      return implementation((expression.expressions ?? []).map(evaluate), expression);
+    }
+
     case "numberCorrect":
     case "numberIncorrect":
     case "numberPresented":
@@ -788,12 +800,18 @@ export function collectExpressionIssues(
   expression: RpExpressionView,
   allowedKinds: ReadonlySet<string>,
   report: (name: string) => void,
+  customOperatorClasses?: ReadonlySet<string>,
 ): void {
-  if (!allowedKinds.has(expression.kind)) {
+  if (expression.kind === "customOperator") {
+    // Supported only for registered classes — a per-class gate, not a kind gate.
+    if (!customOperatorClasses?.has(expression.class ?? "")) {
+      report(expression.kind);
+    }
+  } else if (!allowedKinds.has(expression.kind)) {
     report(expression.kind);
   }
 
   for (const child of expression.expressions ?? []) {
-    collectExpressionIssues(child, allowedKinds, report);
+    collectExpressionIssues(child, allowedKinds, report, customOperatorClasses);
   }
 }

@@ -8,15 +8,9 @@
 
 import { parsePoint } from "../graphic";
 import type { Cardinality, ResponseDeclarationView, ResponseValue } from "../types";
-import type { OutcomeValue, ResponseNormalization, RpScalar } from "./types";
+import type { MaybeRpValue, OutcomeValue, ResponseNormalization, RpScalar, RpValue } from "./types";
 
-export interface RpValue {
-  readonly cardinality: Cardinality;
-  readonly baseType?: string;
-  readonly values: readonly RpScalar[];
-}
-
-export type MaybeRpValue = RpValue | null;
+export type { MaybeRpValue, RpValue } from "./types";
 
 const numericBaseTypes = new Set(["float", "integer", "duration"]);
 

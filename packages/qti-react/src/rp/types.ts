@@ -14,6 +14,15 @@ export type RpScalar = string | number | boolean;
 /** An outcome variable's value as exposed to consumers after response processing. */
 export type OutcomeValue = RpScalar | readonly RpScalar[] | null;
 
+/** The interpreter's typed value model: (baseType, cardinality, members); NULL is null. */
+export interface RpValue {
+  readonly cardinality: Cardinality;
+  readonly baseType?: string;
+  readonly values: readonly RpScalar[];
+}
+
+export type MaybeRpValue = RpValue | null;
+
 export interface OutcomeDeclarationView {
   readonly identifier: string;
   readonly cardinality: Cardinality;
@@ -61,7 +70,22 @@ export interface RpExpressionView {
   readonly sectionIdentifier?: string;
   readonly includeCategory?: string | readonly string[];
   readonly excludeCategory?: string | readonly string[];
+  /** Vendor identification for `customOperator` (implementation registered by class). */
+  readonly class?: string;
+  readonly definition?: string;
 }
+
+/**
+ * A consumer-registered `customOperator` implementation, keyed by its `class`
+ * attribute. Receives the already-evaluated child values; returns NULL-or-value like
+ * any expression. Vendor operators are by definition engine-specific (the spec leaves
+ * them implementation-defined), so nothing ships registered — same opt-in stance as
+ * PCI modules.
+ */
+export type CustomOperatorImplementation = (
+  args: readonly MaybeRpValue[],
+  expression: RpExpressionView,
+) => MaybeRpValue;
 
 export interface RpConditionBranch {
   readonly expression: RpExpressionView;
@@ -115,6 +139,8 @@ export interface ResponseProcessingContext {
    * submission sequence then replays the exact same outcomes (ADR-0004 determinism).
    */
   readonly random?: () => number;
+  /** Registered vendor `customOperator` implementations by class (opt-in). */
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
 }
 
 export interface ResponseProcessingResult {

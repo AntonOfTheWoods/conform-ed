@@ -106,8 +106,10 @@ corpusTest(
     expect(tests).toBeGreaterThanOrEqual(25);
 
     // The recorded floors (raise as the stack grows — they must never go down):
-    // items 311/312 (99.7%) after the drawingInteraction rung; the 1 remaining is
-    // customOperator (vendor-defined RP, unsupported by policy).
+    // items 311/312 (99.7%). The 1 remaining (SineRule-001) needs
+    // org.qtitools.mathassess.CasProcess — a Maxima CAS. The customOperator seam
+    // exists (register implementations via QtiRuntimeConfig.customOperators), but
+    // shipping a fake CAS to claim 312 would be dishonest; the gate reports it.
     // tests 30/30 (100%) after the number* aggregate rung.
     expect(deliverable).toBeGreaterThanOrEqual(311);
     expect(deliverableTests).toBeGreaterThanOrEqual(30);

@@ -17,7 +17,7 @@ import {
   randomExpressionKinds,
   type EvalEnv,
 } from "./evaluate";
-import type { OutcomeValue, RpExpressionView, TemplateDeclarationView } from "./types";
+import type { CustomOperatorImplementation, OutcomeValue, RpExpressionView, TemplateDeclarationView } from "./types";
 import { coerceScalar, singleBoolean, toOutcomeValue, type MaybeRpValue } from "./values";
 
 export interface TemplateConditionBranch {
@@ -42,6 +42,8 @@ export interface TemplateProcessingContext {
   readonly templateDeclarations: readonly TemplateDeclarationView[];
   readonly responseDeclarations: readonly ResponseDeclarationView[];
   readonly seed: number;
+  /** Registered vendor `customOperator` implementations by class (opt-in). */
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
 }
 
 export interface TemplateProcessingResult {
@@ -118,6 +120,7 @@ export function executeTemplateProcessing(
     responseDeclaration: (identifier) => responseDeclarationsById.get(identifier),
     responseValue: () => null, // no candidate responses exist at template-processing time
     random: mulberry32(context.seed),
+    customOperators: context.customOperators,
   };
 
   function branchTaken(branch: TemplateConditionBranch): boolean {
@@ -244,7 +247,10 @@ export function applyCorrectResponseOverrides(
 }
 
 /** Static coverage walk for `canDeliver` over a templateProcessing tree. */
-export function collectTemplateIssues(view: TemplateProcessingView | undefined): readonly CapabilityIssue[] {
+export function collectTemplateIssues(
+  view: TemplateProcessingView | undefined,
+  options?: { readonly customOperatorClasses?: ReadonlySet<string> },
+): readonly CapabilityIssue[] {
   if (!view) {
     return [];
   }
@@ -267,12 +273,12 @@ export function collectTemplateIssues(view: TemplateProcessingView | undefined):
       }
 
       if (rule.expression) {
-        collectExpressionIssues(rule.expression, templateExpressionKinds, report);
+        collectExpressionIssues(rule.expression, templateExpressionKinds, report, options?.customOperatorClasses);
       }
 
       for (const branch of [rule.templateIf, ...(rule.templateElseIfs ?? [])]) {
         if (branch) {
-          collectExpressionIssues(branch.expression, templateExpressionKinds, report);
+          collectExpressionIssues(branch.expression, templateExpressionKinds, report, options?.customOperatorClasses);
           walkRules(branch.rules);
         }
       }

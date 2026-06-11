@@ -15,6 +15,7 @@
 import { scoreResponse } from "./response-processing";
 import { applyCorrectResponseOverrides, executeResponseProcessing, executeTemplateProcessing, mulberry32 } from "./rp";
 import type {
+  CustomOperatorImplementation,
   OutcomeDeclarationView,
   OutcomeValue,
   ResponseNormalization,
@@ -48,6 +49,8 @@ export interface AttemptStoreOptions {
   readonly seed?: number;
   /** QTI adaptive item: multiple attempts, outcome carry-over, completionStatus lock. */
   readonly adaptive?: boolean;
+  /** Registered vendor `customOperator` implementations by class (opt-in). */
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
 }
 
 export interface AttemptStore {
@@ -80,6 +83,7 @@ export function createAttemptStore(
         templateDeclarations: options.templateDeclarations ?? [],
         responseDeclarations: declarations,
         seed,
+        customOperators: options.customOperators,
       })
     : null;
   // The clone's effective declarations: setCorrectResponse overrides applied.
@@ -133,6 +137,7 @@ export function createAttemptStore(
       templateValues: snapshot.templateValues,
       priorOutcomes,
       random: rpRandom,
+      customOperators: options.customOperators,
     }).outcomes;
   }
 

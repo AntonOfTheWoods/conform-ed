@@ -29,6 +29,7 @@ export {
 } from "./rp";
 
 export type {
+  CustomOperatorImplementation,
   OutcomeDeclarationView,
   OutcomeValue,
   ResponseNormalization,

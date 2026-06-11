@@ -30,6 +30,7 @@ import {
 } from "./content-model";
 import { collectRpIssues, collectTemplateIssues } from "./rp";
 import type {
+  CustomOperatorImplementation,
   OutcomeDeclarationView,
   OutcomeValue,
   ResponseNormalization,
@@ -160,6 +161,11 @@ export interface QtiRuntimeConfig {
    * `poster`) to real URLs at render time. Identity when omitted.
    */
   readonly assetResolver?: (href: string) => string;
+  /**
+   * Registered vendor `customOperator` implementations by class. Items using only
+   * registered classes pass the capability gate; everything else stays unsupported.
+   */
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
 }
 
 export interface ItemRendererProps {
@@ -616,6 +622,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
             adaptive: item.adaptive,
             seed,
             normalization: config.normalization,
+            customOperators: config.customOperators,
           },
         ),
       [item, externalStore, seed],
@@ -734,11 +741,13 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       }
     }
 
-    for (const issue of collectRpIssues(item.responseProcessing)) {
+    const customOperatorClasses = new Set(Object.keys(config.customOperators ?? {}));
+
+    for (const issue of collectRpIssues(item.responseProcessing, { customOperatorClasses })) {
       report(issue);
     }
 
-    for (const issue of collectTemplateIssues(item.templateProcessing)) {
+    for (const issue of collectTemplateIssues(item.templateProcessing, { customOperatorClasses })) {
       report(issue);
     }
 

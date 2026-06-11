@@ -446,3 +446,57 @@ describe("seeded random in response processing (adaptive items)", () => {
     expect(collectRpIssues(revealRules)).toEqual([]);
   });
 });
+
+describe("custom operators (extension seam)", () => {
+  const reverseRules: ResponseProcessingView = {
+    rules: [
+      {
+        kind: "setOutcomeValue",
+        identifier: "OUT",
+        expression: {
+          kind: "customOperator",
+          class: "demo.reverse",
+          expressions: [{ kind: "baseValue", baseType: "string", value: "abc" }],
+        },
+      },
+    ],
+  };
+  const outDeclaration: OutcomeDeclarationView = { identifier: "OUT", cardinality: "single", baseType: "string" };
+
+  const demoReverse = (args: ReadonlyArray<{ values: readonly unknown[] } | null>) => {
+    const input = args[0]?.values[0];
+
+    return typeof input !== "string"
+      ? null
+      : { cardinality: "single" as const, baseType: "string", values: [input.split("").reverse().join("")] };
+  };
+
+  test("a registered implementation evaluates by class", () => {
+    const result = executeResponseProcessing(reverseRules, {
+      responseDeclarations: [singleChoice],
+      outcomeDeclarations: [outDeclaration],
+      responses: {},
+      customOperators: { "demo.reverse": demoReverse as never },
+    });
+
+    expect(result.issues).toEqual([]);
+    expect(result.outcomes["OUT"]).toBe("cba");
+  });
+
+  test("an unregistered class aborts to defaults and reports", () => {
+    const result = executeResponseProcessing(reverseRules, {
+      responseDeclarations: [singleChoice],
+      outcomeDeclarations: [outDeclaration],
+      responses: {},
+    });
+
+    expect(result.issues[0]?.name).toBe("customOperator");
+    expect(result.outcomes["OUT"]).toBeNull();
+  });
+
+  test("the capability walk accepts only registered classes", () => {
+    expect(collectRpIssues(reverseRules)[0]?.name).toBe("customOperator");
+    expect(collectRpIssues(reverseRules, { customOperatorClasses: new Set(["demo.reverse"]) })).toEqual([]);
+    expect(collectRpIssues(reverseRules, { customOperatorClasses: new Set(["other.class"]) })).toHaveLength(1);
+  });
+});

@@ -129,6 +129,7 @@ export function executeResponseProcessing(
     responseValue: (identifier) => context.responses[identifier] ?? null,
     normalization: context.normalization,
     random: context.random,
+    customOperators: context.customOperators,
   };
 
   function branchTaken(branch: RpConditionBranch): boolean {
@@ -188,8 +189,16 @@ export function executeResponseProcessing(
   };
 }
 
+export interface RpIssueOptions {
+  /** `customOperator` classes the consumer has registered implementations for. */
+  readonly customOperatorClasses?: ReadonlySet<string>;
+}
+
 /** Static coverage walk for `canDeliver`: reports constructs the interpreter lacks without executing. */
-export function collectRpIssues(view: ResponseProcessingView | undefined): readonly CapabilityIssue[] {
+export function collectRpIssues(
+  view: ResponseProcessingView | undefined,
+  options?: RpIssueOptions,
+): readonly CapabilityIssue[] {
   if (!view) {
     return [];
   }
@@ -212,12 +221,12 @@ export function collectRpIssues(view: ResponseProcessingView | undefined): reado
       }
 
       if (rule.expression) {
-        collectExpressionIssues(rule.expression, rpExpressionKinds, report);
+        collectExpressionIssues(rule.expression, rpExpressionKinds, report, options?.customOperatorClasses);
       }
 
       for (const branch of [rule.responseIf, ...(rule.responseElseIfs ?? [])]) {
         if (branch) {
-          collectExpressionIssues(branch.expression, rpExpressionKinds, report);
+          collectExpressionIssues(branch.expression, rpExpressionKinds, report, options?.customOperatorClasses);
           walkRules(branch.rules);
         }
       }

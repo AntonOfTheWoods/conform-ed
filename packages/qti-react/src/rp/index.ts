@@ -12,6 +12,7 @@ export {
 } from "./template-processing";
 export { resolveTemplate } from "./templates";
 export type {
+  CustomOperatorImplementation,
   OutcomeDeclarationView,
   OutcomeValue,
   ResponseNormalization,
