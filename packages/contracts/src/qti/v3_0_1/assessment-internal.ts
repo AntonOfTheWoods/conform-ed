@@ -688,6 +688,8 @@ export const QtiEndAttemptInteractionSchema: z.ZodTypeAny = z.lazy(() =>
     kind: z.literal("endAttemptInteraction"),
     ...QtiCommonNodeShape,
     responseIdentifier: QtiIdentifierSchema.optional(),
+    // The XSD-required button label (`title` on qti-end-attempt-interaction).
+    title: z.string().optional(),
     content: z.array(QtiContentFragmentSchema).optional(),
     attributes: XmlForeignAttributesSchema.optional(),
   }),
@@ -1018,8 +1020,8 @@ function validateResponseBinding(
           typeof choice.identifier === "string" ? [choice.identifier] : [],
         ),
       );
-      const minChoices = typeof interaction.minChoices === "number" ? interaction.minChoices : undefined;
-      const maxChoices = typeof interaction.maxChoices === "number" ? interaction.maxChoices : undefined;
+      const minChoices = minOf(interaction.minChoices);
+      const maxChoices = boundedMax(interaction.maxChoices);
       if (minChoices !== undefined && maxChoices !== undefined && minChoices > maxChoices) {
         addIssue(context, path, "choiceInteraction minChoices must not exceed maxChoices.");
       }
@@ -1052,8 +1054,8 @@ function validateResponseBinding(
         break;
       }
       requireBaseAndCardinality(["string", "integer", "float"], ["single", "multiple", "ordered"]);
-      const minStrings = typeof interaction.minStrings === "number" ? interaction.minStrings : undefined;
-      const maxStrings = typeof interaction.maxStrings === "number" ? interaction.maxStrings : undefined;
+      const minStrings = minOf(interaction.minStrings);
+      const maxStrings = boundedMax(interaction.maxStrings);
       if (minStrings !== undefined && maxStrings !== undefined && minStrings > maxStrings) {
         addIssue(context, path, "extendedTextInteraction minStrings must not exceed maxStrings.");
       }
@@ -1062,8 +1064,8 @@ function validateResponseBinding(
 
     case "matchInteraction": {
       requireBaseAndCardinality(["directedPair"], ["single", "multiple"]);
-      const minAssociations = typeof interaction.minAssociations === "number" ? interaction.minAssociations : undefined;
-      const maxAssociations = typeof interaction.maxAssociations === "number" ? interaction.maxAssociations : undefined;
+      const minAssociations = minOf(interaction.minAssociations);
+      const maxAssociations = boundedMax(interaction.maxAssociations);
       if (minAssociations !== undefined && maxAssociations !== undefined && minAssociations > maxAssociations) {
         addIssue(context, path, "matchInteraction minAssociations must not exceed maxAssociations.");
       }
@@ -1080,8 +1082,8 @@ function validateResponseBinding(
           typeof choice.identifier === "string" ? [choice.identifier] : [],
         ),
       );
-      const minAssociations = typeof interaction.minAssociations === "number" ? interaction.minAssociations : undefined;
-      const maxAssociations = typeof interaction.maxAssociations === "number" ? interaction.maxAssociations : undefined;
+      const minAssociations = minOf(interaction.minAssociations);
+      const maxAssociations = boundedMax(interaction.maxAssociations);
       if (minAssociations !== undefined && maxAssociations !== undefined && minAssociations > maxAssociations) {
         addIssue(context, path, "gapMatchInteraction minAssociations must not exceed maxAssociations.");
       }
@@ -1090,8 +1092,8 @@ function validateResponseBinding(
 
     case "mediaInteraction": {
       requireBaseAndCardinality(["integer"], ["single"]);
-      const minPlays = typeof interaction.minPlays === "number" ? interaction.minPlays : undefined;
-      const maxPlays = typeof interaction.maxPlays === "number" ? interaction.maxPlays : undefined;
+      const minPlays = minOf(interaction.minPlays);
+      const maxPlays = boundedMax(interaction.maxPlays);
       if (minPlays !== undefined && maxPlays !== undefined && minPlays > maxPlays) {
         addIssue(context, path, "mediaInteraction minPlays must not exceed maxPlays.");
       }
@@ -1139,8 +1141,8 @@ function validateResponseBinding(
           typeof choice.identifier === "string" ? [choice.identifier] : [],
         ),
       );
-      const minChoices = typeof interaction.minChoices === "number" ? interaction.minChoices : undefined;
-      const maxChoices = typeof interaction.maxChoices === "number" ? interaction.maxChoices : undefined;
+      const minChoices = minOf(interaction.minChoices);
+      const maxChoices = boundedMax(interaction.maxChoices);
       if (minChoices !== undefined && maxChoices !== undefined && minChoices > maxChoices) {
         addIssue(context, path, "hotspotInteraction minChoices must not exceed maxChoices.");
       }
@@ -1150,8 +1152,8 @@ function validateResponseBinding(
     case "associateInteraction":
     case "graphicAssociateInteraction": {
       requireBaseAndCardinality(["pair"], ["single", "multiple"]);
-      const minAssociations = typeof interaction.minAssociations === "number" ? interaction.minAssociations : undefined;
-      const maxAssociations = typeof interaction.maxAssociations === "number" ? interaction.maxAssociations : undefined;
+      const minAssociations = minOf(interaction.minAssociations);
+      const maxAssociations = boundedMax(interaction.maxAssociations);
       if (minAssociations !== undefined && maxAssociations !== undefined && minAssociations > maxAssociations) {
         addIssue(context, path, `${kind} minAssociations must not exceed maxAssociations.`);
       }
@@ -1171,8 +1173,8 @@ function validateResponseBinding(
     case "selectPointInteraction":
     case "positionObjectInteraction": {
       requireBaseAndCardinality(["point"], ["single", "multiple"]);
-      const minChoices = typeof interaction.minChoices === "number" ? interaction.minChoices : undefined;
-      const maxChoices = typeof interaction.maxChoices === "number" ? interaction.maxChoices : undefined;
+      const minChoices = minOf(interaction.minChoices);
+      const maxChoices = boundedMax(interaction.maxChoices);
       if (minChoices !== undefined && maxChoices !== undefined && minChoices > maxChoices) {
         addIssue(context, path, `${kind} minChoices must not exceed maxChoices.`);
       }
@@ -1191,6 +1193,9 @@ function validateResponseBinding(
   }
 }
 
+/** Built-in session outcomes every QTI item declares implicitly. */
+const builtInOutcomeIdentifiers = new Set(["completionStatus"]);
+
 function validateOutcomeReferences(
   value: unknown,
   declaredOutcomes: Map<string, unknown>,
@@ -1199,10 +1204,19 @@ function validateOutcomeReferences(
 ) {
   for (const rule of collectNodesByKind(value, ["setOutcomeValue", "lookupOutcomeValue"])) {
     const identifier = typeof rule.identifier === "string" ? rule.identifier : undefined;
-    if (identifier && !declaredOutcomes.has(identifier)) {
+    if (identifier && !declaredOutcomes.has(identifier) && !builtInOutcomeIdentifiers.has(identifier)) {
       addIssue(context, path, `Processing rule references undeclared outcome identifier '${identifier}'.`);
     }
   }
+}
+
+/** QTI max-* attributes use 0 to mean "unbounded"; bound checks must ignore it. */
+function boundedMax(value: unknown): number | undefined {
+  return typeof value === "number" && value > 0 ? value : undefined;
+}
+
+function minOf(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
 }
 
 function validateTemplateAndResponseReferences(

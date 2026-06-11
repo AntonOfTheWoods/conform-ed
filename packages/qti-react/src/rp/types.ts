@@ -35,6 +35,13 @@ export interface RpExpressionView {
   readonly min?: number;
   readonly max?: number;
   readonly step?: number;
+  /** `equal` tolerance window; string entries are template references (unsupported). */
+  readonly toleranceMode?: "exact" | "absolute" | "relative";
+  readonly tolerance?: ReadonlyArray<number | string>;
+  readonly includeLowerBound?: boolean;
+  readonly includeUpperBound?: boolean;
+  /** 1-based position for `index`. */
+  readonly n?: number | string;
 }
 
 export interface RpConditionBranch {

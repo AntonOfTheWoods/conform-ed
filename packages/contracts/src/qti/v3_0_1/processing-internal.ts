@@ -33,7 +33,6 @@ const binaryExpressionKinds = [
   "divide",
   "delete",
   "match",
-  "equal",
   "integerDivide",
   "integerModulus",
   "contains",
@@ -237,6 +236,17 @@ export const QtiAnyNExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
+export const QtiEqualExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+  strictObject({
+    kind: z.literal("equal"),
+    children: z.tuple([QtiExpressionSchema, QtiExpressionSchema]),
+    toleranceMode: z.enum(["exact", "absolute", "relative"]).optional(),
+    tolerance: z.array(QtiNumberOrVariableSchema).min(1).max(2).optional(),
+    includeLowerBound: z.boolean().optional(),
+    includeUpperBound: z.boolean().optional(),
+  }),
+);
+
 export const QtiEqualRoundedExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   strictObject({
     kind: z.literal("equalRounded"),
@@ -412,6 +422,7 @@ export const QtiExpressionSchema: z.ZodTypeAny = z.lazy(() =>
     QtiContainerExpressionSchema,
     QtiCustomOperatorExpressionSchema,
     QtiAnyNExpressionSchema,
+    QtiEqualExpressionSchema,
     QtiEqualRoundedExpressionSchema,
     QtiFieldValueExpressionSchema,
     QtiIndexExpressionSchema,

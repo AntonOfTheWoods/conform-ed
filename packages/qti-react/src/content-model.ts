@@ -60,8 +60,11 @@ const v0FlowElements = new Set<string>([
   "audio",
   "video",
   "source",
+  "track",
   "figure",
   "figcaption",
+  // embedded media the corpus uses for stages and standalone assets
+  "object",
   // structural vocabulary the official corpus uses (fixture-driven growth, ADR-0002)
   "div",
   "section",
@@ -90,10 +93,12 @@ const v0ElementAttributes: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ["audio", new Set(["src", "controls", "loop", "muted", "preload"])],
   ["video", new Set(["src", "controls", "loop", "muted", "preload", "poster", "width", "height"])],
   ["source", new Set(["src", "type"])],
+  ["track", new Set(["src", "kind", "srclang", "label", "default"])],
+  ["object", new Set(["data", "type", "width", "height"])],
 ]);
 
 /** Attribute names treated as packaged-asset references (rewritten by the Asset Resolver). */
-const v0UrlAttributes = new Set<string>(["src", "poster"]);
+const v0UrlAttributes = new Set<string>(["src", "poster", "data"]);
 
 /**
  * The MathML root. Its subtree is rendered structurally (presentation MathML) with the
@@ -176,6 +181,27 @@ export function sanitizeAttributes(
     }
 
     if (typeof value === "string") {
+      safe[name] = value;
+    }
+  }
+
+  return safe;
+}
+
+/**
+ * Attribute hardening for MathML subtrees: presentation attributes (mathvariant,
+ * linethickness, …) are not individually allowlisted — MathML has no scripting surface
+ * once event handlers and javascript: URLs are stripped.
+ */
+export function sanitizeMathAttributes(attributes: Record<string, unknown> | undefined): Record<string, string> {
+  const safe: Record<string, string> = {};
+
+  if (!attributes) {
+    return safe;
+  }
+
+  for (const [name, value] of Object.entries(attributes)) {
+    if (!isUnsafeAttribute(name, value) && typeof value === "string") {
       safe[name] = value;
     }
   }

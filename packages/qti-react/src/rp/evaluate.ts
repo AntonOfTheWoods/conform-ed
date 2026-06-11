@@ -39,8 +39,10 @@ export const deterministicExpressionKinds = new Set([
   "baseValue",
   "correct",
   "divide",
+  "equal",
   "gt",
   "gte",
+  "index",
   "isNull",
   "lt",
   "lte",
@@ -53,8 +55,10 @@ export const deterministicExpressionKinds = new Set([
   "or",
   "ordered",
   "product",
+  "round",
   "subtract",
   "sum",
+  "truncate",
   "variable",
 ]);
 
@@ -205,6 +209,71 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
       const comparisons = { gt: a > b, gte: a >= b, lt: a < b, lte: a <= b } as const;
 
       return booleanValue(comparisons[expression.kind]);
+    }
+
+    case "equal": {
+      const [a, b] = (expression.expressions ?? []).map((child) => singleNumber(evaluate(child)));
+
+      if (a === undefined || b === undefined || a === null || b === null) {
+        return null;
+      }
+
+      const mode = expression.toleranceMode ?? "exact";
+
+      if (mode === "exact") {
+        return booleanValue(a === b);
+      }
+
+      const t0 = expression.tolerance?.[0];
+      const t1 = expression.tolerance?.[1] ?? t0;
+
+      if (typeof t0 !== "number" || typeof t1 !== "number") {
+        // Template-variable tolerances (and missing ones) are out of the staged scope.
+        throw new RpUnsupportedError("equal");
+      }
+
+      const lower = mode === "absolute" ? a - t0 : a * (1 - t0 / 100);
+      const upper = mode === "absolute" ? a + t1 : a * (1 + t1 / 100);
+      const aboveLower = (expression.includeLowerBound ?? true) ? b >= lower : b > lower;
+      const belowUpper = (expression.includeUpperBound ?? true) ? b <= upper : b < upper;
+
+      return booleanValue(aboveLower && belowUpper);
+    }
+
+    case "round":
+    case "truncate": {
+      const operand = expression.expressions?.[0];
+      const value = operand === undefined ? null : singleNumber(evaluate(operand));
+
+      if (value === null) {
+        return null;
+      }
+
+      // QTI rounds half toward positive infinity, which is Math.round's behavior.
+      const rounded = expression.kind === "round" ? Math.round(value) : Math.trunc(value);
+
+      return { cardinality: "single", baseType: "integer", values: [rounded] };
+    }
+
+    case "index": {
+      if (typeof expression.n !== "number") {
+        throw new RpUnsupportedError("index"); // template-variable n is out of scope
+      }
+
+      const operand = expression.expressions?.[0];
+      const container = operand === undefined ? null : evaluate(operand);
+
+      if (container === null) {
+        return null;
+      }
+
+      const member = container.values[expression.n - 1];
+
+      if (member === undefined) {
+        return null; // out of range is null, per spec
+      }
+
+      return { cardinality: "single", baseType: container.baseType, values: [member] };
     }
 
     case "member": {

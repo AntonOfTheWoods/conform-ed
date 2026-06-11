@@ -574,3 +574,56 @@ test("QTI barrel exports prefixed XML extension node helpers", () => {
 
   expect(parsed.success).toBe(true);
 });
+
+test("built-in outcome completionStatus needs no declaration in processing rules", () => {
+  const parsed = QtiAssessmentItemDocumentSchema.safeParse({
+    assessmentItem: {
+      identifier: "adaptive-1",
+      title: "Adaptive item",
+      timeDependent: false,
+      adaptive: true,
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "identifier" }],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+      itemBody: { content: [{ kind: "xml", name: "p", value: "Stem" }] },
+      responseProcessing: {
+        rules: [
+          {
+            kind: "setOutcomeValue",
+            identifier: "completionStatus",
+            expression: { kind: "baseValue", baseType: "identifier", value: "completed" },
+          },
+        ],
+      },
+    },
+  });
+
+  expect(parsed.success).toBe(true);
+});
+
+test("maxChoices 0 means unbounded and never conflicts with minChoices", () => {
+  const parsed = QtiAssessmentItemDocumentSchema.safeParse({
+    assessmentItem: {
+      identifier: "multi-1",
+      title: "Pick at least two",
+      timeDependent: false,
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "multiple", baseType: "identifier" }],
+      itemBody: {
+        content: [
+          {
+            kind: "choiceInteraction",
+            responseIdentifier: "RESPONSE",
+            maxChoices: 0,
+            minChoices: 2,
+            simpleChoices: [
+              { kind: "simpleChoice", identifier: "A" },
+              { kind: "simpleChoice", identifier: "B" },
+              { kind: "simpleChoice", identifier: "C" },
+            ],
+          },
+        ],
+      },
+    },
+  });
+
+  expect(parsed.success).toBe(true);
+});

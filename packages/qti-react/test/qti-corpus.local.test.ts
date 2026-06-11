@@ -76,9 +76,10 @@ corpusTest(
 
     expect(items).toBeGreaterThanOrEqual(300);
 
-    // The recorded floor: 87/312 (27.9%) as of the meter's introduction. Raise this
-    // floor as the normalizer and runtime grow — it must never go down.
-    expect(deliverable).toBeGreaterThanOrEqual(87);
+    // The recorded floor: 257/312 (82.4%) after the full-vocabulary normalizer rung
+    // (was 87 at the meter's introduction). Raise this floor as the normalizer and
+    // runtime grow — it must never go down.
+    expect(deliverable).toBeGreaterThanOrEqual(257);
   },
   60000,
 );

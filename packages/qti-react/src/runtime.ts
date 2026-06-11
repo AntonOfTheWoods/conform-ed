@@ -21,7 +21,13 @@ import {
 import type { ZodType } from "zod";
 
 import type { CapabilityIssue, CapabilityReport } from "./capability";
-import { isAllowedFlowElement, sanitizeAttributes, v0ContentModel, type ContentModel } from "./content-model";
+import {
+  isAllowedFlowElement,
+  sanitizeAttributes,
+  sanitizeMathAttributes,
+  v0ContentModel,
+  type ContentModel,
+} from "./content-model";
 import { collectRpIssues, collectTemplateIssues } from "./rp";
 import type {
   OutcomeDeclarationView,
@@ -231,6 +237,30 @@ function isFeedbackNode(node: BodyNode): boolean {
   return feedbackKinds.has(node.kind);
 }
 
+const templateContentKinds = new Set(["templateInline", "templateBlock"]);
+
+/** templateInline/templateBlock: visibility decided by a template variable's value. */
+interface TemplateContentView {
+  readonly templateIdentifier: string;
+  readonly identifier: string;
+  readonly showHide?: "show" | "hide";
+  readonly content?: readonly BodyNode[];
+}
+
+function isTemplateContentNode(node: BodyNode): boolean {
+  return templateContentKinds.has(node.kind);
+}
+
+/** Same show/hide semantics as feedback, but against the clone's template values. */
+function templateVisible(value: OutcomeValue, view: TemplateContentView): boolean {
+  const matched = Array.isArray(value) ? value.includes(view.identifier) : value === view.identifier;
+
+  return matched !== (view.showHide === "hide");
+}
+
+/** Body node kinds that render without a descriptor, skin, or content-model entry. */
+const intrinsicLeafKinds = new Set(["text", "printedVariable"]);
+
 /** QTI showHide semantics: `show` reveals on a matched outcome, `hide` reveals on a miss. */
 function feedbackVisible(outcome: OutcomeValue, feedback: FeedbackView, submitted: boolean): boolean {
   if (!submitted) {
@@ -247,14 +277,18 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
   const descriptorsByKind = new Map(config.interactions.map((descriptor) => [descriptor.kind, descriptor]));
   const resolveAsset = config.assetResolver ?? ((href: string) => href);
 
-  function renderFlow(node: XmlContentNode, key: number, overrides?: NodeOverrides): ReactNode {
-    const isMath = node.name === model.mathRoot;
+  function renderFlow(node: XmlContentNode, key: number, overrides?: NodeOverrides, inMath = false): ReactNode {
+    const isMath = inMath || node.name === model.mathRoot;
 
     if (!isMath && !isAllowedFlowElement(model, node.name)) {
       return null; // not allowlisted → dropped (the sanitizer)
     }
 
-    const attributes = sanitizeAttributes(model, node.name, node.attributes);
+    // Inside math the subtree renders structurally: element names pass, attribute
+    // hardening still applies (see the content model's mathRoot note).
+    const attributes = isMath
+      ? sanitizeMathAttributes(node.attributes)
+      : sanitizeAttributes(model, node.name, node.attributes);
 
     for (const name of model.urlAttributes) {
       const value = attributes[name];
@@ -264,7 +298,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       }
     }
 
-    const children = node.children?.map((child, index) => renderNode(child, index, overrides));
+    const children = node.children?.map((child, index) => renderNode(child, index, overrides, isMath));
 
     return createElement(node.name, { key, ...attributes }, node.value ?? children);
   }
@@ -282,7 +316,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     );
   }
 
-  function renderNode(node: BodyNode, key: number, overrides?: NodeOverrides): ReactNode {
+  function renderNode(node: BodyNode, key: number, overrides?: NodeOverrides, inMath = false): ReactNode {
     const override = overrides?.[node.kind];
 
     if (override) {
@@ -309,6 +343,30 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       });
     }
 
+    if (isTemplateContentNode(node)) {
+      return createElement(TemplateContentHost, {
+        key,
+        view: node as unknown as TemplateContentView,
+        element: node.kind === "templateInline" ? "span" : "div",
+        overrides,
+      });
+    }
+
+    if (node.kind === "rubricBlock") {
+      const rubric = node as unknown as { view?: readonly string[]; content?: readonly BodyNode[] };
+
+      // Rubric blocks are addressed by view; a delivery engine shows candidates theirs.
+      if (!rubric.view?.includes("candidate")) {
+        return null;
+      }
+
+      return createElement(
+        "div",
+        { key, "data-qti-rubric-block": true },
+        rubric.content?.map((child, index) => renderNode(child, index, overrides)),
+      );
+    }
+
     if (node.kind === "printedVariable") {
       const identifier = (node as { identifier?: unknown }).identifier;
 
@@ -319,7 +377,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     }
 
     if (node.kind === "xml") {
-      return renderFlow(node as XmlContentNode, key, overrides);
+      return renderFlow(node as XmlContentNode, key, overrides, inMath);
     }
 
     const value = (node as { value?: string }).value;
@@ -348,6 +406,30 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       element,
       { "data-qti-feedback": feedback.identifier },
       feedback.content?.map((child, index) => renderNode(child, index, overrides)),
+    );
+  }
+
+  function TemplateContentHost({
+    view,
+    element,
+    overrides,
+  }: {
+    view: TemplateContentView;
+    element: "span" | "div";
+    overrides?: NodeOverrides;
+  }): ReactNode {
+    const { store } = useRuntimeContext();
+    const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+    const value = snapshot.templateValues[view.templateIdentifier] ?? null;
+
+    if (!templateVisible(value, view)) {
+      return null;
+    }
+
+    return createElement(
+      element,
+      { "data-qti-template": view.identifier },
+      view.content?.map((child, index) => renderNode(child, index, overrides)),
     );
   }
 
@@ -528,8 +610,8 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
     }
 
     function walk(node: BodyNode): void {
-      if (isFeedbackNode(node)) {
-        for (const child of (node as unknown as FeedbackView).content ?? []) {
+      if (isFeedbackNode(node) || isTemplateContentNode(node) || node.kind === "rubricBlock") {
+        for (const child of (node as unknown as { content?: readonly BodyNode[] }).content ?? []) {
           walk(child);
         }
 
@@ -569,6 +651,10 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       if (node.kind === "xml") {
         const xmlNode = node as XmlContentNode;
 
+        if (xmlNode.name === model.mathRoot) {
+          return; // MathML renders structurally; its subtree is not flow content
+        }
+
         if (!isAllowedFlowElement(model, xmlNode.name)) {
           report({ type: "unsupported-element", name: xmlNode.name });
         }
@@ -576,7 +662,17 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
         for (const child of xmlNode.children ?? []) {
           walk(child);
         }
+
+        return;
       }
+
+      if (intrinsicLeafKinds.has(node.kind)) {
+        return;
+      }
+
+      // Any other kind (include, multi-stage groups, future vocabulary) has no
+      // rendering path: report it rather than let the renderer drop it (ADR-0003).
+      report({ type: "unsupported-element", name: node.kind });
     }
 
     for (const node of item.itemBody.content ?? []) {
