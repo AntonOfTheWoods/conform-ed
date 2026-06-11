@@ -113,6 +113,8 @@ export interface InteractionRenderProps {
    * fragment (e.g. `hottext`, `gap`) while the core keeps walking everything else.
    */
   renderContent: (nodes: readonly BodyNode[] | undefined, overrides?: NodeOverrides) => ReactNode;
+  /** The runtime's Asset Resolver (identity when none configured) for skin-owned media. */
+  resolveAsset: (href: string) => string;
 }
 
 /** Per-kind render overrides a skin passes to `renderContent` for nodes it owns. */
@@ -129,6 +131,11 @@ export interface QtiRuntimeConfig {
   readonly renderUnsupported?: (node: InteractionNode) => ReactNode;
   /** The Response Normalization hook (ADR-0004): opt-in candidate-input leniency. */
   readonly normalization?: ResponseNormalization;
+  /**
+   * The Asset Resolver: maps package-relative media references (img/audio/video `src`,
+   * `poster`) to real URLs at render time. Identity when omitted.
+   */
+  readonly assetResolver?: (href: string) => string;
 }
 
 export interface ItemRendererProps {
@@ -223,6 +230,7 @@ function feedbackVisible(outcome: OutcomeValue, feedback: FeedbackView, submitte
 export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
   const model = config.contentModel ?? v0ContentModel;
   const descriptorsByKind = new Map(config.interactions.map((descriptor) => [descriptor.kind, descriptor]));
+  const resolveAsset = config.assetResolver ?? ((href: string) => href);
 
   function renderFlow(node: XmlContentNode, key: number, overrides?: NodeOverrides): ReactNode {
     const isMath = node.name === model.mathRoot;
@@ -231,7 +239,16 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       return null; // not allowlisted → dropped (the sanitizer)
     }
 
-    const attributes = sanitizeAttributes(model, node.attributes);
+    const attributes = sanitizeAttributes(model, node.name, node.attributes);
+
+    for (const name of model.urlAttributes) {
+      const value = attributes[name];
+
+      if (value !== undefined) {
+        attributes[name] = resolveAsset(value);
+      }
+    }
+
     const children = node.children?.map((child, index) => renderNode(child, index, overrides));
 
     return createElement(node.name, { key, ...attributes }, node.value ?? children);
@@ -412,6 +429,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       status,
       getOptionProps,
       renderContent,
+      resolveAsset,
     });
   }
 

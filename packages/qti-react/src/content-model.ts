@@ -22,8 +22,11 @@ export const v0InteractionKinds = [
   "hottextInteraction",
   "inlineChoiceInteraction",
   "matchInteraction",
+  "mediaInteraction",
   "orderInteraction",
+  "sliderInteraction",
   "textEntryInteraction",
+  "uploadInteraction",
 ] as const;
 
 export type V0InteractionKind = (typeof v0InteractionKinds)[number];
@@ -44,7 +47,25 @@ const v0FlowElements = new Set<string>([
   "ruby",
   "rt",
   "rp",
+  // media (the first media-milestone growth; src/poster route through the Asset Resolver)
+  "img",
+  "audio",
+  "video",
+  "source",
+  "figure",
+  "figcaption",
 ]);
+
+/** Element-specific attribute allowlists, additive to the global set. */
+const v0ElementAttributes: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+  ["img", new Set(["src", "alt", "width", "height"])],
+  ["audio", new Set(["src", "controls", "loop", "muted", "preload"])],
+  ["video", new Set(["src", "controls", "loop", "muted", "preload", "poster", "width", "height"])],
+  ["source", new Set(["src", "type"])],
+]);
+
+/** Attribute names treated as packaged-asset references (rewritten by the Asset Resolver). */
+const v0UrlAttributes = new Set<string>(["src", "poster"]);
 
 /**
  * The MathML root. Its subtree is rendered structurally (presentation MathML) with the
@@ -61,6 +82,10 @@ export interface ContentModel {
   readonly flowElements: ReadonlySet<string>;
   readonly mathRoot: string;
   readonly globalAttributes: ReadonlySet<string>;
+  /** Per-element attribute allowlists, additive to `globalAttributes`. */
+  readonly elementAttributes: ReadonlyMap<string, ReadonlySet<string>>;
+  /** Attributes whose values are asset references, routed through the Asset Resolver. */
+  readonly urlAttributes: ReadonlySet<string>;
 }
 
 export const v0ContentModel: ContentModel = {
@@ -68,6 +93,8 @@ export const v0ContentModel: ContentModel = {
   flowElements: v0FlowElements,
   mathRoot: v0MathRoot,
   globalAttributes: v0GlobalAttributes,
+  elementAttributes: v0ElementAttributes,
+  urlAttributes: v0UrlAttributes,
 };
 
 export function isAllowedFlowElement(model: ContentModel, name: string): boolean {
@@ -94,11 +121,13 @@ function isUnsafeAttribute(name: string, value: unknown): boolean {
 }
 
 /**
- * Reduce a raw attribute bag to the safe, allowlisted subset. Used by the body walk so
- * a node that validates against QTI structure still cannot carry script or handlers.
+ * Reduce a raw attribute bag to the safe, allowlisted subset for one element. Used by
+ * the body walk so a node that validates against QTI structure still cannot carry
+ * script or handlers. The allowlist is the global set plus the element's own entries.
  */
 export function sanitizeAttributes(
   model: ContentModel,
+  elementName: string,
   attributes: Record<string, unknown> | undefined,
 ): Record<string, string> {
   const safe: Record<string, string> = {};
@@ -107,12 +136,14 @@ export function sanitizeAttributes(
     return safe;
   }
 
+  const elementAllowed = model.elementAttributes.get(elementName);
+
   for (const [name, value] of Object.entries(attributes)) {
     if (isUnsafeAttribute(name, value)) {
       continue;
     }
 
-    if (!model.globalAttributes.has(name)) {
+    if (!model.globalAttributes.has(name) && !elementAllowed?.has(name)) {
       continue;
     }
 

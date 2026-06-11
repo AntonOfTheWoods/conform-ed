@@ -295,8 +295,11 @@ describe("registry completeness", () => {
       "hottextInteraction",
       "inlineChoiceInteraction",
       "matchInteraction",
+      "mediaInteraction",
       "orderInteraction",
+      "sliderInteraction",
       "textEntryInteraction",
+      "uploadInteraction",
     ]);
   });
 });

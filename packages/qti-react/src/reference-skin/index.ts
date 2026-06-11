@@ -14,8 +14,11 @@ import { GapMatchReferenceSkin } from "./gap-match";
 import { HottextReferenceSkin } from "./hottext";
 import { InlineChoiceReferenceSkin } from "./inline-choice";
 import { MatchReferenceSkin } from "./match";
+import { MediaReferenceSkin } from "./media";
 import { OrderReferenceSkin } from "./order";
+import { SliderReferenceSkin } from "./slider";
 import { TextEntryReferenceSkin } from "./text-entry";
+import { UploadReferenceSkin } from "./upload";
 
 export { textOf } from "./content";
 export { AssociateReferenceSkin } from "./associate";
@@ -25,8 +28,11 @@ export { GapMatchReferenceSkin } from "./gap-match";
 export { HottextReferenceSkin } from "./hottext";
 export { InlineChoiceReferenceSkin } from "./inline-choice";
 export { MatchReferenceSkin } from "./match";
+export { MediaReferenceSkin } from "./media";
 export { OrderReferenceSkin } from "./order";
+export { SliderReferenceSkin } from "./slider";
 export { TextEntryReferenceSkin } from "./text-entry";
+export { UploadReferenceSkin } from "./upload";
 
 export const referenceSkin: SkinRegistry = {
   associateInteraction: AssociateReferenceSkin,
@@ -36,6 +42,9 @@ export const referenceSkin: SkinRegistry = {
   hottextInteraction: HottextReferenceSkin,
   inlineChoiceInteraction: InlineChoiceReferenceSkin,
   matchInteraction: MatchReferenceSkin,
+  mediaInteraction: MediaReferenceSkin,
   orderInteraction: OrderReferenceSkin,
+  sliderInteraction: SliderReferenceSkin,
   textEntryInteraction: TextEntryReferenceSkin,
+  uploadInteraction: UploadReferenceSkin,
 };

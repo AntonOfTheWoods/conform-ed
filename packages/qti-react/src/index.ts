@@ -64,9 +64,12 @@ export {
   hottextInteraction,
   inlineChoiceInteraction,
   matchInteraction,
+  mediaInteraction,
   orderInteraction,
   qtiCoreInteractions,
+  sliderInteraction,
   textEntryInteraction,
+  uploadInteraction,
 } from "./interactions";
 
 export {
@@ -77,8 +80,11 @@ export {
   HottextReferenceSkin,
   InlineChoiceReferenceSkin,
   MatchReferenceSkin,
+  MediaReferenceSkin,
   OrderReferenceSkin,
+  SliderReferenceSkin,
   TextEntryReferenceSkin,
+  UploadReferenceSkin,
   referenceSkin,
   textOf,
 } from "./reference-skin";

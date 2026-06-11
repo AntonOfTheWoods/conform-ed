@@ -428,6 +428,71 @@ export const harnessItems: readonly HarnessItem[] = [
     },
   },
   {
+    id: "slider",
+    title: "sliderInteraction — numeric scale",
+    item: {
+      responseDeclarations: [
+        {
+          identifier: "RESPONSE",
+          cardinality: "single",
+          baseType: "integer",
+          correctResponse: { values: [{ value: "5" }] },
+        },
+      ],
+      outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+      responseProcessing: { template: "https://purl.imsglobal.org/spec/qti/v3p0/rptemplates/match_correct" },
+      itemBody: {
+        content: [
+          {
+            kind: "sliderInteraction",
+            responseIdentifier: "RESPONSE",
+            lowerBound: 0,
+            upperBound: 10,
+            step: 1,
+            prompt: {
+              content: [{ kind: "xml", name: "p", value: "日本語 has how many vowel sounds? (Slide to answer.)" }],
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "upload",
+    title: "uploadInteraction — file response",
+    item: {
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "file" }],
+      itemBody: {
+        content: [
+          {
+            kind: "uploadInteraction",
+            responseIdentifier: "RESPONSE",
+            type: "application/pdf",
+            prompt: { content: [{ kind: "xml", name: "p", value: "Upload your handwriting practice sheet (PDF)." }] },
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "media",
+    title: "mediaInteraction — limited-play audio",
+    item: {
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "integer" }],
+      itemBody: {
+        content: [
+          { kind: "xml", name: "p", value: "Listen to the dialogue (at most 2 plays), then move on." },
+          {
+            kind: "mediaInteraction",
+            responseIdentifier: "RESPONSE",
+            maxPlays: 2,
+            content: [{ kind: "xml", name: "audio", attributes: { src: "audio/dialogue.mp3" } }],
+          },
+        ],
+      },
+    },
+  },
+  {
     id: "unsupported",
     title: "hotspotInteraction — not yet supported (capability gate demo)",
     item: {

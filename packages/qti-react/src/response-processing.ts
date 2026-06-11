@@ -55,6 +55,8 @@ function pairsEqual(a: string, b: string, directed: boolean): boolean {
   return !directed && a1 === b2 && a2 === b1;
 }
 
+const numericBaseTypes = new Set(["float", "integer"]);
+
 /** Value equality for one declared baseType, used by both match_correct and map_response. */
 function makeValueComparator(
   declaration: ResponseDeclarationView,
@@ -66,6 +68,10 @@ function makeValueComparator(
 
   if (declaration.baseType === "directedPair") {
     return (a, b) => pairsEqual(a, b, true);
+  }
+
+  if (declaration.baseType !== undefined && numericBaseTypes.has(declaration.baseType)) {
+    return (a, b) => a.trim() !== "" && b.trim() !== "" && Number(a) === Number(b);
   }
 
   if (normalize && isStringBaseType(declaration)) {
