@@ -7,7 +7,7 @@
 import index from "./index.html";
 
 const server = Bun.serve({
-  port: Number(process.env.PORT ?? 4173),
+  port: Number(process.env["PORT"] ?? 4173),
   routes: { "/": index },
 });
 

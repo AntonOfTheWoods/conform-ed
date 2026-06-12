@@ -264,7 +264,7 @@ test("Caliper12DerivedZodTemplates exposes key Caliper entry points and conforma
   expect(CaliperV1_2.Caliper12DerivedZodTemplates.systemIdentifier).toBe(CaliperV1_2.SystemIdentifierSchema);
   expect(CaliperV1_2.Caliper12DerivedZodTemplates.jsonSchemaEntryPoints.Action).toBe(CaliperV1_2.ActionSchema);
   const annotationRule =
-    CaliperV1_2.Caliper12DerivedZodTemplates.conformance.supportedTextualEventRules.AnnotationEvent;
+    CaliperV1_2.Caliper12DerivedZodTemplates.conformance.supportedTextualEventRules["AnnotationEvent"];
   expect(annotationRule).toBeDefined();
   expect(annotationRule?.profile).toBe("AnnotationProfile");
 });

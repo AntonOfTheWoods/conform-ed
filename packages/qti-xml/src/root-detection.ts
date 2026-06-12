@@ -168,7 +168,7 @@ export function detectQtiRoot(xml: string): QtiRootDetection | undefined {
   const rawAttributes = match[2] ?? "";
   const attributes = parseAttributes(rawAttributes);
   const { localName, prefix } = splitXmlName(rootName);
-  const namespaceUri = prefix ? attributes[`xmlns:${prefix}`] : attributes.xmlns;
+  const namespaceUri = prefix ? attributes[`xmlns:${prefix}`] : attributes["xmlns"];
   const inferredVersion = inferVersion(namespaceUri, localName, xml);
   const schemaSelectionKey = inferSchemaSelectionKey(inferredVersion, namespaceUri, localName);
 

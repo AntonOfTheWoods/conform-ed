@@ -22,7 +22,7 @@ describe("attempt store", () => {
 
     store.setResponse("RESPONSE", "A");
 
-    expect(store.getSnapshot().responses.RESPONSE).toBe("A");
+    expect(store.getSnapshot().responses["RESPONSE"]).toBe("A");
     expect(notifications).toBe(1);
   });
 
@@ -36,7 +36,7 @@ describe("attempt store", () => {
     expect(store.getSnapshot().submitted).toBe(true);
 
     store.setResponse("RESPONSE", "A");
-    expect(store.getSnapshot().responses.RESPONSE).toBe("B"); // locked after submit
+    expect(store.getSnapshot().responses["RESPONSE"]).toBe("B"); // locked after submit
   });
 
   test("reset clears responses and submitted flag", () => {
@@ -47,7 +47,7 @@ describe("attempt store", () => {
     store.reset();
 
     expect(store.getSnapshot().submitted).toBe(false);
-    expect(store.getSnapshot().responses.RESPONSE).toBeUndefined();
+    expect(store.getSnapshot().responses["RESPONSE"]).toBeUndefined();
     expect(store.getSnapshot().scores).toEqual([]);
   });
 });
@@ -60,7 +60,7 @@ describe("response collectors (imperative interactions, e.g. PCI)", () => {
 
     const scores = store.submit();
 
-    expect(store.getSnapshot().responses.RESPONSE).toBe("B");
+    expect(store.getSnapshot().responses["RESPONSE"]).toBe("B");
     expect(scores[0]?.correct).toBe(true);
   });
 
@@ -71,7 +71,7 @@ describe("response collectors (imperative interactions, e.g. PCI)", () => {
     store.registerResponseCollector("RESPONSE", () => undefined);
     store.submit();
 
-    expect(store.getSnapshot().responses.RESPONSE).toBe("A");
+    expect(store.getSnapshot().responses["RESPONSE"]).toBe("A");
   });
 
   test("a collected record response scores through fieldValue", () => {
@@ -122,7 +122,7 @@ describe("response collectors (imperative interactions, e.g. PCI)", () => {
     store.registerResponseCollector("RESPONSE", () => ({ expression: "x+1", verdict: true }));
     store.submit();
 
-    expect(store.getSnapshot().responses.RESPONSE).toEqual({ expression: "x+1", verdict: true });
+    expect(store.getSnapshot().responses["RESPONSE"]).toEqual({ expression: "x+1", verdict: true });
     expect(store.getSnapshot().outcomes["SCORE"]).toBe(1);
   });
 
@@ -134,6 +134,6 @@ describe("response collectors (imperative interactions, e.g. PCI)", () => {
     store.setResponse("RESPONSE", "A");
     store.submit();
 
-    expect(store.getSnapshot().responses.RESPONSE).toBe("A");
+    expect(store.getSnapshot().responses["RESPONSE"]).toBe("A");
   });
 });

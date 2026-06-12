@@ -168,7 +168,7 @@ function mapV2ResponseDeclaration(element: QtiXmlElementNode) {
   return {
     identifier: requireAttribute(element, "identifier"),
     cardinality: requireAttribute(element, "cardinality"),
-    baseType: element.attributes.baseType,
+    baseType: element.attributes["baseType"],
     ...(correctResponseElement
       ? {
           correctResponse: {
@@ -192,7 +192,7 @@ function mapV2OutcomeDeclaration(element: QtiXmlElementNode) {
   return {
     identifier: requireAttribute(element, "identifier"),
     cardinality: requireAttribute(element, "cardinality"),
-    baseType: element.attributes.baseType,
+    baseType: element.attributes["baseType"],
     ...(defaultValueElement
       ? {
           defaultValue: {
@@ -200,8 +200,10 @@ function mapV2OutcomeDeclaration(element: QtiXmlElementNode) {
           },
         }
       : {}),
-    ...(element.attributes.interpretation ? { interpretation: element.attributes.interpretation } : {}),
-    ...(element.attributes.longInterpretation ? { longInterpretation: element.attributes.longInterpretation } : {}),
+    ...(element.attributes["interpretation"] ? { interpretation: element.attributes["interpretation"] } : {}),
+    ...(element.attributes["longInterpretation"]
+      ? { longInterpretation: element.attributes["longInterpretation"] }
+      : {}),
     ...(attributeNumber(element.attributes, "normalMaximum") !== undefined
       ? { normalMaximum: attributeNumber(element.attributes, "normalMaximum") }
       : {}),
@@ -241,7 +243,7 @@ function mapV2ContentNodes(nodes: QtiXmlNode[]): unknown[] {
             ...(attributeBoolean(node.attributes, "fixed") !== undefined
               ? { fixed: attributeBoolean(node.attributes, "fixed") }
               : {}),
-            ...(node.attributes.showHide ? { showHide: node.attributes.showHide } : {}),
+            ...(node.attributes["showHide"] ? { showHide: node.attributes["showHide"] } : {}),
             ...(mapV2ContentNodes(node.children).length ? { children: mapV2ContentNodes(node.children) } : {}),
           });
           break;
@@ -426,8 +428,8 @@ function mapV3StyleSheet(element: QtiXmlElementNode) {
   return {
     href: requireAttribute(element, "href"),
     type: requireAttribute(element, "type"),
-    ...(element.attributes.media ? { media: element.attributes.media } : {}),
-    ...(element.attributes.title ? { title: element.attributes.title } : {}),
+    ...(element.attributes["media"] ? { media: element.attributes["media"] } : {}),
+    ...(element.attributes["title"] ? { title: element.attributes["title"] } : {}),
   };
 }
 
@@ -449,9 +451,9 @@ function mapV3OutcomeDeclaration(element: QtiXmlElementNode) {
       : {}),
     ...(matchTableElement ? { matchTable: mapV3MatchTable(matchTableElement) } : {}),
     ...(interpolationTableElement ? { interpolationTable: mapV3InterpolationTable(interpolationTableElement) } : {}),
-    ...(attributeList(element.attributes.view) ? { view: attributeList(element.attributes.view) } : {}),
+    ...(attributeList(element.attributes["view"]) ? { view: attributeList(element.attributes["view"]) } : {}),
     ...(element.attributes["external-scored"] ? { externalScored: element.attributes["external-scored"] } : {}),
-    ...(element.attributes.interpretation ? { interpretation: element.attributes.interpretation } : {}),
+    ...(element.attributes["interpretation"] ? { interpretation: element.attributes["interpretation"] } : {}),
     ...(element.attributes["long-interpretation"]
       ? { longInterpretation: element.attributes["long-interpretation"] }
       : {}),
@@ -860,7 +862,7 @@ function mapV3DomainNode(node: QtiXmlElementNode): unknown {
         kind: "uploadInteraction",
         ...interactionBase(node),
         ...promptOf(node),
-        ...(attributeList(node.attributes.type) ? { acceptedTypes: attributeList(node.attributes.type) } : {}),
+        ...(attributeList(node.attributes["type"]) ? { acceptedTypes: attributeList(node.attributes["type"]) } : {}),
       };
 
     case "qti-slider-interaction":
@@ -1142,7 +1144,7 @@ function mapV3Expression(element: QtiXmlElementNode): unknown {
         children: expressionChildren(element),
       };
     case "qti-equal": {
-      const tolerance = attributeList(element.attributes.tolerance)?.map((entry) => {
+      const tolerance = attributeList(element.attributes["tolerance"])?.map((entry) => {
         const parsed = Number(entry);
         return Number.isNaN(parsed) ? entry : parsed;
       });
@@ -1535,7 +1537,9 @@ function mapV3AssessmentItemRef(element: QtiXmlElementNode) {
     ...(attributeBoolean(element.attributes, "fixed") !== undefined
       ? { fixed: attributeBoolean(element.attributes, "fixed") }
       : {}),
-    ...(attributeList(element.attributes.category) ? { category: attributeList(element.attributes.category) } : {}),
+    ...(attributeList(element.attributes["category"])
+      ? { category: attributeList(element.attributes["category"]) }
+      : {}),
     ...(childElements(element, "qti-pre-condition").length
       ? { preConditions: childElements(element, "qti-pre-condition").map((child) => mapV3PreCondition(child)) }
       : {}),
@@ -1661,7 +1665,7 @@ function mapV3ResultResponseVariable(element: QtiXmlElementNode) {
   return {
     identifier: requireAttribute(element, "identifier"),
     cardinality: requireAttribute(element, "cardinality"),
-    baseType: element.attributes.baseType,
+    baseType: element.attributes["baseType"],
     candidateResponse: {
       values: candidateResponseElement ? mapV3ResultValues(candidateResponseElement) : [],
     },
@@ -1672,11 +1676,11 @@ function mapV3ResultResponseVariable(element: QtiXmlElementNode) {
           },
         }
       : {}),
-    ...(element.attributes.choiceSequence
-      ? { choiceSequence: element.attributes.choiceSequence.split(/\s+/u).filter(Boolean) }
+    ...(element.attributes["choiceSequence"]
+      ? { choiceSequence: element.attributes["choiceSequence"].split(/\s+/u).filter(Boolean) }
       : {}),
-    ...(element.attributes.scoreStatus ? { scoreStatus: element.attributes.scoreStatus } : {}),
-    ...(element.attributes.answeredStatus ? { answeredStatus: element.attributes.answeredStatus } : {}),
+    ...(element.attributes["scoreStatus"] ? { scoreStatus: element.attributes["scoreStatus"] } : {}),
+    ...(element.attributes["answeredStatus"] ? { answeredStatus: element.attributes["answeredStatus"] } : {}),
   };
 }
 
@@ -1684,7 +1688,7 @@ function mapV3ResultOutcomeVariable(element: QtiXmlElementNode) {
   return {
     identifier: requireAttribute(element, "identifier"),
     cardinality: requireAttribute(element, "cardinality"),
-    baseType: element.attributes.baseType,
+    baseType: element.attributes["baseType"],
     values: mapV3ResultValues(element),
     ...(attributeNumber(element.attributes, "masteryValue") !== undefined
       ? { masteryValue: attributeNumber(element.attributes, "masteryValue") }
@@ -1694,7 +1698,7 @@ function mapV3ResultOutcomeVariable(element: QtiXmlElementNode) {
 
 function mapV3ResultContext(element: QtiXmlElementNode) {
   return {
-    ...(element.attributes.sourcedId ? { sourcedId: element.attributes.sourcedId } : {}),
+    ...(element.attributes["sourcedId"] ? { sourcedId: element.attributes["sourcedId"] } : {}),
     ...(childElements(element, "sessionIdentifier").length
       ? {
           sessionIdentifiers: childElements(element, "sessionIdentifier").map((sessionIdentifier) => ({
@@ -1756,7 +1760,7 @@ function normalizeQti22AssessmentItem(root: QtiXmlElementNode) {
   return {
     assessmentItem: {
       identifier: requireAttribute(root, "identifier"),
-      ...(root.attributes.title ? { title: root.attributes.title } : {}),
+      ...(root.attributes["title"] ? { title: root.attributes["title"] } : {}),
       ...(attributeBoolean(root.attributes, "adaptive") !== undefined
         ? { adaptive: attributeBoolean(root.attributes, "adaptive") }
         : {}),
@@ -1795,7 +1799,7 @@ function normalizeQti22Manifest(root: QtiXmlElementNode) {
       resources: childElements(firstChildElement(root, "resources") ?? root, "resource").map((resourceElement) => ({
         identifier: requireAttribute(resourceElement, "identifier"),
         type: requireAttribute(resourceElement, "type"),
-        ...(resourceElement.attributes.href ? { href: resourceElement.attributes.href } : {}),
+        ...(resourceElement.attributes["href"] ? { href: resourceElement.attributes["href"] } : {}),
         ...(childElements(resourceElement, "file").length
           ? {
               files: childElements(resourceElement, "file").map((fileElement) => ({

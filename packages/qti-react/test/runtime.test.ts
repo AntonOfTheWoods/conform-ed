@@ -6,7 +6,7 @@ import { choiceInteraction } from "../src/interactions";
 import { createQtiRuntime, type AssessmentItemView, type InteractionRenderProps } from "../src/runtime";
 
 function ChoiceTestSkin(props: InteractionRenderProps): ReturnType<typeof createElement> {
-  const choices = props.node.simpleChoices as ReadonlyArray<{ identifier: string }>;
+  const choices = props.node["simpleChoices"] as ReadonlyArray<{ identifier: string }>;
 
   return createElement(
     "ul",

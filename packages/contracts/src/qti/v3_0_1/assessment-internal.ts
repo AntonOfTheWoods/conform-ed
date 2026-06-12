@@ -831,7 +831,35 @@ export const QtiAssessmentStimulusRefSchema = strictObject({
   foreignAttributes: XmlForeignAttributesSchema.optional(),
 });
 
-function walkUnknown(value: unknown, visit: (node: Record<string, unknown>) => void) {
+/**
+ * The ASI node fields the cross-validators read. Nodes arrive pre-validation
+ * (these refinements run during parsing), so every field stays `unknown` until
+ * narrowed; the declared names are the QTI vocabulary the checks are defined
+ * over -- anything else on a node flows through the index signature.
+ */
+type AsiNodeView = {
+  kind?: unknown;
+  identifier?: unknown;
+  responseIdentifier?: unknown;
+  content?: unknown;
+  simpleChoices?: unknown;
+  inlineChoices?: unknown;
+  gapChoices?: unknown;
+  hotspotChoices?: unknown;
+  minChoices?: unknown;
+  maxChoices?: unknown;
+  minStrings?: unknown;
+  maxStrings?: unknown;
+  minAssociations?: unknown;
+  maxAssociations?: unknown;
+  minPlays?: unknown;
+  maxPlays?: unknown;
+  lowerBound?: unknown;
+  upperBound?: unknown;
+  [key: string]: unknown;
+};
+
+function walkUnknown(value: unknown, visit: (node: AsiNodeView) => void) {
   if (Array.isArray(value)) {
     for (const entry of value) {
       walkUnknown(entry, visit);
@@ -843,7 +871,7 @@ function walkUnknown(value: unknown, visit: (node: Record<string, unknown>) => v
     return;
   }
 
-  const node = value as Record<string, unknown>;
+  const node = value as AsiNodeView;
   visit(node);
 
   for (const [key, child] of Object.entries(node)) {
@@ -867,8 +895,8 @@ function containsInteraction(value: unknown): boolean {
   return found;
 }
 
-function collectInteractionNodes(value: unknown): Array<Record<string, unknown>> {
-  const interactions: Array<Record<string, unknown>> = [];
+function collectInteractionNodes(value: unknown): AsiNodeView[] {
+  const interactions: AsiNodeView[] = [];
 
   walkUnknown(value, (node) => {
     const kind = typeof node.kind === "string" ? node.kind : null;
@@ -880,8 +908,8 @@ function collectInteractionNodes(value: unknown): Array<Record<string, unknown>>
   return interactions;
 }
 
-function collectNodesByKind(value: unknown, kinds: readonly string[]): Array<Record<string, unknown>> {
-  const matches: Array<Record<string, unknown>> = [];
+function collectNodesByKind(value: unknown, kinds: readonly string[]): AsiNodeView[] {
+  const matches: AsiNodeView[] = [];
   const kindSet = new Set(kinds);
 
   walkUnknown(value, (node) => {
@@ -977,7 +1005,7 @@ function addDuplicateSummaryIssue(
 }
 
 function validateResponseBinding(
-  interaction: Record<string, unknown>,
+  interaction: AsiNodeView,
   responsesById: Map<string, z.infer<typeof QtiResponseDeclarationSchema>>,
   context: z.RefinementCtx,
   path: Array<string | number>,

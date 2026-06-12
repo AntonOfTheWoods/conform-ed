@@ -31,18 +31,18 @@ function readString(record: Record<string, unknown>, key: string): string | unde
 function normalizeTextBlock(block: unknown): { langstrings: Array<{ lang?: string; value: string }> } {
   const record = (block ?? {}) as Record<string, unknown>;
   return {
-    langstrings: asArray(record.langstring as Record<string, unknown> | Array<Record<string, unknown>> | undefined).map(
-      (langstring) => ({
-        ...(typeof langstring["@_lang"] === "string" ? { lang: langstring["@_lang"] } : {}),
-        value: normalizeText(typeof langstring["#text"] === "string" ? langstring["#text"] : undefined),
-      }),
-    ),
+    langstrings: asArray(
+      record["langstring"] as Record<string, unknown> | Array<Record<string, unknown>> | undefined,
+    ).map((langstring) => ({
+      ...(typeof langstring["@_lang"] === "string" ? { lang: langstring["@_lang"] } : {}),
+      value: normalizeText(typeof langstring["#text"] === "string" ? langstring["#text"] : undefined),
+    })),
   };
 }
 
 function normalizeObjectives(value: unknown): Array<{ idref: string }> {
   const record = (value ?? {}) as Record<string, unknown>;
-  return asArray(record.objective as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map(
+  return asArray(record["objective"] as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map(
     (objective) => ({
       idref: readString(objective, "@_idref") ?? "",
     }),
@@ -56,15 +56,15 @@ function normalizeKeywordReferences(value: unknown): Array<{ idref: string }> {
 }
 
 function normalizeCourseItem(item: Record<string, unknown>): unknown {
-  if (typeof item.url === "string") {
+  if (typeof item["url"] === "string") {
     return {
       id: readString(item, "@_id") ?? "",
-      title: normalizeTextBlock(item.title),
-      description: normalizeTextBlock(item.description),
-      objectives: item.objectives ? normalizeObjectives(item.objectives) : undefined,
-      url: item.url,
-      launchParameters: typeof item.launchParameters === "string" ? item.launchParameters : undefined,
-      entitlementKey: typeof item.entitlementKey === "string" ? item.entitlementKey : undefined,
+      title: normalizeTextBlock(item["title"]),
+      description: normalizeTextBlock(item["description"]),
+      objectives: item["objectives"] ? normalizeObjectives(item["objectives"]) : undefined,
+      url: item["url"],
+      launchParameters: typeof item["launchParameters"] === "string" ? item["launchParameters"] : undefined,
+      entitlementKey: typeof item["entitlementKey"] === "string" ? item["entitlementKey"] : undefined,
       moveOn: typeof item["@_moveOn"] === "string" ? item["@_moveOn"] : undefined,
       masteryScore: typeof item["@_masteryScore"] === "string" ? Number(item["@_masteryScore"]) : undefined,
       launchMethod: typeof item["@_launchMethod"] === "string" ? item["@_launchMethod"] : undefined,
@@ -75,14 +75,14 @@ function normalizeCourseItem(item: Record<string, unknown>): unknown {
 
   return {
     id: readString(item, "@_id") ?? "",
-    title: normalizeTextBlock(item.title),
-    description: normalizeTextBlock(item.description),
-    objectives: item.objectives ? normalizeObjectives(item.objectives) : undefined,
+    title: normalizeTextBlock(item["title"]),
+    description: normalizeTextBlock(item["description"]),
+    objectives: item["objectives"] ? normalizeObjectives(item["objectives"]) : undefined,
     children: [
-      ...asArray(item.au as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((au) =>
+      ...asArray(item["au"] as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((au) =>
         normalizeCourseItem(au),
       ),
-      ...asArray(item.block as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((block) =>
+      ...asArray(item["block"] as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((block) =>
         normalizeCourseItem(block),
       ),
     ],
@@ -110,26 +110,26 @@ function normalizeKeywordSet(value: unknown): {
 
 function normalizeDocument(xml: string): unknown {
   const parsed = parser.parse(xml) as Record<string, unknown>;
-  const root = (parsed.courseStructure ?? {}) as Record<string, unknown>;
+  const root = (parsed["courseStructure"] ?? {}) as Record<string, unknown>;
   return {
     courseStructure: {
       course: {
-        id: readString((root.course as Record<string, unknown>) ?? {}, "@_id") ?? "",
-        title: normalizeTextBlock(((root.course as Record<string, unknown>) ?? {}).title),
-        description: normalizeTextBlock(((root.course as Record<string, unknown>) ?? {}).description),
+        id: readString((root["course"] as Record<string, unknown>) ?? {}, "@_id") ?? "",
+        title: normalizeTextBlock(((root["course"] as Record<string, unknown>) ?? {})["title"]),
+        description: normalizeTextBlock(((root["course"] as Record<string, unknown>) ?? {})["description"]),
       },
-      objectives: root.objectives
-        ? asArray((root.objectives as Record<string, unknown>).objective).map((objective) => ({
+      objectives: root["objectives"]
+        ? asArray((root["objectives"] as Record<string, unknown>)["objective"]).map((objective) => ({
             id: readString(objective as Record<string, unknown>, "@_id") ?? "",
-            title: normalizeTextBlock((objective as Record<string, unknown>).title),
-            description: normalizeTextBlock((objective as Record<string, unknown>).description),
+            title: normalizeTextBlock((objective as Record<string, unknown>)["title"]),
+            description: normalizeTextBlock((objective as Record<string, unknown>)["description"]),
           }))
         : undefined,
       children: [
-        ...asArray(root.au as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((au) =>
+        ...asArray(root["au"] as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((au) =>
           normalizeCourseItem(au),
         ),
-        ...asArray(root.block as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((block) =>
+        ...asArray(root["block"] as Array<Record<string, unknown>> | Record<string, unknown> | undefined).map((block) =>
           normalizeCourseItem(block),
         ),
       ],
