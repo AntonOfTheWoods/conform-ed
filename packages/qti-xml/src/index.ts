@@ -6,3 +6,4 @@ export * from "./schema-selection";
 export * from "./types";
 export * from "./validate";
 export * from "./validate-package";
+export * from "./serialize-result";

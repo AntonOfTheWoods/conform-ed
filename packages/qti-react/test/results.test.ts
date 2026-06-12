@@ -240,3 +240,23 @@ describe("assessmentResultFromNormalized (import)", () => {
     expect(assessmentResultFromNormalized({ assessmentItem: {} })).toBeNull();
   });
 });
+
+describe("end-to-end: session → document → XML → re-validated", () => {
+  test("the serialized session report is a valid RR instance and round-trips", async () => {
+    const { serializeQtiAssessmentResult, validateQtiXmlContent } = await import("@conform-ed/qti-xml");
+    const { controller, state } = runSession();
+    const document = buildAssessmentResult({
+      test: reported,
+      plan: controller.plan,
+      state,
+      context: { sourcedId: "learner-1" },
+      nowMs: 20_000,
+      itemDetails,
+    });
+    const xml = serializeQtiAssessmentResult(document as never);
+    const verdict = await validateQtiXmlContent(xml);
+
+    expect(verdict.status).toBe("valid");
+    expect(verdict.normalizedDocument).toEqual(document);
+  });
+});

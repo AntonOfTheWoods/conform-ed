@@ -1652,9 +1652,11 @@ function mapV3AssessmentSection(element: QtiXmlElementNode): unknown {
   };
 }
 
-function mapV3ResultValues(element: QtiXmlElementNode): Array<{ value: string }> {
+function mapV3ResultValues(element: QtiXmlElementNode) {
   return childElements(element, "value").map((valueElement) => ({
     value: textContent(valueElement) ?? "",
+    ...optionalString(valueElement.attributes, "fieldIdentifier", "fieldIdentifier"),
+    ...optionalString(valueElement.attributes, "baseType", "baseType"),
   }));
 }
 
@@ -1673,6 +1675,7 @@ function mapV3ResultResponseVariable(element: QtiXmlElementNode) {
       ? {
           correctResponse: {
             values: mapV3ResultValues(correctResponseElement),
+            ...optionalString(correctResponseElement.attributes, "interpretation", "interpretation"),
           },
         }
       : {}),
@@ -1690,8 +1693,70 @@ function mapV3ResultOutcomeVariable(element: QtiXmlElementNode) {
     cardinality: requireAttribute(element, "cardinality"),
     baseType: element.attributes["baseType"],
     values: mapV3ResultValues(element),
+    ...(element.attributes["view"] ? { view: element.attributes["view"].split(/\s+/u).filter(Boolean) } : {}),
+    ...optionalString(element.attributes, "interpretation", "interpretation"),
+    ...optionalString(element.attributes, "longInterpretation", "longInterpretation"),
+    ...optionalNumber(element.attributes, "normalMaximum", "normalMaximum"),
+    ...optionalNumber(element.attributes, "normalMinimum", "normalMinimum"),
     ...(attributeNumber(element.attributes, "masteryValue") !== undefined
       ? { masteryValue: attributeNumber(element.attributes, "masteryValue") }
+      : {}),
+    ...optionalString(element.attributes, "external-scored", "externalScored"),
+    ...optionalString(element.attributes, "variable-identifier-ref", "variableIdentifierRef"),
+  };
+}
+
+function mapV3ResultContextTemplateVariable(element: QtiXmlElementNode) {
+  return {
+    identifier: requireAttribute(element, "identifier"),
+    cardinality: requireAttribute(element, "cardinality"),
+    baseType: element.attributes["baseType"],
+    values: mapV3ResultValues(element),
+  };
+}
+
+function mapV3ResultSupport(element: QtiXmlElementNode) {
+  return {
+    name: requireAttribute(element, "name"),
+    assignment: requireAttribute(element, "assignment"),
+    ...optionalString(element.attributes, "value", "value"),
+    ...optionalString(element.attributes, "language", "xmlLang"),
+  };
+}
+
+/** The itemVariable/support children shared by testResult and itemResult. */
+function mapV3ResultVariables(element: QtiXmlElementNode) {
+  return {
+    ...(childElements(element, "responseVariable").length
+      ? {
+          responseVariables: childElements(element, "responseVariable").map((variable) =>
+            mapV3ResultResponseVariable(variable),
+          ),
+        }
+      : {}),
+    ...(childElements(element, "templateVariable").length
+      ? {
+          templateVariables: childElements(element, "templateVariable").map((variable) =>
+            mapV3ResultContextTemplateVariable(variable),
+          ),
+        }
+      : {}),
+    ...(childElements(element, "outcomeVariable").length
+      ? {
+          outcomeVariables: childElements(element, "outcomeVariable").map((variable) =>
+            mapV3ResultOutcomeVariable(variable),
+          ),
+        }
+      : {}),
+    ...(childElements(element, "contextVariable").length
+      ? {
+          contextVariables: childElements(element, "contextVariable").map((variable) =>
+            mapV3ResultContextTemplateVariable(variable),
+          ),
+        }
+      : {}),
+    ...(childElements(element, "support").length
+      ? { supports: childElements(element, "support").map((support) => mapV3ResultSupport(support)) }
       : {}),
   };
 }
@@ -1714,24 +1779,13 @@ function mapV3TestResult(element: QtiXmlElementNode) {
   return {
     identifier: requireAttribute(element, "identifier"),
     datestamp: requireAttribute(element, "datestamp"),
-    ...(childElements(element, "responseVariable").length
-      ? {
-          responseVariables: childElements(element, "responseVariable").map((variable) =>
-            mapV3ResultResponseVariable(variable),
-          ),
-        }
-      : {}),
-    ...(childElements(element, "outcomeVariable").length
-      ? {
-          outcomeVariables: childElements(element, "outcomeVariable").map((variable) =>
-            mapV3ResultOutcomeVariable(variable),
-          ),
-        }
-      : {}),
+    ...mapV3ResultVariables(element),
   };
 }
 
 function mapV3ItemResult(element: QtiXmlElementNode) {
+  const commentElement = firstChildElement(element, "candidateComment");
+
   return {
     identifier: requireAttribute(element, "identifier"),
     datestamp: requireAttribute(element, "datestamp"),
@@ -1739,20 +1793,8 @@ function mapV3ItemResult(element: QtiXmlElementNode) {
     ...(attributeNumber(element.attributes, "sequenceIndex") !== undefined
       ? { sequenceIndex: attributeNumber(element.attributes, "sequenceIndex") }
       : {}),
-    ...(childElements(element, "responseVariable").length
-      ? {
-          responseVariables: childElements(element, "responseVariable").map((variable) =>
-            mapV3ResultResponseVariable(variable),
-          ),
-        }
-      : {}),
-    ...(childElements(element, "outcomeVariable").length
-      ? {
-          outcomeVariables: childElements(element, "outcomeVariable").map((variable) =>
-            mapV3ResultOutcomeVariable(variable),
-          ),
-        }
-      : {}),
+    ...mapV3ResultVariables(element),
+    ...(commentElement ? { candidateComment: textContent(commentElement) ?? "" } : {}),
   };
 }
 

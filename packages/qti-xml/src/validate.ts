@@ -33,6 +33,20 @@ function flattenIssues(
 export async function validateQtiXmlFile(filePath: string): Promise<QtiValidationResult> {
   const absolutePath = path.resolve(filePath);
   const xml = await readFile(absolutePath, "utf8");
+
+  return validateQtiXmlContent(xml, { sourcePath: absolutePath });
+}
+
+/**
+ * Validate an in-memory XML instance (e.g. a serialized assessmentResult on its way
+ * out — the export-conformance round trip). `sourcePath` anchors relative xi:include
+ * hrefs and the reported `filePath`; in-memory instances default to the cwd.
+ */
+export async function validateQtiXmlContent(
+  xml: string,
+  options?: { readonly sourcePath?: string },
+): Promise<QtiValidationResult> {
+  const absolutePath = path.resolve(options?.sourcePath ?? "qti-content.xml");
   const rootDetection = detectQtiRoot(xml);
 
   if (!rootDetection) {
