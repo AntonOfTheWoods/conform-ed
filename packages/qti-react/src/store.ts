@@ -121,6 +121,15 @@ export interface AttemptStore {
   ) => () => void;
   readonly submit: () => readonly ScoreResult[];
   readonly reset: () => void;
+  /**
+   * Stop the session clock: duration "records the accumulated time (in seconds) of
+   * all Candidate Sessions for all Attempts … minus any time the session was in the
+   * suspended state". Navigating away from an item suspends its session (spec);
+   * the test session store drives this. Idempotent.
+   */
+  readonly suspend: () => void;
+  /** Restart the session clock after `suspend()`. Idempotent. */
+  readonly resume: () => void;
 }
 
 export function createAttemptStore(
@@ -152,7 +161,13 @@ export function createAttemptStore(
   // continuous across attempts — seed + submission sequence replays exact outcomes.
   const rpRandom = mulberry32((seed ^ 0x9e3779b9) >>> 0);
   const now = options?.now ?? Date.now;
-  let sessionStartedAtMs = now();
+  // The session clock: accumulated active milliseconds plus the running stretch.
+  // "the time between the beginning and the end of the item session minus any time
+  // the session was in the suspended state."
+  let activeMs = 0;
+  let runningSinceMs: number | null = now();
+
+  const activeSeconds = (): number => (activeMs + (runningSinceMs === null ? 0 : now() - runningSinceMs)) / 1000;
 
   // The built-in completionStatus "starts with the reserved value 'not_attempted'.
   // At the start of the first attempt it changes to the reserved value 'unknown'."
@@ -304,7 +319,7 @@ export function createAttemptStore(
       }
 
       const scores = computeScores(snapshot.responses);
-      const durationSeconds = (now() - sessionStartedAtMs) / 1000;
+      const durationSeconds = activeSeconds();
       const priorOutcomes = options?.adaptive && snapshot.attemptCount > 0 ? snapshot.outcomes : undefined;
       const rpOutcomes = computeOutcomes(snapshot.responses, durationSeconds, priorOutcomes);
       // Items without responseProcessing still carry the maintained built-in.
@@ -340,8 +355,20 @@ export function createAttemptStore(
       return scores;
     },
 
+    suspend: () => {
+      if (runningSinceMs !== null) {
+        activeMs += now() - runningSinceMs;
+        runningSinceMs = null;
+      }
+    },
+
+    resume: () => {
+      runningSinceMs ??= now();
+    },
+
     reset: () => {
-      sessionStartedAtMs = now();
+      activeMs = 0;
+      runningSinceMs = now();
 
       emit({
         responses: { ...initialResponses },

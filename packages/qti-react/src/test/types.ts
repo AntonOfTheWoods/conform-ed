@@ -252,7 +252,12 @@ export interface RejectedSubmission {
 }
 
 export interface TestSessionState {
-  readonly status: "in-progress" | "ended";
+  /**
+   * `suspended` stops every scope clock and blocks transitions until `resume()` —
+   * the gap never accrues to any duration ("minus any time the session was in the
+   * suspended state"). Pre-suspension persisted states only ever carry the other two.
+   */
+  readonly status: "in-progress" | "suspended" | "ended";
   readonly currentItemKey: string | null;
   readonly itemOutcomes: Readonly<Record<string, Readonly<Record<string, OutcomeValue>>>>;
   readonly attemptedItems: readonly string[];
@@ -323,4 +328,14 @@ export interface TestController {
   /** Whether a comment may be recorded: effective allowComment, session in progress. */
   readonly canComment: (state: TestSessionState, itemKey: string) => boolean;
   readonly setItemComment: (state: TestSessionState, itemKey: string, comment: string) => TestSessionState;
+  /**
+   * Suspend the session: folds the clock up to this instant (applying any expiry
+   * that fold reveals), then stops it. Identity unless in progress.
+   */
+  readonly suspend: (state: TestSessionState) => TestSessionState;
+  /**
+   * Resume a suspended session: re-stamps the clock at the current instant without
+   * folding the gap — suspended time never accrues. Identity unless suspended.
+   */
+  readonly resume: (state: TestSessionState) => TestSessionState;
 }

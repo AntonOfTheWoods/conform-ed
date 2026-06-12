@@ -2221,3 +2221,138 @@ describe("itemSessionControl enforcement: validity, review, comments", () => {
     expect(controller.setItemComment(state, "I1", "late")).toBe(state);
   });
 });
+
+describe("suspension and resume", () => {
+  // The spec's duration rule is suspension-aware: duration "records the accumulated
+  // time (in seconds) of all Candidate Sessions for all Attempts. In other words the
+  // time between the beginning and the end of the item session minus any time the
+  // session was in the suspended state." The controller extends the same model to
+  // every scope clock (designed policy, documented in ADR-0005).
+  const setVar = (identifier: string, expression: Record<string, unknown>) => ({
+    kind: "setOutcomeValue",
+    identifier,
+    expression: expression as never,
+  });
+  const suspendable: AssessmentTestView = {
+    identifier: "T-SUS",
+    outcomeDeclarations: [
+      { identifier: "D_TEST", cardinality: "single", baseType: "float" },
+      { identifier: "D_P1", cardinality: "single", baseType: "float" },
+      { identifier: "D_I1", cardinality: "single", baseType: "float" },
+    ],
+    outcomeProcessing: {
+      rules: [
+        setVar("D_TEST", { kind: "variable", identifier: "duration" }),
+        setVar("D_P1", { kind: "variable", identifier: "P1.duration" }),
+        setVar("D_I1", { kind: "variable", identifier: "I1.duration" }),
+      ],
+    },
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode: "nonlinear",
+        submissionMode: "individual",
+        assessmentSections: [{ kind: "assessmentSection", identifier: "S1", children: [itemRef("I1"), itemRef("I2")] }],
+      },
+    ],
+  };
+
+  test("suspend stops every scope clock; resume excludes the suspended gap", () => {
+    let nowMs = 0;
+    const controller = createTestController(suspendable, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    nowMs = 10_000;
+    state = controller.suspend(state);
+    expect(state.status).toBe("suspended");
+
+    nowMs = 100_000;
+    state = controller.resume(state);
+    expect(state.status).toBe("in-progress");
+
+    nowMs = 110_000;
+    state = controller.end(state);
+
+    expect(state.testOutcomes["D_TEST"]).toBe(20); // 10 before + 10 after, not 110
+    expect(state.testOutcomes["D_P1"]).toBe(20);
+  });
+
+  test("a suspended session refuses every transition until resumed", () => {
+    let nowMs = 0;
+    const controller = createTestController(suspendable, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    state = controller.suspend(state);
+
+    expect(controller.canNext(state)).toBe(false);
+    expect(controller.next(state)).toBe(state);
+    expect(controller.canMoveTo(state, "I2")).toBe(false);
+    expect(controller.moveTo(state, "I2")).toBe(state);
+    expect(controller.canSubmitItem(state, "I1")).toBe(false);
+    expect(controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } })).toBe(state);
+    expect(controller.tick(state)).toBe(state);
+    expect(controller.canComment(state, "I1")).toBe(false);
+
+    state = controller.resume(state);
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+    expect(state.attemptCounts).toEqual({ I1: 1 });
+  });
+
+  test("suspend folds first: an already-exceeded time limit still applies", () => {
+    let nowMs = 0;
+    const timed: AssessmentTestView = { ...suspendable, timeLimits: { maxTime: 30 } };
+    const controller = createTestController(timed, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    nowMs = 40_000; // past maxTime before the suspend arrives
+    state = controller.suspend(state);
+
+    expect(state.status).toBe("ended"); // the fold applied the expiry, not the suspension
+  });
+
+  test("end() works from suspended without folding the suspended gap", () => {
+    let nowMs = 0;
+    const controller = createTestController(suspendable, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    nowMs = 10_000;
+    state = controller.suspend(state);
+    nowMs = 100_000;
+    state = controller.end(state);
+
+    expect(state.status).toBe("ended");
+    expect(state.testOutcomes["D_TEST"]).toBe(10);
+  });
+
+  test("suspend and resume are identity at the wrong edges", () => {
+    let nowMs = 0;
+    const controller = createTestController(suspendable, { seed: 1, now: () => nowMs });
+    const running = controller.start();
+
+    expect(controller.resume(running)).toBe(running); // not suspended
+    const suspended = controller.suspend(running);
+    expect(controller.suspend(suspended)).toBe(suspended); // already suspended
+    const done = controller.end(running);
+    expect(controller.suspend(done)).toBe(done);
+    expect(controller.resume(done)).toBe(done);
+  });
+
+  test("a persisted suspended state resumes under a fresh controller", () => {
+    let nowMs = 0;
+    const first = createTestController(suspendable, { seed: 1, now: () => nowMs });
+    let state = first.start();
+
+    nowMs = 10_000;
+    state = first.suspend(state);
+
+    const revived = JSON.parse(JSON.stringify(state)) as typeof state;
+    nowMs = 1_000_000; // a long break (laptop closed)
+    const second = createTestController(suspendable, { seed: 1, now: () => nowMs });
+    let resumed = second.resume(revived);
+
+    nowMs = 1_010_000;
+    resumed = second.end(resumed);
+
+    expect(resumed.testOutcomes["D_TEST"]).toBe(20); // the break never accrued
+  });
+});

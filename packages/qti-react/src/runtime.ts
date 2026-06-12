@@ -352,6 +352,8 @@ function createStaticStore(outcomes: Readonly<Record<string, OutcomeValue>>): At
     registerResponseCollector: () => () => {},
     submit: () => [],
     reset: () => {},
+    suspend: () => {},
+    resume: () => {},
   };
 }
 

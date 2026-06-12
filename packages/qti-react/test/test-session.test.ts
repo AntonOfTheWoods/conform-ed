@@ -514,3 +514,91 @@ describe("test session store: itemSessionControl enforcement", () => {
     expect(session.getSnapshot().state.itemComments).toBeUndefined();
   });
 });
+
+describe("test session store: suspension and item-session clocks", () => {
+  // "candidates may change their responses for an item and then leave it in the
+  // suspended state by navigating to a different item in the same part of the test"
+  // — the departed item's duration clock stops, and resumes on return.
+  const twoItems: AssessmentTestView = {
+    identifier: "T-SUS-S",
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode: "nonlinear",
+        submissionMode: "individual",
+        assessmentSections: [
+          {
+            kind: "assessmentSection",
+            identifier: "S1",
+            children: [
+              { kind: "assessmentItemRef", identifier: "ITEM-1" },
+              { kind: "assessmentItemRef", identifier: "ITEM-2" },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  function timedSession(now: () => number) {
+    const controller = createTestController(twoItems, { seed: 1, now });
+
+    return createTestSessionStore(controller, {
+      seed: 1,
+      now,
+      resolveItem: () => choiceItem("A"),
+    });
+  }
+
+  test("navigating away suspends the departed item's clock; returning resumes it", () => {
+    let nowMs = 0;
+    const session = timedSession(() => nowMs);
+    const first = session.itemStore("ITEM-1")!;
+
+    nowMs = 10_000;
+    session.moveTo("ITEM-2");
+    session.itemStore("ITEM-2");
+    nowMs = 30_000;
+    session.moveTo("ITEM-1"); // 20s away from ITEM-1
+    nowMs = 40_000;
+    first.setResponse("RESPONSE", "A");
+    first.submit();
+
+    expect(first.getSnapshot().durationSeconds).toBe(20); // 10 + 10, the absence excluded
+    expect(session.getSnapshot().state.itemDurationSeconds?.["ITEM-1"]).toBe(20);
+  });
+
+  test("a store created for a non-current item starts suspended", () => {
+    let nowMs = 0;
+    const session = timedSession(() => nowMs);
+    const second = session.itemStore("ITEM-2")!; // ITEM-1 is current
+
+    nowMs = 50_000;
+    session.moveTo("ITEM-2");
+    nowMs = 60_000;
+    second.setResponse("RESPONSE", "A");
+    second.submit();
+
+    expect(second.getSnapshot().durationSeconds).toBe(10); // only the time as current
+  });
+
+  test("suspending the session stops the current item's clock too", () => {
+    let nowMs = 0;
+    const session = timedSession(() => nowMs);
+    const first = session.itemStore("ITEM-1")!;
+
+    nowMs = 10_000;
+    session.suspend();
+    expect(session.getSnapshot().state.status).toBe("suspended");
+
+    nowMs = 100_000;
+    session.resume();
+    expect(session.getSnapshot().state.status).toBe("in-progress");
+
+    nowMs = 110_000;
+    first.setResponse("RESPONSE", "A");
+    first.submit();
+
+    expect(first.getSnapshot().durationSeconds).toBe(20);
+  });
+});

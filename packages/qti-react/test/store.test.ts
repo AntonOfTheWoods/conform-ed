@@ -377,3 +377,53 @@ describe("completionStatus lifecycle (built-in outcome)", () => {
     expect(store.getSnapshot().outcomes["completionStatus"]).toBeNull(); // declared, no default
   });
 });
+
+describe("attempt store suspension", () => {
+  // "The duration is defined as being a single float that records the accumulated
+  // time (in seconds) of all Candidate Sessions for all Attempts. In other words the
+  // time between the beginning and the end of the item session minus any time the
+  // session was in the suspended state."
+  const declarations = [{ identifier: "RESPONSE", cardinality: "single" as const, baseType: "identifier" }];
+
+  test("duration excludes time spent suspended", () => {
+    let nowMs = 0;
+    const store = createAttemptStore(declarations, {}, { now: () => nowMs });
+
+    nowMs = 5_000;
+    store.suspend();
+    nowMs = 60_000;
+    store.resume();
+    nowMs = 65_000;
+    store.submit();
+
+    expect(store.getSnapshot().durationSeconds).toBe(10); // 5 + 5, not 65
+  });
+
+  test("suspend and resume are idempotent", () => {
+    let nowMs = 0;
+    const store = createAttemptStore(declarations, {}, { now: () => nowMs });
+
+    store.suspend();
+    nowMs = 10_000;
+    store.suspend(); // no double-fold
+    store.resume();
+    store.resume(); // no double-start
+    nowMs = 13_000;
+    store.submit();
+
+    expect(store.getSnapshot().durationSeconds).toBe(3);
+  });
+
+  test("reset restarts the active clock", () => {
+    let nowMs = 0;
+    const store = createAttemptStore(declarations, {}, { now: () => nowMs });
+
+    nowMs = 5_000;
+    store.suspend();
+    store.reset();
+    nowMs = 8_000;
+    store.submit();
+
+    expect(store.getSnapshot().durationSeconds).toBe(3);
+  });
+});

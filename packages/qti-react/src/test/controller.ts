@@ -418,8 +418,8 @@ export function createTestController(view: AssessmentTestView, options: TestCont
    * (§2.8.5), so they accrue whenever the session is open, not just during attempts.
    */
   function touch(state: TestSessionState): TestSessionState {
-    if (state.status === "ended") {
-      return state; // the clock stops at end
+    if (state.status !== "in-progress") {
+      return state; // the clock stops at end and while suspended
     }
 
     const nowMs = now();
@@ -1020,7 +1020,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
   }
 
   function nextState(state: TestSessionState): TestSessionState {
-    if (state.status === "ended" || state.currentItemKey === null) {
+    if (state.status !== "in-progress" || state.currentItemKey === null) {
       return state;
     }
 
@@ -1203,7 +1203,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
    * still reachable, ending the test when none remains.
    */
   function applyExpiries(state: TestSessionState): TestSessionState {
-    if (state.status === "ended") {
+    if (state.status !== "in-progress") {
       return state;
     }
 
@@ -1235,7 +1235,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     state: TestSessionState,
     op: (settled: TestSessionState) => TestSessionState,
   ): TestSessionState {
-    if (state.status === "ended") {
+    if (state.status !== "in-progress") {
       return state;
     }
 
@@ -1355,7 +1355,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
       state.currentItemKey === null ? null : (allItems.find((item) => item.key === state.currentItemKey) ?? null),
 
     canMoveTo: (state, itemKey) => {
-      if (state.status === "ended" || state.currentItemKey === null) {
+      if (state.status !== "in-progress" || state.currentItemKey === null) {
         return false;
       }
 
@@ -1403,7 +1403,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     remainingAttempts,
 
     canSubmitItem: (state, itemKey) => {
-      if (state.status === "ended" || remainingAttempts(state, itemKey) <= 0) {
+      if (state.status !== "in-progress" || remainingAttempts(state, itemKey) <= 0) {
         return false;
       }
 
@@ -1421,7 +1421,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     submitItem: (state, itemKey, result) => {
       const item = itemsByKey.get(itemKey);
 
-      if (state.status === "ended" || !item) {
+      if (state.status !== "in-progress" || !item) {
         return state;
       }
 
@@ -1452,7 +1452,30 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
     end: (state) => (state.status === "ended" ? state : ended(touch(state))),
 
-    tick: (state) => (state.status === "ended" ? state : applyExpiries(touch(state))),
+    tick: (state) => (state.status !== "in-progress" ? state : applyExpiries(touch(state))),
+
+    suspend: (state) => {
+      if (state.status !== "in-progress") {
+        return state;
+      }
+
+      // Fold first: time up to this instant counts, and an expiry the fold reveals
+      // still applies — suspension cannot rescue an already-exceeded limit.
+      const settled = applyExpiries(touch(state));
+
+      return settled.status === "in-progress" ? { ...settled, status: "suspended" } : settled;
+    },
+
+    resume: (state) =>
+      state.status !== "suspended"
+        ? state
+        : {
+            ...state,
+            status: "in-progress",
+            // Re-stamp without folding: the suspended gap never accrues to any
+            // scope ("minus any time the session was in the suspended state").
+            ...(state.timing ? { timing: { ...state.timing, lastTransitionAtMs: now() } } : {}),
+          },
 
     canReview: reviewable,
 

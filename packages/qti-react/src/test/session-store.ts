@@ -28,6 +28,11 @@ export interface TestSessionStoreOptions {
   readonly normalization?: ResponseNormalization;
   /** Registered vendor `customOperator` implementations by class (opt-in). */
   readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
+  /**
+   * Millisecond clock for the item-session duration clocks (pair it with the
+   * controller's `now` for coherent timing). Defaults to Date.now.
+   */
+  readonly now?: () => number;
 }
 
 export interface TestSessionSnapshot {
@@ -55,6 +60,10 @@ export interface TestSessionStore {
   readonly review: (itemKey: string) => void;
   /** Record a candidate comment (allowComment); a no-op where comments are barred. */
   readonly setItemComment: (itemKey: string, comment: string) => void;
+  /** Suspend the session: every scope clock and the current item's clock stop. */
+  readonly suspend: () => void;
+  /** Resume a suspended session; the gap never accrues to any duration. */
+  readonly resume: () => void;
 }
 
 /** Identifiers whose correct response arrives via `setCorrectResponse` in templates. */
@@ -160,9 +169,32 @@ export function createTestSessionStore(controller: TestController, options: Test
     };
   }
 
+  /** The item whose session clock should be running: current, in an open session. */
+  function activeKeyOf(sessionState: TestSessionState): string | null {
+    return sessionState.status === "in-progress" ? sessionState.currentItemKey : null;
+  }
+
   function emit(next: TestSessionState): void {
+    const previousActive = activeKeyOf(state);
+
     state = next;
     snapshot = buildSnapshot();
+
+    // Item sessions suspend on navigation and resume on return — "candidates may
+    // change their responses for an item and then leave it in the suspended state by
+    // navigating to a different item in the same part of the test" — and the whole
+    // session's suspended/ended states stop the current clock too.
+    const nextActive = activeKeyOf(next);
+
+    if (previousActive !== nextActive) {
+      if (previousActive !== null) {
+        itemStores.get(previousActive)?.suspend();
+      }
+
+      if (nextActive !== null) {
+        itemStores.get(nextActive)?.resume();
+      }
+    }
 
     for (const listener of listeners) {
       listener();
@@ -213,8 +245,15 @@ export function createTestSessionStore(controller: TestController, options: Test
         customOperators: options.customOperators,
         // Test-level templateDefault values recorded by the controller (§5.152).
         templateDefaultValues: state.templateDefaultValues?.[itemKey],
+        now: options.now,
       },
     );
+
+    // A store created for an item that is not the running current item starts with
+    // its session clock suspended; navigation (emit) resumes it when it is reached.
+    if (activeKeyOf(state) !== itemKey) {
+      store.suspend();
+    }
 
     const scorable = scorableIdentifiers(view);
 
@@ -263,5 +302,7 @@ export function createTestSessionStore(controller: TestController, options: Test
     tick: () => emit(controller.tick(state)),
     review: (itemKey) => emit(controller.review(state, itemKey)),
     setItemComment: (itemKey, comment) => emit(controller.setItemComment(state, itemKey, comment)),
+    suspend: () => emit(controller.suspend(state)),
+    resume: () => emit(controller.resume(state)),
   };
 }

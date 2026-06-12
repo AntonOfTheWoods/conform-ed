@@ -40,8 +40,8 @@ spent navigating that part of the test", which is why the controller — not a
 sum of item durations — must track them. `ITEM.duration` is different: the
 item session owns it (the attempt store's `durationSeconds`), the consumer
 reports it with the submit result, and the controller's own per-item clock is
-used only to enforce the item's minTime/maxTime; the two sources converge
-when a suspend/resume API lands.
+used only to enforce the item's minTime/maxTime; the two sources converged
+when suspend/resume landed (see the suspension status update below).
 
 Enforcement honesty: the spec defines almost no expiry behavior. The only
 normative sentence is "The allow-late-submission attribute regulates whether
@@ -68,11 +68,10 @@ policy — consistent with, but not mandated by, the spec:
   candidate from ending the session.
 
 Deferred to later milestones — staging postponements on the way to full-spec
-support, not scope decisions: suspension/resume (until it lands, durations
-include all wall time between transitions; the spec's "minus any time the
-session was in the suspended state" cannot be honored before then); PNP
-duration adjustments (§2.8.5 note; arrives with the PNP/catalog subsystem,
-ADR-0002). Two non-gaps for the record: test/part minTime stays surfaced but
+support, not scope decisions: PNP duration adjustments (§2.8.5 note; arrives
+with the PNP/catalog subsystem, ADR-0002). Suspension/resume, originally
+deferred here, has since landed (see the suspension status update below).
+Two non-gaps for the record: test/part minTime stays surfaced but
 unenforced because §7.40.1 restricts minTime applicability to sections and
 items, and a millisecond clock keeps raw fractional seconds within the
 spec's truncation-epsilon requirement without explicit truncation.
@@ -201,3 +200,41 @@ canComment/setItemComment record per-item-key comments in session state,
 session-time only (designed policy: the test session, not the item session —
 a comment is metadata, not a response, so it stays open while the test runs
 and closes with it).
+
+## Status update (2026-06): suspension and resume
+
+The spec's duration rule is suspension-aware and is now honored verbatim: the
+item-session duration "records the accumulated time (in seconds) of all
+Candidate Sessions for all Attempts. In other words the time between the
+beginning and the end of the item session minus any time the session was in
+the suspended state."
+
+Two layers of suspension exist, both clock-only (suspension never alters
+responses, outcomes, or attempt counts):
+
+- **Item sessions suspend on navigation** — the spec describes this directly:
+  "candidates may change their responses for an item and then leave it in the
+  suspended state by navigating to a different item in the same part of the
+  test." The attempt store now keeps an active-time clock
+  (suspend()/resume(), idempotent), and the test session store drives it:
+  navigating away suspends the departed item's clock, returning resumes it,
+  and a store created for a not-yet-current item starts suspended. With this,
+  the consumer-reported `ITEM.duration` and the controller's enforcement
+  clock (time-as-current) converge, as the timing section promised.
+- **The whole test session suspends** via the controller's new
+  suspend()/resume() and a third session status, "suspended" (a designed
+  delivery-engine surface — the spec defines item-session suspension but no
+  test-level protocol). suspend() folds the clock first, so an
+  already-exceeded time limit still applies — suspension cannot rescue an
+  expired session — then stops every scope clock; while suspended, every
+  transition is identity (comments included) except end(), which works
+  without folding the gap. resume() re-stamps the clock without folding, so
+  the gap never accrues to any scope. A suspended state persists as plain
+  JSON and resumes under a fresh controller instance — the close-the-laptop,
+  resume-tomorrow case this milestone exists for.
+
+Designed policies, flagged: test-level suspension stops all scope clocks
+(test, part, section, item) symmetrically; pre-suspension persisted states
+are unaffected (they never carry the new status); the simultaneous-mode note
+that "each item session passes between the interacting and suspended states
+only" is satisfied by the same navigation-driven clock orchestration.
