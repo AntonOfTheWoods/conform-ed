@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { AdapterProfileSchema } from "../src/adapter";
 import { RunnerConfigSchema } from "../src/config";
 import { RequirementTraceSchema, RunMetadataSchema, RunnerSummarySchema } from "../src/summary";

@@ -1,6 +1,7 @@
+import { afterEach, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { afterEach, expect, test } from "bun:test";
+
 import { runLti13, validateLti13Config } from "../src/run";
 
 type FetchMock = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;

@@ -1,4 +1,5 @@
 import { requireBearer } from "./auth";
+import { capabilitiesRoute } from "./routes/capabilities";
 import { abandonRoute } from "./routes/cmi5-abandon";
 import { fetchRoute } from "./routes/cmi5-fetch";
 import { launchCreateRoute } from "./routes/cmi5-launch-create";
@@ -7,7 +8,6 @@ import { packageImportRoute } from "./routes/cmi5-package-import";
 import { stateReloadRoute } from "./routes/cmi5-state-reload";
 import { getStatementsRoute, postStatementRoute } from "./routes/cmi5-statements";
 import { waiveRoute } from "./routes/cmi5-waive";
-import { capabilitiesRoute } from "./routes/capabilities";
 import { fixturesProvisionRoute } from "./routes/fixtures-provision";
 import { healthRoute } from "./routes/health";
 import { profileRoute } from "./routes/profile";

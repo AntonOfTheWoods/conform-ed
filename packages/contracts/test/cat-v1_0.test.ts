@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+
 import { CatV1_0 } from "../src/cat/v1_0/index";
 
 describe("CAT v1.0 Zod Schemas", () => {

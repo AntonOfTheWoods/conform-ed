@@ -7,8 +7,8 @@ export {
   QtiResponseProcessingSchema,
 } from "./processing-internal";
 
-import { strictObject } from "./shared";
 import { QtiResponseProcessingSchema } from "./processing-internal";
+import { strictObject } from "./shared";
 
 export const QtiResponseProcessingDocumentSchema = strictObject({
   responseProcessing: QtiResponseProcessingSchema,

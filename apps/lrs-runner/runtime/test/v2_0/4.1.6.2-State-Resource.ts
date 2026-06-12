@@ -4,11 +4,11 @@
  */
 
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
+import type { RuntimeRequestFactory, RuntimeRequestResponse } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
 import xapiRequestsImport from "./util/requests.ts";
-import type { RuntimeRequestFactory, RuntimeRequestResponse } from "../harness-types.ts";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 

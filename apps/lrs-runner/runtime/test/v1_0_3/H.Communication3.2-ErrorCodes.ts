@@ -3,14 +3,14 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import type { Statement } from "@conform-ed/contracts/xapi/v1_0_3";
+
 import extend from "../../bun-runtime/extend-compat.ts";
+import { describe, it } from "../bun-test.ts";
+import type { RuntimeRequestFactory } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
-import type { Statement } from "@conform-ed/contracts/xapi/v1_0_3";
-import type { RuntimeRequestFactory } from "../harness-types.ts";
-
-import { describe, it } from "../bun-test.ts";
 
 type TemplateValue = string | number | boolean | { [key: string]: TemplateValue } | TemplateValue[];
 type QueryValue = string | number | boolean | undefined;

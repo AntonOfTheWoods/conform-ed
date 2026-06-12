@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-import { CartridgeBasicLTILinkSchema } from "../shared/ccv1p4_imslticc_v1p4";
-import { CurriculumStandardsMetadataSetSchema } from "../shared/ccv1p4_imscsmd_v1p1";
-import { WebLinkSchema } from "../shared/ccv1p4_imswl_v1p4";
 import {
   NonEmptyStringSchema,
   UriReferenceSchema,
@@ -11,6 +8,9 @@ import {
   collectDuplicates,
   strictObject,
 } from "../shared";
+import { CurriculumStandardsMetadataSetSchema } from "../shared/ccv1p4_imscsmd_v1p1";
+import { CartridgeBasicLTILinkSchema } from "../shared/ccv1p4_imslticc_v1p4";
+import { WebLinkSchema } from "../shared/ccv1p4_imswl_v1p4";
 import { ThinLomManifestSchema } from "./ccv1p4_lommanifest_v1p0";
 import { ThinLomResourceSchema } from "./ccv1p4_lomresource_v1p0";
 

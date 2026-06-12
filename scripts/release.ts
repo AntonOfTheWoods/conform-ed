@@ -10,8 +10,8 @@
  * Dry-run (no git mutations, no publish): DRY_RUN=1 bun run scripts/release.ts 0.0.8
  */
 
-import { join } from "path";
 import { readdirSync, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
 
 const ROOT = join(import.meta.dir, "..");
 const DRY_RUN = process.env.DRY_RUN === "1";

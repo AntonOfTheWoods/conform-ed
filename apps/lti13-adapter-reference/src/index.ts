@@ -1,4 +1,6 @@
 import { requireBearer } from "./auth";
+import { capabilitiesRoute } from "./routes/capabilities";
+import { healthRoute } from "./routes/health";
 import { agsLineItemsRoute } from "./routes/lti-ags-line-items";
 import { agsScoresRoute } from "./routes/lti-ags-scores";
 import { deepLinkRoute } from "./routes/lti-deep-link";
@@ -6,8 +8,6 @@ import { launchCreateRoute } from "./routes/lti-launch-create";
 import { loginInitiationRoute } from "./routes/lti-login-initiation";
 import { nrpsMembershipsRoute } from "./routes/lti-nrps-memberships";
 import { registrationResolveRoute } from "./routes/lti-registration-resolve";
-import { capabilitiesRoute } from "./routes/capabilities";
-import { healthRoute } from "./routes/health";
 import { profileRoute } from "./routes/profile";
 
 const port = Number(process.env["PORT"] ?? 4600);

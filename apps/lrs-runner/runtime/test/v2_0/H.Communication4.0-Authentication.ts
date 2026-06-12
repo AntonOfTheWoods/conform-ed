@@ -3,10 +3,9 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import { describe, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import requestBase, { endAsync, type RequestFactory } from "../super-request.ts";
-
-import { describe, it } from "../bun-test.ts";
 
 type AuthenticationStatement = {
   id: string;

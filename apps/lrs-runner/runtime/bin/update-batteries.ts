@@ -4,8 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { normalizeRunnerOptions } from "../bun-runtime/options.ts";
-import { installRunnerEnvironment, registerSuiteFiles } from "../bun-runtime/suite-loader.ts";
 import type { DescribeRuntime } from "../bun-runtime/runtime.ts";
+import { installRunnerEnvironment, registerSuiteFiles } from "../bun-runtime/suite-loader.ts";
 import specs from "../specConfig.ts";
 
 type BatteryTreeNode = {

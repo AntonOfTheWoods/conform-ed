@@ -6,7 +6,6 @@
  */
 
 import type { SkinRegistry } from "../runtime";
-
 import { AssociateReferenceSkin } from "./associate";
 import { ChoiceReferenceSkin } from "./choice";
 import { DrawingReferenceSkin } from "./drawing";
@@ -17,13 +16,13 @@ import { GraphicAssociateReferenceSkin } from "./graphic-associate";
 import { GraphicGapMatchReferenceSkin } from "./graphic-gap-match";
 import { GraphicOrderReferenceSkin } from "./graphic-order";
 import { HotspotReferenceSkin } from "./hotspot";
-import { PositionObjectReferenceSkin } from "./position-object";
-import { SelectPointReferenceSkin } from "./select-point";
 import { HottextReferenceSkin } from "./hottext";
 import { InlineChoiceReferenceSkin } from "./inline-choice";
 import { MatchReferenceSkin } from "./match";
 import { MediaReferenceSkin } from "./media";
 import { OrderReferenceSkin } from "./order";
+import { PositionObjectReferenceSkin } from "./position-object";
+import { SelectPointReferenceSkin } from "./select-point";
 import { SliderReferenceSkin } from "./slider";
 import { TextEntryReferenceSkin } from "./text-entry";
 import { UploadReferenceSkin } from "./upload";

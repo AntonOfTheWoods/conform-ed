@@ -1,6 +1,6 @@
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { spawn, spawnSync } from "node:child_process";
 
 type LtiTarget = "all" | "core-launch" | "deep-linking" | "ags" | "nrps";
 type LtiRole = "tool" | "platform" | "both";

@@ -4,11 +4,10 @@
  */
 
 import extend from "../../bun-runtime/extend-compat.ts";
+import { describe, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import requestBase, { type RequestFactory } from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
-
-import { describe, it } from "../bun-test.ts";
 
 type QueryValue = string | number | boolean | undefined;
 

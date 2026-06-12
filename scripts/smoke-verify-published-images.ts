@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { imageRef, imageTags, ociImages } from "./image-catalog";
 
 type ReleaseManifest = {

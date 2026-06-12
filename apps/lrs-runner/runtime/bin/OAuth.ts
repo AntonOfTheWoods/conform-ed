@@ -1,8 +1,9 @@
-import crypto from "node:crypto";
 import childProcess from "child_process";
 import { EventEmitter } from "events";
-import { Hono } from "hono";
+import crypto from "node:crypto";
+
 import { serve } from "@hono/node-server";
+import { Hono } from "hono";
 
 // Input bag: callers pass maybe-undefined values straight through.
 type OAuthConfig = {

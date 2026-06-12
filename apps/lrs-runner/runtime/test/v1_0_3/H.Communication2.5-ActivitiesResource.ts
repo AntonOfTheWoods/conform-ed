@@ -4,10 +4,10 @@
  */
 
 import { describe, expect, it } from "../bun-test.ts";
-import type { TemplateBundleLike } from "../typing-helpers.ts";
+import type { RuntimeHelper, RuntimeRequestFactory } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import type { RuntimeHelper, RuntimeRequestFactory } from "../harness-types.ts";
+import type { TemplateBundleLike } from "../typing-helpers.ts";
 
 const helper = helperImport as RuntimeHelper;
 let request: RuntimeRequestFactory = requestBase;

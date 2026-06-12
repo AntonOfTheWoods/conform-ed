@@ -6,6 +6,13 @@
   "bracketSpacing": true,
   "semi": true,
   "singleQuote": false,
+  "sortImports": {
+    "newlinesBetween": true,
+    "internalPattern": ["@conform-ed/"],
+  },
+  "sortPackageJson": {
+    "sortScripts": true,
+  },
   "tabWidth": 2,
   "useTabs": false,
   "insertFinalNewline": true,

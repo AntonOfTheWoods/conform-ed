@@ -3,12 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import { beforeAll, describe, expect, it } from "../bun-test.ts";
+import type { RuntimeRequestResponse } from "../harness-types.ts";
+import helperModule from "../helper.ts";
 import requestModule from "../super-request.ts";
 import { expectAsync, type RequestFactory } from "../super-request.ts";
-import { beforeAll, describe, expect, it } from "../bun-test.ts";
-import helperModule from "../helper.ts";
 import xapiRequestsModule from "./util/requests.ts";
-import type { RuntimeRequestResponse } from "../harness-types.ts";
 
 type ActivityProfileParams = {
   activityId?: string | boolean;

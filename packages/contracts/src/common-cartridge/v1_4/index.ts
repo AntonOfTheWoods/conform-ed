@@ -34,6 +34,9 @@ import {
 } from "./core/ccv1p4_imscp_v1p2_v1p0";
 import { LomManifestDocumentSchema } from "./core/ccv1p4_lommanifest_v1p0";
 import { LomResourceDocumentSchema } from "./core/ccv1p4_lomresource_v1p0";
+import { AssignmentDocumentSchema } from "./extension/cc_extresource_assignmentv1p0_v1p0";
+import { CpxVariantDocumentSchema } from "./extension/ccv1p4_cpextensionv1p2_v1p0";
+import { OpenVideoSessionDocumentSchema } from "./extension/ims_openvideov1p0_v1p0";
 import {
   K12CommonCartridgeManifestProfileDocumentSchema,
   K12CommonCartridgeManifestRawDocumentSchema,
@@ -57,17 +60,14 @@ import {
 import { BasicLTILinkDocumentSchema } from "./shared/imsbasiclti_v1p0p1";
 import { LineItemDocumentSchema } from "./shared/lineitem_v1p0";
 import { ResourceAccessibilityMetadataDocumentSchema } from "./shared/resourcea11ymetadata-20210915";
-import { AssignmentDocumentSchema } from "./extension/cc_extresource_assignmentv1p0_v1p0";
-import { CpxVariantDocumentSchema } from "./extension/ccv1p4_cpextensionv1p2_v1p0";
-import { OpenVideoSessionDocumentSchema } from "./extension/ims_openvideov1p0_v1p0";
-import { ImsMdLooseLomDocumentSchema } from "./vdex/imsmd_loose_v1p3p2";
-import { VdexDocumentSchema } from "./vdex/imsvdex_v1p0";
 import {
   ThinCommonCartridgeManifestProfileDocumentSchema,
   ThinCommonCartridgeManifestRawDocumentSchema,
 } from "./thin/ccv1p4_imscp_v1p2_v1p0";
 import { ThinLomManifestDocumentSchema } from "./thin/ccv1p4_lommanifest_v1p0";
 import { ThinLomResourceDocumentSchema } from "./thin/ccv1p4_lomresource_v1p0";
+import { ImsMdLooseLomDocumentSchema } from "./vdex/imsmd_loose_v1p3p2";
+import { VdexDocumentSchema } from "./vdex/imsvdex_v1p0";
 
 export const CommonCartridgeDerivedZodTemplates = {
   curriculumStandardsMetadataSetDocument: CurriculumStandardsMetadataSetDocumentSchema,

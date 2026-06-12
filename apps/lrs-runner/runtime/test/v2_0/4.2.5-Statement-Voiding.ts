@@ -3,12 +3,13 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
+
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
+import type { RuntimeTemplatingSelection } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
-import type { RuntimeTemplatingSelection } from "../harness-types.ts";
-import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
 
 type VoidingStatement = StatementV2 & {
   object: {

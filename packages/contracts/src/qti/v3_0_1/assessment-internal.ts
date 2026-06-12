@@ -1,6 +1,15 @@
 import { z } from "zod";
 
 import {
+  QtiBranchRuleSchema,
+  QtiIncludeSchema,
+  QtiOutcomeProcessingSchema,
+  QtiPreConditionSchema,
+  QtiResponseProcessingSchema,
+  QtiTemplateDefaultSchema,
+  QtiTemplateProcessingSchema,
+} from "./processing-internal";
+import {
   QtiDirectionSchema,
   QtiIdentifierListSchema,
   QtiIdentifierSchema,
@@ -31,15 +40,6 @@ import {
   QtiVariableMappingSchema,
   QtiWeightSchema,
 } from "./variables-internal";
-import {
-  QtiBranchRuleSchema,
-  QtiIncludeSchema,
-  QtiOutcomeProcessingSchema,
-  QtiPreConditionSchema,
-  QtiResponseProcessingSchema,
-  QtiTemplateDefaultSchema,
-  QtiTemplateProcessingSchema,
-} from "./processing-internal";
 
 const QtiCommonNodeShape = {
   id: QtiIdentifierSchema.optional(),

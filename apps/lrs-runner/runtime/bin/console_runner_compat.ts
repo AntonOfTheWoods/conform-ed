@@ -3,10 +3,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { auth as doOAuth1Auth } from "./OAuth.ts";
-import { testRunner as TestRunner } from "./testRunner.ts";
 import { parseConsoleRunnerArgv } from "../bun-runtime/cli-args.ts";
 import { main as runNativeConsoleRunner } from "../bun-runtime/console-runner.ts";
+import { auth as doOAuth1Auth } from "./OAuth.ts";
+import { testRunner as TestRunner } from "./testRunner.ts";
 
 type RunnerMessage = {
   action?: string;

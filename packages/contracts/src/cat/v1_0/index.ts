@@ -1,3 +1,4 @@
+import { CatV1P0RestBindingOperations } from "./cat_v1p0_restbinding_operations_schema";
 import {
   UuidSchema,
   DateTimeSchema,
@@ -29,7 +30,6 @@ import {
   OutcomeCardinalitySchema,
   AssessmentResultTypeSchema,
 } from "./shared";
-import { CatV1P0RestBindingOperations } from "./cat_v1p0_restbinding_operations_schema";
 
 export const CatV1_0 = {
   Schemas: {

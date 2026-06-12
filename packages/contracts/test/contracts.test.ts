@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { AdapterCapabilitySchema, AdapterErrorSchema, AdapterProfileSchema } from "../src/adapter";
 import { RunnerConfigSchema } from "../src/config";
 

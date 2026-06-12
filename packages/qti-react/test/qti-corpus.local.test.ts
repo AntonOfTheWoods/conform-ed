@@ -5,12 +5,11 @@
  * histogram.
  */
 
+import { expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
-
-import { expect, test } from "bun:test";
+import { fileURLToPath } from "node:url";
 
 import { validateQtiXmlFile } from "@conform-ed/qti-xml";
 

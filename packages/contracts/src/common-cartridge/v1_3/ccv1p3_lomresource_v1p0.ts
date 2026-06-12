@@ -1,6 +1,7 @@
 import type { z } from "zod";
-import { strictObject } from "./shared";
+
 import { LomResourceProfileSchemas } from "./lom-internal";
+import { strictObject } from "./shared";
 
 export { LomResourceProfileSchemas } from "./lom-internal";
 

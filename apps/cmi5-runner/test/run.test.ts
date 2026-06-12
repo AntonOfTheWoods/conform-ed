@@ -1,7 +1,8 @@
+import { afterEach, expect, test } from "bun:test";
 import { Buffer } from "node:buffer";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { afterEach, expect, test } from "bun:test";
+
 import { runCmi5, validateCmi5Config } from "../src/run";
 
 type FetchMock = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;

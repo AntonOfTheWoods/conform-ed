@@ -4,9 +4,9 @@
  */
 
 import { describe, expect, it } from "../bun-test.ts";
+import type { RuntimeRequestResponse } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase, { expectAsync, type RequestFactory } from "../super-request.ts";
-import type { RuntimeRequestResponse } from "../harness-types.ts";
 
 type HeadStatement = {
   object: { id: string };

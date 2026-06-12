@@ -3,11 +3,10 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import { describe } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import requestBase, { type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
-
-import { describe } from "../bun-test.ts";
 
 type ActorRequirementsHelper = {
   OAuthRequest(request: RequestFactory): RequestFactory;

@@ -5,8 +5,8 @@ export {
   QtiAssessmentSectionSchema,
 } from "./assessment-internal";
 
-import { strictObject } from "./shared";
 import { QtiAssessmentSectionSchema } from "./assessment-internal";
+import { strictObject } from "./shared";
 
 export const QtiAssessmentSectionDocumentSchema = strictObject({
   assessmentSection: QtiAssessmentSectionSchema,

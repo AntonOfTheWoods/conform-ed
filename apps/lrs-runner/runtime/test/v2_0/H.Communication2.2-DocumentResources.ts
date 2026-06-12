@@ -3,8 +3,8 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { describe, expect, it } from "../bun-test.ts";
 import extend from "../../bun-runtime/extend-compat.ts";
+import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import requestBase, { expectAsync, type RequestFactory, type RequestResponse } from "../super-request.ts";
 

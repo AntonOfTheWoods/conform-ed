@@ -3,11 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
+
 import { describe, expect, it } from "../bun-test.ts";
+import type { RuntimeRequestFactory, RuntimeRequestResponse } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
-import type { RuntimeRequestFactory, RuntimeRequestResponse } from "../harness-types.ts";
 
 type PersonLike = {
   objectType?: string;

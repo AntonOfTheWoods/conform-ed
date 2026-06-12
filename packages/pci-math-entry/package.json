@@ -27,10 +27,10 @@
   },
   "scripts": {
     "build": "bun build ./src/index.ts ./src/checker.ts ./src/operator.ts ./src/module-mathlive.ts --outdir dist --format esm --target browser --splitting --external mathlive --external @cortex-js/compute-engine --external @conform-ed/qti-react && tsgo -p tsconfig.build.json",
-    "typecheck": "tsgo --noEmit",
-    "lint": "oxlint --config ../../.oxlintrc.jsonc .",
     "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
-    "test": "bun test"
+    "lint": "oxlint --config ../../.oxlintrc.jsonc .",
+    "test": "bun test",
+    "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
     "@cortex-js/compute-engine": "^0.59.0",

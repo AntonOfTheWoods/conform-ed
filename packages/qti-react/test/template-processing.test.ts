@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
+import { matchCorrect } from "../src/response-processing";
 import { applyCorrectResponseOverrides, executeResponseProcessing, executeTemplateProcessing } from "../src/rp";
 import type { TemplateProcessingView } from "../src/rp";
-import { matchCorrect } from "../src/response-processing";
 import type { ResponseDeclarationView } from "../src/types";
 
 const addendDeclarations = [

@@ -8,51 +8,6 @@ export * from "./or_v1p2_resource_restbinding_schema";
 export * from "./or_v1p2_csv_binding_schema";
 
 import {
-  AcademicSessionSchema,
-  AcademicSessionSetSchema,
-  ClassSchema,
-  ClassSetSchema,
-  CourseSchema,
-  CourseSetSchema,
-  DemographicsSchema,
-  DemographicsSetSchema,
-  EnrollmentSchema,
-  EnrollmentSetSchema,
-  OrgSchema,
-  OrgSetSchema,
-  SingleAcademicSessionSchema,
-  SingleClassSchema,
-  SingleCourseSchema,
-  SingleDemographicsSchema,
-  SingleEnrollmentSchema,
-  SingleOrgSchema,
-  SingleUserSchema,
-  UserSchema,
-  UserSetSchema,
-} from "./or_v1p2_rostering_service_schema";
-import {
-  AssessmentLineItemSchema,
-  AssessmentLineItemSetSchema,
-  AssessmentResultSchema,
-  AssessmentResultSetSchema,
-  CategorySchema,
-  CategorySetSchema,
-  GuidPairSetSchema,
-  LineItemSchema,
-  LineItemSetSchema,
-  ResultSchema,
-  ResultSetSchema,
-  ScoreScaleSchema,
-  ScoreScaleSetSchema,
-  SingleAssessmentLineItemSchema,
-  SingleAssessmentResultSchema,
-  SingleCategorySchema,
-  SingleLineItemSchema,
-  SingleResultSchema,
-  SingleScoreScaleSchema,
-} from "./or_v1p2_gradebook_service_schema";
-import { ResourceSchema, ResourceSetSchema, SingleResourceSchema } from "./or_v1p2_resource_service_schema";
-import {
   AcademicSessionsCsvDocumentSchema,
   CategoriesCsvDocumentSchema,
   ClassResourcesCsvDocumentSchema,
@@ -78,8 +33,53 @@ import {
   UsersCsvDocumentSchema,
 } from "./or_v1p2_csv_binding_schema";
 import { GradebookRestBindingOperationSchemas } from "./or_v1p2_gradebook_restbinding_schema";
+import {
+  AssessmentLineItemSchema,
+  AssessmentLineItemSetSchema,
+  AssessmentResultSchema,
+  AssessmentResultSetSchema,
+  CategorySchema,
+  CategorySetSchema,
+  GuidPairSetSchema,
+  LineItemSchema,
+  LineItemSetSchema,
+  ResultSchema,
+  ResultSetSchema,
+  ScoreScaleSchema,
+  ScoreScaleSetSchema,
+  SingleAssessmentLineItemSchema,
+  SingleAssessmentResultSchema,
+  SingleCategorySchema,
+  SingleLineItemSchema,
+  SingleResultSchema,
+  SingleScoreScaleSchema,
+} from "./or_v1p2_gradebook_service_schema";
 import { ResourceRestBindingOperationSchemas } from "./or_v1p2_resource_restbinding_schema";
+import { ResourceSchema, ResourceSetSchema, SingleResourceSchema } from "./or_v1p2_resource_service_schema";
 import { RosteringRestBindingOperationSchemas } from "./or_v1p2_rostering_restbinding_schema";
+import {
+  AcademicSessionSchema,
+  AcademicSessionSetSchema,
+  ClassSchema,
+  ClassSetSchema,
+  CourseSchema,
+  CourseSetSchema,
+  DemographicsSchema,
+  DemographicsSetSchema,
+  EnrollmentSchema,
+  EnrollmentSetSchema,
+  OrgSchema,
+  OrgSetSchema,
+  SingleAcademicSessionSchema,
+  SingleClassSchema,
+  SingleCourseSchema,
+  SingleDemographicsSchema,
+  SingleEnrollmentSchema,
+  SingleOrgSchema,
+  SingleUserSchema,
+  UserSchema,
+  UserSetSchema,
+} from "./or_v1p2_rostering_service_schema";
 import { ImsxStatusInfoSchema } from "./shared";
 
 export const OneRoster12DerivedZodTemplates = {

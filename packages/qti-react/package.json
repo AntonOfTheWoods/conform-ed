@@ -15,10 +15,10 @@
   },
   "scripts": {
     "build": "bun build ./src/index.ts --outdir dist --format esm --target browser --external react --external react-dom --external zod && tsgo -p tsconfig.build.json",
-    "typecheck": "tsgo --noEmit",
-    "lint": "oxlint --config ../../.oxlintrc.jsonc .",
     "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
-    "test": "bun test"
+    "lint": "oxlint --config ../../.oxlintrc.jsonc .",
+    "test": "bun test",
+    "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {
     "@conform-ed/qti-xml": "workspace:*",

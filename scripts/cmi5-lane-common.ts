@@ -1,6 +1,6 @@
+import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { spawn } from "node:child_process";
 
 export const repoRoot = resolve(import.meta.dir, "..");
 export const tmpRoot = resolve(repoRoot, "tmp");

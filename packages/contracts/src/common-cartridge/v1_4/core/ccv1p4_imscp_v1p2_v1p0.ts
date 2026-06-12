@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-import { CurriculumStandardsMetadataSetSchema } from "../shared/ccv1p4_imscsmd_v1p1";
-import { CommonCartridgeAuthorizationsSchema } from "../shared/ccv1p4_imsccauth_v1p4";
-import { LomManifestSchema } from "./ccv1p4_lommanifest_v1p0";
-import { LomResourceSchema } from "./ccv1p4_lomresource_v1p0";
 import {
   NonEmptyStringSchema,
   UriReferenceSchema,
@@ -13,6 +9,10 @@ import {
   collectDuplicates,
   strictObject,
 } from "../shared";
+import { CommonCartridgeAuthorizationsSchema } from "../shared/ccv1p4_imsccauth_v1p4";
+import { CurriculumStandardsMetadataSetSchema } from "../shared/ccv1p4_imscsmd_v1p1";
+import { LomManifestSchema } from "./ccv1p4_lommanifest_v1p0";
+import { LomResourceSchema } from "./ccv1p4_lomresource_v1p0";
 
 export const CommonCartridgeResourceTypeSchema = z.enum([
   "webcontent",

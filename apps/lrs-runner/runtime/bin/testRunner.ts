@@ -1,15 +1,14 @@
-import crypto from "node:crypto";
 import type { ChildProcess } from "child_process";
+import childProcess from "child_process";
 import { EventEmitter } from "events";
+import crypto from "node:crypto";
 import path from "path";
 
-import specRefs from "../test/references.json";
 import { definedProps } from "../bun-runtime/defined-props.ts";
+import specRefs from "../test/references.json";
 import { versionNumber } from "../version.ts";
 import rollup from "./rollupRules.ts";
 import type { SuiteLike as RollupSuiteLike, SuiteStatus as RollupSuiteStatus } from "./rollupRules.ts";
-
-import childProcess from "child_process";
 
 type SuiteStatus = "" | "cancelled" | "passed" | "failed";
 type RunnerState = "notStarted" | "started" | "finished" | "cancelled" | "error";

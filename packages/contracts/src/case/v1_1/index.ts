@@ -1,5 +1,5 @@
-import * as CaseV1P1AssociationGrouping from "./case_v1p1_cfassociationgrouping_jsonschema1";
 import * as CaseV1P1Association from "./case_v1p1_cfassociation_jsonschema1";
+import * as CaseV1P1AssociationGrouping from "./case_v1p1_cfassociationgrouping_jsonschema1";
 import * as CaseV1P1AssociationSet from "./case_v1p1_cfassociationset_jsonschema1";
 import * as CaseV1P1ConceptSet from "./case_v1p1_cfconceptset_jsonschema1";
 import * as CaseV1P1Document from "./case_v1p1_cfdocument_jsonschema1";
@@ -11,6 +11,7 @@ import * as CaseV1P1Package from "./case_v1p1_cfpackage_jsonschema1";
 import * as CaseV1P1Rubric from "./case_v1p1_cfrubric_jsonschema1";
 import * as CaseV1P1SubjectSet from "./case_v1p1_cfsubjectset_jsonschema1";
 import * as CaseV1P1Status from "./case_v1p1_imsx_statusinfo_jsonschema1";
+import { CaseV1P1RestBindingOperations } from "./case_v1p1_openapi3_restbinding_schema";
 import {
   CFAssociationSchema,
   CFAssociationSetSchema,
@@ -28,7 +29,6 @@ import {
   DateTimeSchema,
   ExtensionEnumSchema,
 } from "./shared";
-import { CaseV1P1RestBindingOperations } from "./case_v1p1_openapi3_restbinding_schema";
 
 export const CaseV1_1 = {
   JsonSchema: {

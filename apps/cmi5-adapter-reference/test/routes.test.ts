@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+
 import { AdapterCapabilitySchema, AdapterProfileSchema } from "@conform-ed/contracts";
+
 import { capabilitiesRoute } from "../src/routes/capabilities";
 import { profileRoute } from "../src/routes/profile";
 

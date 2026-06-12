@@ -3,12 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
+import type { Statement } from "@conform-ed/contracts/xapi/v1_0_3";
 
 import { describe, it } from "../bun-test.ts";
 import type { RuntimeHelper, RuntimeRequestFactory } from "../harness-types.ts";
-import type { Statement } from "@conform-ed/contracts/xapi/v1_0_3";
+import helperImport from "../helper.ts";
+import requestBase from "../super-request.ts";
 const helper = helperImport as RuntimeHelper;
 let request: RuntimeRequestFactory = requestBase;
 

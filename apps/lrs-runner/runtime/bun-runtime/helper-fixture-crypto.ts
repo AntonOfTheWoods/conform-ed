@@ -1,6 +1,7 @@
-import { CompactSign } from "jose";
 import type * as CryptoModule from "crypto";
 import type * as FsModule from "fs";
+
+import { CompactSign } from "jose";
 
 type AnyRecord = Record<string, unknown>;
 type JsonMapping = Record<string, Record<string, unknown>>;

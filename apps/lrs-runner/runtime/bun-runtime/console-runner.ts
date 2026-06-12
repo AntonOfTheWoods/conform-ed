@@ -5,8 +5,8 @@ import { parseConsoleRunnerArgv, type ConsoleRunnerOptions } from "./cli-args.ts
 import { definedProps } from "./defined-props.ts";
 import { normalizeRunnerOptions, type NormalizedRunnerOptions } from "./options.ts";
 import { createRunRecord, createOutputRunRecord, type RuntimeRunRecordFlags } from "./run-record.ts";
-import { installRunnerEnvironment, registerSuiteFiles } from "./suite-loader.ts";
 import { createDescribeRuntime, type RuntimeRunResult, type RuntimeRunSummary } from "./runtime.ts";
+import { installRunnerEnvironment, registerSuiteFiles } from "./suite-loader.ts";
 
 export type BunConsoleRunnerMode = "native";
 

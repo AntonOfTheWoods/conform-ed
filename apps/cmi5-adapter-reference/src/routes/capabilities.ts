@@ -1,4 +1,5 @@
 import { AdapterCapabilitySchema } from "@conform-ed/contracts";
+
 import { capabilities } from "../capabilities";
 
 export function capabilitiesRoute(): Response {

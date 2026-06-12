@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { QtiMapEntrySchema, QtiValueSchema } from "./variables-internal";
 import { QtiIdentifierSchema, UriReferenceSchema, addIssue, strictObject } from "./shared";
+import { QtiMapEntrySchema, QtiValueSchema } from "./variables-internal";
 
 export const QtiUsageDateSchema = z.iso.date();
 

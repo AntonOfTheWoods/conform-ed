@@ -3,10 +3,9 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import { describe } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import requestBase, { type RequestFactory } from "../super-request.ts";
-
-import { describe } from "../bun-test.ts";
 
 type HeadersHelper = {
   OAuthRequest(request: RequestFactory): RequestFactory;

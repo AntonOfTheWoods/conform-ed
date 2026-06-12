@@ -2,6 +2,7 @@ export * from "../../shared";
 
 import { z } from "zod";
 
+import { LineItemSchema } from "../../ags/v2_0";
 import {
   ContextSchema,
   CustomParametersSchema,
@@ -15,7 +16,6 @@ import {
   LtiVersionSchema,
   strictObject,
 } from "../../shared";
-import { LineItemSchema } from "../../ags/v2_0";
 
 export const ContentItemTypeSchema = z.enum(["file", "html", "image", "link", "ltiResourceLink"]);
 

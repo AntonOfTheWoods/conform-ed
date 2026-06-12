@@ -1,4 +1,5 @@
 import type { z } from "zod";
+
 import { NonEmptyStringSchema, XmlExtensionNodeListSchema, strictObject } from "../shared";
 
 export const CpxMetadataSchema = strictObject({

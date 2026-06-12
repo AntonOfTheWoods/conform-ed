@@ -26,7 +26,6 @@ import {
   type MaybeRpValue,
   type RpValue,
 } from "../rp/values";
-
 import type {
   AssessmentItemRefView,
   AssessmentSectionView,

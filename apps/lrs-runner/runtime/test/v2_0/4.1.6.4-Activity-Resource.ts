@@ -3,12 +3,13 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import requestModule from "../super-request.ts";
-import { describe, expect, it } from "../bun-test.ts";
-import helperModule from "../helper.ts";
-import xapiRequestsModule from "./util/requests.ts";
 import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
+
+import { describe, expect, it } from "../bun-test.ts";
 import type { RuntimeRequestFactory, RuntimeRequestResponse } from "../harness-types.ts";
+import helperModule from "../helper.ts";
+import requestModule from "../super-request.ts";
+import xapiRequestsModule from "./util/requests.ts";
 
 type ActivityStatement = StatementV2 & {
   object: {

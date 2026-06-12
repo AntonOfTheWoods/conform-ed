@@ -42,9 +42,9 @@ export {
 } from "./processing-internal";
 
 import { QtiAssessmentItemSchema } from "./assessment-internal";
-import { strictObject } from "./shared";
 import { QtiOutcomeDeclarationDocumentSchema } from "./imsqti_outcomev3p0p1_v1p0";
 import { QtiResponseProcessingDocumentSchema } from "./imsqti_responseprocessingv3p0p1_v1p0";
+import { strictObject } from "./shared";
 
 export const QtiAssessmentItemDocumentSchema = strictObject({
   assessmentItem: QtiAssessmentItemSchema,

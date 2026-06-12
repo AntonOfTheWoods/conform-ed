@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 
+import { runConsoleRunnerArgv } from "../bun-runtime/console-runner.ts";
 import {
   normalizeRunnerOptions,
   RunnerOptionsError,
   type NormalizedRunnerOptions,
   type RunnerInputOptions,
 } from "../bun-runtime/options.ts";
-import { runConsoleRunnerArgv } from "../bun-runtime/console-runner.ts";
 import { defaultXapiVersion } from "../bun-runtime/spec-config.ts";
 import { getDirectoriesToLoad, needsTimeMarginBootstrap, normalizeSelectedFiles } from "../bun-runtime/suite-loader.ts";
 

@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import {
   AdapterCapabilitySchema,
   AdapterProfileSchema,
@@ -7,6 +8,8 @@ import {
   LtiNrpsV2_0,
   LtiV1_3,
 } from "@conform-ed/contracts";
+
+import { capabilitiesRoute } from "../src/routes/capabilities";
 import { agsLineItemsRoute } from "../src/routes/lti-ags-line-items";
 import { agsScoresRoute } from "../src/routes/lti-ags-scores";
 import { deepLinkRoute } from "../src/routes/lti-deep-link";
@@ -14,7 +17,6 @@ import { launchCreateRoute } from "../src/routes/lti-launch-create";
 import { loginInitiationRoute } from "../src/routes/lti-login-initiation";
 import { nrpsMembershipsRoute } from "../src/routes/lti-nrps-memberships";
 import { registrationResolveRoute } from "../src/routes/lti-registration-resolve";
-import { capabilitiesRoute } from "../src/routes/capabilities";
 import { profileRoute } from "../src/routes/profile";
 
 test("capabilities route returns contract-valid payload", async () => {

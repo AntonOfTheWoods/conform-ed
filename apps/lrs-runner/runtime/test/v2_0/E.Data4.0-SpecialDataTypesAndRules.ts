@@ -3,11 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
+
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
-import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
 import { createStatementV2, type StatementResultLike } from "../typing-helpers.ts";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };

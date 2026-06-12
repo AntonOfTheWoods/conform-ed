@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { strictObject, H5pMachineNameSchema, H5pVersionRefSchema } from "./shared";
 
 const filePathSchema = strictObject({ path: z.string().min(1) });

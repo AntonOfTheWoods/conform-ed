@@ -4,8 +4,8 @@
  */
 
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
-import helperImport from "../helper.ts";
 import type { RuntimeRequestResponse } from "../harness-types.ts";
+import helperImport from "../helper.ts";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 

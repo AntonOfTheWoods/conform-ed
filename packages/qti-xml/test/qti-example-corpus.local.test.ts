@@ -1,8 +1,7 @@
-import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-
 import { expect, test } from "bun:test";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { validateQtiXmlFile } from "../src";
 

@@ -9,7 +9,6 @@
 import { parseCoords, parsePoint, pointInShape } from "../graphic";
 import { mapResponse, mapResponsePoint } from "../response-processing";
 import type { ResponseDeclarationView, ResponseValue } from "../types";
-
 import type { CustomOperatorImplementation, ResponseNormalization, RpExpressionView } from "./types";
 import {
   booleanValue,

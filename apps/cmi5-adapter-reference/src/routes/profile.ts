@@ -1,4 +1,5 @@
 import { AdapterProfileSchema } from "@conform-ed/contracts";
+
 import { profile } from "../profile";
 
 export function profileRoute(): Response {

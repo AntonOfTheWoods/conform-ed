@@ -5,15 +5,15 @@
 
 import crypto from "crypto";
 import fs from "fs";
-import requestModule from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
 
-import helperModule from "../helper.ts";
+import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
 
 import { beforeAll, describe, it } from "../bun-test.ts";
+import helperModule from "../helper.ts";
+import requestModule from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import { requireAttachment } from "../typing-helpers.ts";
 import { createStatementV2 } from "../typing-helpers.ts";
-import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
 
 type AttachmentRecord = {
   contentType?: string;

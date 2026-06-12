@@ -3,11 +3,11 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
 
-import helperImport from "../helper.ts";
+import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import type { RuntimeHelper, RuntimeRequestFactory, RuntimeTemplatingSelection } from "../harness-types.ts";
+import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";

@@ -1,5 +1,4 @@
 import type { InteractionDescriptor } from "../runtime";
-
 import { associateInteraction } from "./associate";
 import { choiceInteraction } from "./choice";
 import { drawingInteraction } from "./drawing";

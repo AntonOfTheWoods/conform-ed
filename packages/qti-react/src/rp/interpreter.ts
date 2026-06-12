@@ -7,7 +7,6 @@
 
 import type { CapabilityIssue } from "../capability";
 import type { ResponseDeclarationView } from "../types";
-
 import {
   RpUnsupportedError,
   collectExpressionIssues,

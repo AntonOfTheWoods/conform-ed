@@ -1,7 +1,9 @@
+import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { expect, test } from "bun:test";
+
 import { XMLParser } from "fast-xml-parser";
+
 import { Cmi5V1_0 } from "@conform-ed/contracts";
 
 const parser = new XMLParser({

@@ -24,10 +24,10 @@ export {
 } from "./processing-internal";
 
 import { QtiAssessmentTestSchema } from "./assessment-internal";
-import { QtiOutcomeProcessingSchema } from "./processing-internal";
-import { strictObject } from "./shared";
 import { QtiOutcomeDeclarationDocumentSchema } from "./imsqti_outcomev3p0p1_v1p0";
 import { QtiAssessmentSectionDocumentSchema } from "./imsqti_sectionv3p0p1_v1p0";
+import { QtiOutcomeProcessingSchema } from "./processing-internal";
+import { strictObject } from "./shared";
 
 export const QtiAssessmentTestDocumentSchema = strictObject({
   assessmentTest: QtiAssessmentTestSchema,

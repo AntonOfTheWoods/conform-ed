@@ -5,8 +5,8 @@ export {
   QtiStimulusBodySchema,
 } from "./assessment-internal";
 
-import { strictObject } from "./shared";
 import { QtiAssessmentStimulusSchema } from "./assessment-internal";
+import { strictObject } from "./shared";
 
 export const QtiAssessmentStimulusDocumentSchema = strictObject({
   assessmentStimulus: QtiAssessmentStimulusSchema,

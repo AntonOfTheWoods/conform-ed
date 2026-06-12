@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { detectQtiRoot } from "./root-detection";
 import { normalizeQtiDocument } from "./normalize";
 import { parseXmlDocument } from "./parse-xml";
+import { detectQtiRoot } from "./root-detection";
 import { isNormalizationImplemented, selectQtiSchema } from "./schema-selection";
 import type { QtiValidationIssue, QtiValidationResult } from "./types";
 import { resolveXIncludes } from "./xinclude";

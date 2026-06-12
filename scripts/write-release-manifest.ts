@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+
 import { releaseManifest } from "./image-catalog";
 
 const repoRoot = resolve(import.meta.dir, "..");

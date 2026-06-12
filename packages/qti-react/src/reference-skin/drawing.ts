@@ -15,7 +15,6 @@ import {
 } from "react";
 
 import type { BodyNode, InteractionRenderProps } from "../runtime";
-
 import type { ObjectView } from "./graphic-base";
 
 interface DrawingNodeView {

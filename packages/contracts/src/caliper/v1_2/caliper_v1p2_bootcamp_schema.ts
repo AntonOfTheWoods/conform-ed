@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { CALIPER_BOOTCAMP_ONLY_EVENT_TYPES, CALIPER_TEXTUAL_EVENT_RULES } from "./textual_requirements";
 import {
   CALIPER_CONTEXT_V1P1,
   CALIPER_CONTEXT_V1P2,
@@ -14,6 +13,7 @@ import {
   createCaliperEventSchema,
   getReferenceType,
 } from "./shared";
+import { CALIPER_BOOTCAMP_ONLY_EVENT_TYPES, CALIPER_TEXTUAL_EVENT_RULES } from "./textual_requirements";
 
 export const CALIPER_ACTIONS = [
   "Abandoned",

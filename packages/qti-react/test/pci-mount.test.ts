@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
+
 import { Window } from "happy-dom";
 
 import { createPciModuleRegistry, mountPci, serializePciMarkup, type PciInteractionNode } from "../src/pci";

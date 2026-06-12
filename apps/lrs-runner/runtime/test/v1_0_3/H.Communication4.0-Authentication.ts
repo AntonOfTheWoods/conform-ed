@@ -3,13 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
+import { describe, it } from "../bun-test.ts";
+import type { RuntimeRequestFactory, RuntimeHelper } from "../harness-types.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
-import type { RuntimeRequestFactory, RuntimeHelper } from "../harness-types.ts";
 import { createStatement } from "../typing-helpers.ts";
-
-import { describe, it } from "../bun-test.ts";
 
 const helper = helperImport as RuntimeHelper;
 let request: RuntimeRequestFactory = requestBase;

@@ -3,8 +3,8 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type { DescribeRuntime } from "./runtime.ts";
 import type { NormalizedRunnerOptions } from "./options.ts";
+import type { DescribeRuntime } from "./runtime.ts";
 
 export interface SuiteLoaderOptions {
   normalizedOptions: NormalizedRunnerOptions;

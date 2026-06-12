@@ -4,15 +4,15 @@ export * from "./assessment-internal";
 export * from "./variables-internal";
 export * from "./processing-internal";
 
-import { strictObject } from "./shared";
 import { QtiAssessmentItemSchema, QtiAssessmentStimulusSchema, QtiAssessmentTestSchema } from "./assessment-internal";
-import { QtiOutcomeDeclarationSchema } from "./variables-internal";
+import { QtiAssessmentItemDocumentSchema } from "./imsqti_itemv3p0p1_v1p0";
+import { QtiOutcomeDeclarationDocumentSchema } from "./imsqti_outcomev3p0p1_v1p0";
 import { QtiResponseProcessingDocumentSchema } from "./imsqti_responseprocessingv3p0p1_v1p0";
 import { QtiAssessmentSectionDocumentSchema, QtiAssessmentSectionSchema } from "./imsqti_sectionv3p0p1_v1p0";
 import { QtiAssessmentStimulusDocumentSchema } from "./imsqti_stimulusv3p0p1_v1p0";
-import { QtiOutcomeDeclarationDocumentSchema } from "./imsqti_outcomev3p0p1_v1p0";
-import { QtiAssessmentItemDocumentSchema } from "./imsqti_itemv3p0p1_v1p0";
 import { QtiAssessmentTestDocumentSchema, QtiOutcomeProcessingDocumentSchema } from "./imsqti_testv3p0p1_v1p0";
+import { strictObject } from "./shared";
+import { QtiOutcomeDeclarationSchema } from "./variables-internal";
 
 export const QtiAssessmentItemDocumentSchemaAlias = QtiAssessmentItemDocumentSchema;
 export const QtiAssessmentSectionDocumentSchemaAlias = QtiAssessmentSectionDocumentSchema;

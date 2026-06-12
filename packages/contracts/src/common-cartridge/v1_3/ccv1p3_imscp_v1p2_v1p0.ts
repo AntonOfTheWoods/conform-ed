@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { CurriculumStandardsMetadataSetSchema } from "./ccv1p3_imscsmd_v1p0";
 import { CommonCartridgeAuthorizationsSchema } from "./ccv1p3_imsccauth_v1p3";
+import { CurriculumStandardsMetadataSetSchema } from "./ccv1p3_imscsmd_v1p0";
 import { LomManifestSchema } from "./ccv1p3_lommanifest_v1p0";
 import { LomResourceSchema } from "./ccv1p3_lomresource_v1p0";
 import {

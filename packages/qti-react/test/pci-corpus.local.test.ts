@@ -5,12 +5,12 @@
  * the registry and runs the full getInstance → interact → getResponse lifecycle.
  */
 
+import { expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { expect, test } from "bun:test";
 import { Window } from "happy-dom";
 
 import { validateQtiXmlFile } from "@conform-ed/qti-xml";

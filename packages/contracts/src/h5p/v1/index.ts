@@ -44,10 +44,10 @@ export type {
 export { H5pCopyrightSchema, H5pMediaFileSchema, H5pLibraryEmbedSchema, H5pContentParamsSchema } from "./content";
 export type { H5pCopyright, H5pMediaFile, H5pLibraryEmbed, H5pContentParams } from "./content";
 
+import { H5pCopyrightSchema, H5pMediaFileSchema, H5pLibraryEmbedSchema, H5pContentParamsSchema } from "./content";
 import { H5pPackageManifestSchema } from "./h5p-json";
 import { H5pLibraryManifestSchema } from "./library-json";
 import { H5pSemanticsFieldSchema, H5pSemanticsSchema } from "./semantics";
-import { H5pCopyrightSchema, H5pMediaFileSchema, H5pLibraryEmbedSchema, H5pContentParamsSchema } from "./content";
 import {
   H5pMachineNameSchema,
   H5pLibraryFolderNameSchema,

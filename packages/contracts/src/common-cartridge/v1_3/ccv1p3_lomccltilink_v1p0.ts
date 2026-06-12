@@ -1,6 +1,7 @@
 import type { z } from "zod";
-import { strictObject } from "./shared";
+
 import { LomCcLtiLinkProfileSchemas } from "./lom-internal";
+import { strictObject } from "./shared";
 
 export { LomCcLtiLinkProfileSchemas } from "./lom-internal";
 
