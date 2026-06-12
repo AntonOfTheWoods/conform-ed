@@ -8,6 +8,7 @@
 import type { CapabilityIssue } from "../capability";
 import type { OutcomeDeclarationView, OutcomeValue, RpExpressionView } from "../rp";
 import type { BodyNode } from "../runtime";
+import type { ResponseValue } from "../types";
 
 export interface BranchRuleView {
   /** A target identifier in the same test part, or EXIT_TEST / EXIT_TESTPART / EXIT_SECTION. */
@@ -212,6 +213,30 @@ export interface TestItemResult {
    * submit the item until they have provided valid responses for all interactions").
    */
   readonly valid?: boolean;
+  /**
+   * The candidate's responses as submitted — recorded into the attempt history so
+   * results reporting can emit `candidateResponse` values from persisted state.
+   */
+  readonly responses?: Readonly<Record<string, ResponseValue>>;
+  /**
+   * The submission instant (epoch ms). Controller-stamped: callers never set it;
+   * it rides pending simultaneous results so the flush keeps submit-time stamps.
+   */
+  readonly submittedAtMs?: number;
+}
+
+/**
+ * One committed attempt, recorded for results reporting: "A report may contain
+ * multiple results for the same instance of an item representing multiple attempts
+ * … each item result must have a different datestamp."
+ */
+export interface RecordedAttempt {
+  /** Submission instant (epoch ms) — the itemResult datestamp. */
+  readonly atMs: number;
+  readonly outcomes: Readonly<Record<string, OutcomeValue>>;
+  readonly responses?: Readonly<Record<string, ResponseValue>>;
+  /** The item session's elapsed seconds at this submission, when reported. */
+  readonly durationSeconds?: number;
 }
 
 /**
@@ -292,6 +317,8 @@ export interface TestSessionState {
    * the other actors in the assessment process", never part of the assessed responses.
    */
   readonly itemComments?: Readonly<Record<string, string>>;
+  /** Committed attempts per item key, in submission order (results reporting). */
+  readonly attemptHistory?: Readonly<Record<string, readonly RecordedAttempt[]>>;
 }
 
 export interface TestController {

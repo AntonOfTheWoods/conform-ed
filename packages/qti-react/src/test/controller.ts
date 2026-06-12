@@ -34,6 +34,7 @@ import type {
   ItemSessionControlView,
   OutcomeConditionBranch,
   OutcomeRuleView,
+  RecordedAttempt,
   TestController,
   TestItemResult,
   TestPlan,
@@ -891,6 +892,33 @@ export function createTestController(view: AssessmentTestView, options: TestCont
   }
 
   /** Commit pending simultaneous results for one part (or all parts when null). */
+  /**
+   * Record a committed attempt for results reporting: "A report may contain multiple
+   * results for the same instance of an item representing multiple attempts … each
+   * item result must have a different datestamp."
+   */
+  function withRecordedAttempt(
+    state: TestSessionState,
+    itemKey: string,
+    result: TestItemResult,
+    atMs: number,
+  ): TestSessionState {
+    const entry: RecordedAttempt = {
+      atMs,
+      outcomes: result.outcomes,
+      ...(result.responses !== undefined ? { responses: result.responses } : {}),
+      ...(result.durationSeconds !== undefined ? { durationSeconds: result.durationSeconds } : {}),
+    };
+
+    return {
+      ...state,
+      attemptHistory: {
+        ...(state.attemptHistory ?? {}),
+        [itemKey]: [...(state.attemptHistory?.[itemKey] ?? []), entry],
+      },
+    };
+  }
+
   function flushPending(state: TestSessionState, partIndex: number | null): TestSessionState {
     const pending = state.pendingItemResults ?? {};
     const keys = Object.keys(pending).filter((key) => partIndex === null || partIndexByItemKey.get(key) === partIndex);
@@ -916,7 +944,9 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         itemDurations[key] = result.durationSeconds;
       }
 
-      flagged = applyResultFlags(flagged, key, result);
+      // The flush is the part submission, but the datestamp is the candidate's
+      // submit instant, stamped when the pending result was recorded.
+      flagged = withRecordedAttempt(applyResultFlags(flagged, key, result), key, result, result.submittedAtMs ?? now());
     }
 
     return {
@@ -1161,7 +1191,8 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
       return {
         ...state,
-        pendingItemResults: { ...(state.pendingItemResults ?? {}), [itemKey]: result },
+        // Stamped now so the flush can keep the candidate's submit-time datestamp.
+        pendingItemResults: { ...(state.pendingItemResults ?? {}), [itemKey]: { ...result, submittedAtMs: now() } },
         attemptedItems: state.attemptedItems.includes(itemKey)
           ? state.attemptedItems
           : [...state.attemptedItems, itemKey],
@@ -1182,7 +1213,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     }
 
     const next: TestSessionState = {
-      ...applyResultFlags(state, itemKey, result),
+      ...withRecordedAttempt(applyResultFlags(state, itemKey, result), itemKey, result, now()),
       itemOutcomes: { ...state.itemOutcomes, [itemKey]: result.outcomes },
       attemptedItems: state.attemptedItems.includes(itemKey)
         ? state.attemptedItems

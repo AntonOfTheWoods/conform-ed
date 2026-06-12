@@ -273,6 +273,8 @@ export function createTestSessionStore(controller: TestController, options: Test
           // The item session's elapsed seconds feed the built-in ITEM.duration.
           ...(attempt.durationSeconds !== null ? { durationSeconds: attempt.durationSeconds } : {}),
           valid: attempt.responseViolations.length === 0,
+          // Recorded into the attempt history: candidateResponse in results reporting.
+          responses: attempt.responses,
         });
 
         if (next !== state) {

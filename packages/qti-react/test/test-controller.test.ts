@@ -2356,3 +2356,82 @@ describe("suspension and resume", () => {
     expect(resumed.testOutcomes["D_TEST"]).toBe(20); // the break never accrued
   });
 });
+
+describe("attempt history (results reporting)", () => {
+  // "A report may contain multiple results for the same instance of an item
+  // representing multiple attempts … each item result must have a different
+  // datestamp." (QTI Results Reporting §2.4.5) — the controller records every
+  // committed attempt with its submission instant so the report can be produced
+  // from persisted state.
+  const twoAttempts: AssessmentTestView = {
+    identifier: "T-HIST",
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode: "linear",
+        submissionMode: "individual",
+        itemSessionControl: { maxAttempts: 2 },
+        assessmentSections: [{ kind: "assessmentSection", identifier: "S1", children: [itemRef("I1"), itemRef("I2")] }],
+      },
+    ],
+  };
+
+  test("every committed attempt is recorded with its timestamp, outcomes, and responses", () => {
+    let nowMs = 1_000;
+    const controller = createTestController(twoAttempts, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    nowMs = 5_000;
+    state = controller.submitItem(state, "I1", {
+      outcomes: { SCORE: 0 },
+      responses: { RESPONSE: "A" },
+      durationSeconds: 4,
+    });
+    nowMs = 9_000;
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 }, responses: { RESPONSE: "B" } });
+
+    expect(state.attemptHistory?.["I1"]).toEqual([
+      { atMs: 5_000, outcomes: { SCORE: 0 }, responses: { RESPONSE: "A" }, durationSeconds: 4 },
+      { atMs: 9_000, outcomes: { SCORE: 1 }, responses: { RESPONSE: "B" } },
+    ]);
+    expect(state.attemptHistory?.["I2"]).toBeUndefined();
+  });
+
+  test("refused submissions never enter the history", () => {
+    let nowMs = 0;
+    const controller = createTestController(twoAttempts, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 0 } });
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 2 } }); // maxAttempts spent
+
+    expect(state.attemptHistory?.["I1"]).toHaveLength(2);
+  });
+
+  test("simultaneous submissions keep their submit-time stamps through the flush", () => {
+    let nowMs = 0;
+    const simultaneous: AssessmentTestView = {
+      ...twoAttempts,
+      testParts: [{ ...twoAttempts.testParts[0]!, itemSessionControl: {}, submissionMode: "simultaneous" }],
+    };
+    const controller = createTestController(simultaneous, { seed: 1, now: () => nowMs });
+    let state = controller.start();
+
+    nowMs = 3_000;
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 }, responses: { RESPONSE: "A" } });
+    nowMs = 5_000;
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 2 }, responses: { RESPONSE: "B" } }); // revision
+    state = controller.next(state);
+    nowMs = 7_000;
+    state = controller.submitItem(state, "I2", { outcomes: { SCORE: 3 } });
+    nowMs = 10_000;
+    state = controller.next(state); // leaves the part → flush
+
+    expect(state.status).toBe("ended");
+    expect(state.attemptHistory?.["I1"]).toEqual([
+      { atMs: 5_000, outcomes: { SCORE: 2 }, responses: { RESPONSE: "B" } }, // the revision's stamp
+    ]);
+    expect(state.attemptHistory?.["I2"]?.[0]?.atMs).toBe(7_000);
+  });
+});
