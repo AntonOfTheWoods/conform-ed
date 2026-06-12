@@ -7,6 +7,7 @@
  * persistence stays with the consumer (store the seed and `snapshot.state`).
  */
 
+import { collectInteractionConstraints } from "../response-validity";
 import type { CustomOperatorImplementation, ResponseNormalization, TemplateRuleView } from "../rp";
 import type { AssessmentItemView } from "../runtime";
 import { createAttemptStore, type AttemptSnapshot, type AttemptStore } from "../store";
@@ -50,6 +51,10 @@ export interface TestSessionStore {
   readonly end: () => void;
   /** Fold elapsed time and apply time-limit expiries; consumers drive the cadence. */
   readonly tick: () => void;
+  /** Post-end review navigation (allowReview); a no-op where review is barred. */
+  readonly review: (itemKey: string) => void;
+  /** Record a candidate comment (allowComment); a no-op where comments are barred. */
+  readonly setItemComment: (itemKey: string, comment: string) => void;
 }
 
 /** Identifiers whose correct response arrives via `setCorrectResponse` in templates. */
@@ -179,16 +184,25 @@ export function createTestSessionStore(controller: TestController, options: Test
     }
 
     const view = itemView(itemKey);
+    const planItem = planItemsByKey.get(itemKey);
 
-    if (!view) {
+    if (!view || !planItem) {
       itemStores.set(itemKey, null);
       return null;
     }
+
+    // validate-responses is "only applicable when the item is in a qti-test-part
+    // with individual submission mode".
+    const individual = controller.plan.parts.some(
+      (part) => part.identifier === planItem.partIdentifier && part.submissionMode === "individual",
+    );
 
     const store = createAttemptStore(
       view.responseDeclarations,
       {},
       {
+        constraints: collectInteractionConstraints(view.itemBody.content),
+        validateResponses: planItem.sessionControl.validateResponses && individual,
         outcomeDeclarations: view.outcomeDeclarations,
         responseProcessing: view.responseProcessing,
         templateDeclarations: view.templateDeclarations,
@@ -219,6 +233,7 @@ export function createTestSessionStore(controller: TestController, options: Test
           ...(view.adaptive === true ? { adaptive: true } : {}),
           // The item session's elapsed seconds feed the built-in ITEM.duration.
           ...(attempt.durationSeconds !== null ? { durationSeconds: attempt.durationSeconds } : {}),
+          valid: attempt.responseViolations.length === 0,
         });
 
         if (next !== state) {
@@ -246,5 +261,7 @@ export function createTestSessionStore(controller: TestController, options: Test
     moveTo: (itemKey) => emit(controller.moveTo(state, itemKey)),
     end: () => emit(controller.end(state)),
     tick: () => emit(controller.tick(state)),
+    review: (itemKey) => emit(controller.review(state, itemKey)),
+    setItemComment: (itemKey, comment) => emit(controller.setItemComment(state, itemKey, comment)),
   };
 }

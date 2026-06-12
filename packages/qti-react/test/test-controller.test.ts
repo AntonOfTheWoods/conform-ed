@@ -2069,3 +2069,155 @@ describe("timeLimits enforcement", () => {
     expect(controller.currentItem(state)?.key).toBe("I9");
   });
 });
+
+describe("itemSessionControl enforcement: validity, review, comments", () => {
+  test("validateResponses bars invalid submissions in individual mode only", () => {
+    // "When validate-responses is turned on (true) then the candidates are not
+    // allowed to submit the item until they have provided valid responses for all
+    // interactions. … The value of this attribute is only applicable when the item
+    // is in a qti-test-part with individual submission mode."
+    const strict: AssessmentTestView = {
+      ...linearTest,
+      testParts: [{ ...linearTest.testParts[0]!, itemSessionControl: { validateResponses: true } }],
+    };
+    const controller = createTestController(strict, { seed: 1 });
+    let state = controller.start();
+
+    const refused = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 }, valid: false });
+
+    expect(refused).toBe(state); // identity: nothing recorded
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 }, valid: true });
+    expect(state.attemptCounts).toEqual({ I1: 1 });
+
+    const simultaneous: AssessmentTestView = {
+      ...strict,
+      testParts: [{ ...strict.testParts[0]!, submissionMode: "simultaneous" }],
+    };
+    const simController = createTestController(simultaneous, { seed: 1 });
+    let simState = simController.start();
+
+    simState = simController.submitItem(simState, "I1", { outcomes: { SCORE: 1 }, valid: false });
+    expect(simState.pendingItemResults["I1"]).toBeDefined(); // not applicable in simultaneous mode
+  });
+
+  test("allowReview=false blocks revisiting an item after its last attempt", () => {
+    // "If set to 'false' the candidate can not review the qti-item-body or their
+    // responses once they have submitted their last attempt."
+    const reviewable: AssessmentTestView = {
+      identifier: "T-REV",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "nonlinear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              children: [itemRef("I1", { itemSessionControl: { allowReview: false } }), itemRef("I2"), itemRef("I3")],
+            },
+          ],
+        },
+      ],
+    };
+    const controller = createTestController(reviewable, { seed: 1 });
+    let state = controller.start();
+
+    // Before the last attempt ends, revisiting is interaction, not review.
+    state = controller.moveTo(state, "I2");
+    expect(controller.canMoveTo(state, "I1")).toBe(true);
+
+    state = controller.moveTo(state, "I1");
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } }); // maxAttempts 1 spent
+    state = controller.moveTo(state, "I2");
+    state = controller.submitItem(state, "I2", { outcomes: { SCORE: 1 } });
+
+    expect(controller.canMoveTo(state, "I1")).toBe(false); // allowReview=false
+    expect(controller.moveTo(state, "I1")).toBe(state);
+    expect(controller.canMoveTo(state, "I2")).toBe(true); // default allowReview=true
+  });
+
+  test("after the test ends, review() navigates presented review-allowed items read-only", () => {
+    // "If set to 'true' the item session is allowed to enter the review state during
+    // which the candidate can review the qti-item-body along with the responses they
+    // gave, but cannot update or resubmit them."
+    const conditional: AssessmentTestView = {
+      identifier: "T-REV-END",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              children: [
+                itemRef("I1"),
+                itemRef("I2", {
+                  // Skipped via precondition: never presented, so never reviewable.
+                  preConditions: [{ kind: "baseValue", baseType: "boolean", value: false }],
+                }),
+                itemRef("I3", { itemSessionControl: { allowReview: false } }),
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const controller = createTestController(conditional, { seed: 1 });
+    let state = controller.start();
+
+    expect(controller.canReview(state, "I1")).toBe(false); // review is a post-end state
+    expect(controller.review(state, "I1")).toBe(state);
+
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+    state = controller.next(state); // I2 skipped → I3
+    state = controller.next(state); // ended
+
+    expect(state.status).toBe("ended");
+    expect(controller.canReview(state, "I1")).toBe(true);
+    expect(controller.canReview(state, "I2")).toBe(false); // never presented
+    expect(controller.canReview(state, "I3")).toBe(false); // allowReview=false
+
+    const reviewing = controller.review(state, "I1");
+
+    expect(reviewing.status).toBe("ended"); // review never reopens the session
+    expect(controller.currentItem(reviewing)?.key).toBe("I1");
+    expect(controller.canSubmitItem(reviewing, "I1")).toBe(false); // "cannot update or resubmit"
+    expect(controller.review(state, "I3")).toBe(state);
+  });
+
+  test("comments are recorded only where allowComment permits, while the session runs", () => {
+    // "This constraint controls whether or not the candidate is allowed to provide a
+    // comment on the item during the session." (default false)
+    const commented: AssessmentTestView = {
+      ...linearTest,
+      testParts: [
+        {
+          ...linearTest.testParts[0]!,
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              children: [itemRef("I1", { itemSessionControl: { allowComment: true } }), itemRef("I2")],
+            },
+          ],
+        },
+      ],
+    };
+    const controller = createTestController(commented, { seed: 1 });
+    let state = controller.start();
+
+    expect(controller.canComment(state, "I1")).toBe(true);
+    expect(controller.canComment(state, "I2")).toBe(false); // spec default: false
+
+    state = controller.setItemComment(state, "I1", "The diagram is hard to read.");
+    expect(state.itemComments).toEqual({ I1: "The diagram is hard to read." });
+    expect(controller.setItemComment(state, "I2", "nope")).toBe(state);
+
+    state = controller.end(state);
+    expect(controller.canComment(state, "I1")).toBe(false); // only "during the session"
+    expect(controller.setItemComment(state, "I1", "late")).toBe(state);
+  });
+});

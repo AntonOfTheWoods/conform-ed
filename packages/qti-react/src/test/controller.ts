@@ -1120,6 +1120,34 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     return moveToItem(state, destination);
   }
 
+  /**
+   * "If set to 'false' the candidate can not review the qti-item-body or their
+   * responses once they have submitted their last attempt" (allowReview, default
+   * true). Before the last attempt ends, revisiting is interaction, not review.
+   * The end of the last attempt is judged on the attempt count; adaptive items
+   * (which bypass maxAttempts via `result.adaptive`) are managed by their consumer.
+   */
+  function reviewBarred(state: TestSessionState, item: TestPlanItem): boolean {
+    return item.sessionControl.allowReview === false && remainingAttempts(state, item.key) <= 0;
+  }
+
+  /** Post-end review (allowReview): ended session, presented item, review allowed. */
+  function reviewable(state: TestSessionState, itemKey: string): boolean {
+    const item = itemsByKey.get(itemKey);
+
+    return (
+      state.status === "ended" &&
+      item !== undefined &&
+      item.sessionControl.allowReview &&
+      (state.presentedItems ?? []).includes(itemKey)
+    );
+  }
+
+  /** "allowed to provide a comment on the item during the session" (default false). */
+  function commentable(state: TestSessionState, itemKey: string): boolean {
+    return state.status === "in-progress" && itemsByKey.get(itemKey)?.sessionControl.allowComment === true;
+  }
+
   /** The submit mechanics shared by the timed path: pending (simultaneous) or committed. */
   function submitBody(state: TestSessionState, itemKey: string, result: TestItemResult): TestSessionState {
     const partIndex = partIndexByItemKey.get(itemKey);
@@ -1138,6 +1166,14 @@ export function createTestController(view: AssessmentTestView, options: TestCont
           ? state.attemptedItems
           : [...state.attemptedItems, itemKey],
       };
+    }
+
+    // "When validate-responses is turned on (true) then the candidates are not
+    // allowed to submit the item until they have provided valid responses for all
+    // interactions" — applicable "only … with individual submission mode" (the
+    // simultaneous branch above is exempt by spec).
+    if (result.valid === false && itemsByKey.get(itemKey)?.sessionControl.validateResponses === true) {
+      return state;
     }
 
     // Adaptive items run their own attempt lifecycle, so maxAttempts is ignored (spec).
@@ -1336,7 +1372,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
       const item = plan.parts[target.partIndex]!.items[target.itemIndex]!;
 
-      return preConditionsPass(item, state) && navigableInTime(state, item);
+      return preConditionsPass(item, state) && navigableInTime(state, item) && !reviewBarred(state, item);
     },
 
     moveTo: (state, itemKey) =>
@@ -1351,7 +1387,8 @@ export function createTestController(view: AssessmentTestView, options: TestCont
           !item ||
           target.partIndex !== current.partIndex ||
           plan.parts[current.partIndex]!.navigationMode !== "nonlinear" ||
-          !navigableInTime(settled, item)
+          !navigableInTime(settled, item) ||
+          reviewBarred(settled, item)
         ) {
           return settled;
         }
@@ -1416,6 +1453,21 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     end: (state) => (state.status === "ended" ? state : ended(touch(state))),
 
     tick: (state) => (state.status === "ended" ? state : applyExpiries(touch(state))),
+
+    canReview: reviewable,
+
+    // "the item session is allowed to enter the review state during which the
+    // candidate can review the qti-item-body along with the responses they gave,
+    // but cannot update or resubmit them" — only the current pointer moves; the
+    // ended status (and the stopped clock) stay put.
+    review: (state, itemKey) => (reviewable(state, itemKey) ? { ...state, currentItemKey: itemKey } : state),
+
+    canComment: commentable,
+
+    setItemComment: (state, itemKey, comment) =>
+      commentable(state, itemKey)
+        ? { ...state, itemComments: { ...(state.itemComments ?? {}), [itemKey]: comment } }
+        : state,
 
     visibleTestFeedbacks: (state) =>
       (view.testFeedbacks ?? []).filter((feedback) => {

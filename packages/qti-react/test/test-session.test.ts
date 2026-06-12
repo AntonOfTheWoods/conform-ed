@@ -426,3 +426,91 @@ describe("test session store: selection with replacement", () => {
     expect(replay.itemStore("ITEM-T.2")!.getSnapshot().templateValues).toEqual(second.getSnapshot().templateValues);
   });
 });
+
+describe("test session store: itemSessionControl enforcement", () => {
+  const constrainedItem: AssessmentItemView = {
+    responseDeclarations: [{ identifier: "RESPONSE", cardinality: "multiple", baseType: "identifier" }],
+    outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single", baseType: "float" }],
+    itemBody: {
+      content: [
+        {
+          kind: "choiceInteraction",
+          responseIdentifier: "RESPONSE",
+          minChoices: 2,
+          maxChoices: 3,
+          simpleChoices: [{ identifier: "A" }, { identifier: "B" }, { identifier: "C" }],
+        },
+      ],
+    },
+  };
+
+  function strictSession(submissionMode: "individual" | "simultaneous") {
+    const view: AssessmentTestView = {
+      identifier: "T-VAL",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode,
+          itemSessionControl: { validateResponses: true },
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              children: [{ kind: "assessmentItemRef", identifier: "C1" }],
+            },
+          ],
+        },
+      ],
+    };
+    const controller = createTestController(view, { seed: 1 });
+
+    return createTestSessionStore(controller, { seed: 1, resolveItem: () => constrainedItem });
+  }
+
+  test("the item store wires interaction constraints and blocks invalid submits", () => {
+    const session = strictSession("individual");
+    const store = session.itemStore("C1")!;
+
+    store.setResponse("RESPONSE", ["A"]);
+    store.submit();
+
+    expect(store.getSnapshot().submitted).toBe(false); // attempt-store gate
+    expect(store.getSnapshot().responseViolations).toEqual([
+      { responseIdentifier: "RESPONSE", kind: "minChoices", bound: 2 },
+    ]);
+    expect(session.getSnapshot().state.attemptCounts["C1"]).toBeUndefined();
+
+    store.setResponse("RESPONSE", ["A", "B"]);
+    store.submit();
+    expect(session.getSnapshot().state.attemptCounts["C1"]).toBe(1);
+  });
+
+  test("validate-responses is 'only applicable … with individual submission mode'", () => {
+    const session = strictSession("simultaneous");
+    const store = session.itemStore("C1")!;
+
+    store.setResponse("RESPONSE", ["A"]); // violates minChoices, but mode exempts it
+    store.submit();
+
+    expect(store.getSnapshot().submitted).toBe(true);
+    expect(session.getSnapshot().state.pendingItemResults["C1"]).toBeDefined();
+  });
+
+  test("review() and setItemComment() flow through the store", () => {
+    const session = makeSession();
+    const store = session.itemStore("ITEM-1")!;
+
+    store.setResponse("RESPONSE", "A");
+    store.submit();
+    session.end();
+
+    expect(session.getSnapshot().state.status).toBe("ended");
+    session.review("ITEM-1");
+    expect(session.getSnapshot().currentItem?.key).toBe("ITEM-1");
+
+    // Comments are session-time only; the default (allowComment=false) bars them too.
+    session.setItemComment("ITEM-1", "too late");
+    expect(session.getSnapshot().state.itemComments).toBeUndefined();
+  });
+});

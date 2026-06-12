@@ -205,6 +205,13 @@ export interface TestItemResult {
    * the built-in `ITEM.duration` in outcome processing; unreported → NULL.
    */
   readonly durationSeconds?: number;
+  /**
+   * Whether the responses satisfy the interaction constraints (response-validity).
+   * Under effective `validateResponses` in an individual-submission part, `false`
+   * makes the controller refuse the submission ("candidates are not allowed to
+   * submit the item until they have provided valid responses for all interactions").
+   */
+  readonly valid?: boolean;
 }
 
 /**
@@ -275,6 +282,11 @@ export interface TestSessionState {
   /** Latest consumer-reported item-session duration per item key (feeds `ITEM.duration`). */
   readonly itemDurationSeconds?: Readonly<Record<string, number>>;
   readonly rejectedSubmissions?: readonly RejectedSubmission[];
+  /**
+   * Candidate comments per item key (allowComment): "feedback from the candidate to
+   * the other actors in the assessment process", never part of the assessed responses.
+   */
+  readonly itemComments?: Readonly<Record<string, string>>;
 }
 
 export interface TestController {
@@ -300,4 +312,15 @@ export interface TestController {
    */
   readonly tick: (state: TestSessionState) => TestSessionState;
   readonly visibleTestFeedbacks: (state: TestSessionState) => readonly TestFeedbackView[];
+  /**
+   * Post-end review (allowReview): whether the candidate may re-enter the item
+   * read-only — the session has ended, the item was presented, and its effective
+   * allowReview permits it.
+   */
+  readonly canReview: (state: TestSessionState, itemKey: string) => boolean;
+  /** Navigate review: sets the current item without reopening the ended session. */
+  readonly review: (state: TestSessionState, itemKey: string) => TestSessionState;
+  /** Whether a comment may be recorded: effective allowComment, session in progress. */
+  readonly canComment: (state: TestSessionState, itemKey: string) => boolean;
+  readonly setItemComment: (state: TestSessionState, itemKey: string, comment: string) => TestSessionState;
 }
