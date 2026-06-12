@@ -763,6 +763,69 @@ describe("lookupOutcomeValue (matchTable/interpolationTable scoring)", () => {
   });
 });
 
+describe("completionStatus (built-in outcome)", () => {
+  // "There is one built-in outcome variable, 'completionStatus', that is declared
+  // implicitly and must not appear in an outcome declaration. … It starts with the
+  // reserved value 'not_attempted'. At the start of the first attempt it changes to
+  // the reserved value 'unknown'. It remains with this value for the duration of the
+  // item session unless set to a different value by a setOutcomeValue rule in
+  // responseProcessing." (§2.2.2.3)
+  const setCompleted: ResponseProcessingView = {
+    rules: [
+      {
+        kind: "setOutcomeValue",
+        identifier: "completionStatus",
+        expression: { kind: "baseValue", baseType: "identifier", value: "completed" },
+      },
+    ],
+  };
+
+  test("implicitly declared: present without a declaration, defaulting to not_attempted", () => {
+    const result = run({ rules: [] }, {});
+
+    expect(result.outcomes["completionStatus"]).toBe("not_attempted");
+  });
+
+  test("the session's current value flows in through the context", () => {
+    const result = executeResponseProcessing(
+      { rules: [] },
+      {
+        responseDeclarations: [singleChoice],
+        outcomeDeclarations: [scoreOutcome],
+        responses: {},
+        completionStatus: "unknown",
+      },
+    );
+
+    expect(result.outcomes["completionStatus"]).toBe("unknown");
+  });
+
+  test("setOutcomeValue can set it without any declaration", () => {
+    expect(collectRpIssues(setCompleted)).toEqual([]);
+    expect(run(setCompleted, {}).outcomes["completionStatus"]).toBe("completed");
+  });
+
+  test("an explicit declaration keeps the declared behavior (legacy content)", () => {
+    const declared: OutcomeDeclarationView = {
+      identifier: "completionStatus",
+      cardinality: "single",
+      baseType: "identifier",
+      defaultValue: { values: [{ value: "incomplete" }] },
+    };
+    const result = executeResponseProcessing(
+      { rules: [] },
+      {
+        responseDeclarations: [singleChoice],
+        outcomeDeclarations: [declared],
+        responses: {},
+        completionStatus: "unknown", // ignored when declared: the declaration wins
+      },
+    );
+
+    expect(result.outcomes["completionStatus"]).toBe("incomplete");
+  });
+});
+
 describe("test-context expressions stay refused at item level", () => {
   test("outcomeMinimum/outcomeMaximum can only be used in outcomes processing", () => {
     // "This expression, which can only be used in outcomes processing, …" (§2.11.2.6-7)

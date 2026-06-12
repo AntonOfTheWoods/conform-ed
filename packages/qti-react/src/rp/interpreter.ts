@@ -90,6 +90,13 @@ export function executeResponseProcessing(
   function initialOutcomes(): Map<string, MaybeRpValue> {
     const outcomes = defaultOutcomes(context.outcomeDeclarations);
 
+    // The built-in completionStatus is "declared implicitly" and starts at
+    // "not_attempted" (§2.2.2.3); seeding it into the map lets setOutcomeValue
+    // change it. Explicit declarations (legacy content) keep the declared path.
+    if (!outcomes.has("completionStatus")) {
+      outcomes.set("completionStatus", rpValue("single", [context.completionStatus ?? "not_attempted"], "identifier"));
+    }
+
     // Adaptive carry-over: prior outcome values (from earlier attempts in the same
     // item session) replace the declared defaults.
     for (const [identifier, prior] of Object.entries(context.priorOutcomes ?? {})) {

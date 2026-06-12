@@ -217,6 +217,13 @@ export interface ResponseProcessingContext {
    */
   readonly duration?: number | undefined;
   readonly numAttempts?: number | undefined;
+  /**
+   * The session's current `completionStatus` — the third built-in, "declared
+   * implicitly"; it enters the outcome map (defaulting to "not_attempted") so
+   * `setOutcomeValue` can change it (§2.2.2.3). An explicit declaration (legacy
+   * content) wins over this value.
+   */
+  readonly completionStatus?: string | undefined;
   /** Registered vendor `customOperator` implementations by class (opt-in). */
   readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>> | undefined;
 }

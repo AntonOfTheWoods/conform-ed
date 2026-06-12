@@ -117,11 +117,22 @@ export function createAttemptStore(
   const now = options?.now ?? Date.now;
   let sessionStartedAtMs = now();
 
+  // The built-in completionStatus "starts with the reserved value 'not_attempted'.
+  // At the start of the first attempt it changes to the reserved value 'unknown'."
+  // (§2.2.2.3). The store exists only for a presented item, so its creation is the
+  // start of the first attempt; "not_attempted" is the state of items that never got
+  // a store. Explicit declarations (legacy content) keep the declared path.
+  const completionStatusDeclared = (options?.outcomeDeclarations ?? []).some(
+    (declaration) => declaration.identifier === "completionStatus",
+  );
+  const maintainedOutcomes = (): Readonly<Record<string, OutcomeValue>> =>
+    completionStatusDeclared ? {} : { completionStatus: "unknown" };
+
   let snapshot: AttemptSnapshot = {
     responses: { ...initialResponses },
     submitted: false,
     scores: [],
-    outcomes: {},
+    outcomes: maintainedOutcomes(),
     templateValues: templateResult?.templateValues ?? {},
     attemptCount: 0,
     durationSeconds: null,
@@ -164,6 +175,9 @@ export function createAttemptStore(
       // each attempt", so the attempt being scored is included.
       duration: durationSeconds,
       numAttempts: snapshot.attemptCount + 1,
+      ...(typeof snapshot.outcomes["completionStatus"] === "string"
+        ? { completionStatus: snapshot.outcomes["completionStatus"] }
+        : {}),
     }).outcomes;
   }
 
@@ -224,7 +238,9 @@ export function createAttemptStore(
       const scores = computeScores(snapshot.responses);
       const durationSeconds = (now() - sessionStartedAtMs) / 1000;
       const priorOutcomes = options?.adaptive && snapshot.attemptCount > 0 ? snapshot.outcomes : undefined;
-      const outcomes = computeOutcomes(snapshot.responses, durationSeconds, priorOutcomes);
+      const rpOutcomes = computeOutcomes(snapshot.responses, durationSeconds, priorOutcomes);
+      // Items without responseProcessing still carry the maintained built-in.
+      const outcomes = options?.responseProcessing ? rpOutcomes : { ...maintainedOutcomes(), ...rpOutcomes };
       // completion_status: the corpus's snake_case authoring of the same built-in.
       const completionStatus = outcomes["completionStatus"] ?? outcomes["completion_status"];
       const completed = !options?.adaptive || completionStatus === "completed";
@@ -263,7 +279,7 @@ export function createAttemptStore(
         responses: { ...initialResponses },
         submitted: false,
         scores: [],
-        outcomes: {},
+        outcomes: maintainedOutcomes(),
         templateValues: snapshot.templateValues,
         attemptCount: 0,
         durationSeconds: null,

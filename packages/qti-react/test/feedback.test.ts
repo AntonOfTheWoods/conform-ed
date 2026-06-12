@@ -125,22 +125,24 @@ describe("attempt store outcomes", () => {
     expect(store.getSnapshot().outcomes["FEEDBACK"]).toBe("CORRECT");
   });
 
-  test("outcomes are empty before submit and cleared by reset", () => {
+  test("only the maintained built-in exists before submit, and reset restores it", () => {
     const store = storeFor("B", false);
 
-    expect(store.getSnapshot().outcomes).toEqual({});
+    // completionStatus is "declared implicitly" and maintained by the engine
+    // (§2.2.2.3); no authored outcome exists until submit.
+    expect(store.getSnapshot().outcomes).toEqual({ completionStatus: "unknown" });
 
     store.submit();
     store.reset();
-    expect(store.getSnapshot().outcomes).toEqual({});
+    expect(store.getSnapshot().outcomes).toEqual({ completionStatus: "unknown" });
   });
 
-  test("items without responseProcessing produce no outcomes", () => {
+  test("items without responseProcessing produce only the maintained built-in", () => {
     const bare = createAttemptStore(item.responseDeclarations, {});
 
     bare.setResponse("RESPONSE", "B");
     bare.submit();
-    expect(bare.getSnapshot().outcomes).toEqual({});
+    expect(bare.getSnapshot().outcomes).toEqual({ completionStatus: "unknown" });
   });
 });
 

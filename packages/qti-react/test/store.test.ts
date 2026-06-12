@@ -249,3 +249,95 @@ describe("numAttempts built-in", () => {
     expect(store.getSnapshot().outcomes["TRIES"]).toBe(2);
   });
 });
+
+describe("completionStatus lifecycle (built-in outcome)", () => {
+  // "It starts with the reserved value 'not_attempted'. At the start of the first
+  // attempt it changes to the reserved value 'unknown'." (§2.2.2.3) — the attempt
+  // store exists only for a presented item, so its creation is the start of the
+  // first attempt and the in-store value begins at "unknown"; "not_attempted" is the
+  // state of items that never got a store.
+  const scoredOptions = {
+    outcomeDeclarations: [{ identifier: "SCORE", cardinality: "single" as const, baseType: "float" }],
+    responseProcessing: {
+      rules: [
+        {
+          kind: "setOutcomeValue",
+          identifier: "SCORE",
+          expression: { kind: "baseValue", baseType: "float", value: 1 },
+        },
+      ],
+    },
+  };
+
+  test("starts at unknown and stays there when RP never sets it", () => {
+    const store = createAttemptStore(declarations, {}, scoredOptions);
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBe("unknown");
+
+    store.submit();
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBe("unknown");
+    expect(store.getSnapshot().outcomes["SCORE"]).toBe(1);
+  });
+
+  test("responseProcessing can set it; the value persists into the next attempt's context", () => {
+    const store = createAttemptStore(
+      declarations,
+      {},
+      {
+        adaptive: true,
+        outcomeDeclarations: [],
+        responseProcessing: {
+          rules: [
+            {
+              kind: "setOutcomeValue",
+              identifier: "completionStatus",
+              expression: { kind: "baseValue", baseType: "identifier", value: "completed" },
+            },
+          ],
+        },
+      },
+    );
+
+    store.submit();
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBe("completed");
+    expect(store.getSnapshot().submitted).toBe(true); // adaptive close on completed
+  });
+
+  test("items without responseProcessing keep the maintained value across submit", () => {
+    const store = createAttemptStore(declarations, {});
+
+    store.submit();
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBe("unknown");
+  });
+
+  test("reset returns the session to unknown", () => {
+    const store = createAttemptStore(declarations, {}, scoredOptions);
+
+    store.submit();
+    store.reset();
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBe("unknown");
+  });
+
+  test("an explicit declaration keeps today's declared behavior", () => {
+    const store = createAttemptStore(
+      declarations,
+      {},
+      {
+        outcomeDeclarations: [
+          { identifier: "completionStatus", cardinality: "single" as const, baseType: "identifier" },
+        ],
+        responseProcessing: { rules: [] },
+      },
+    );
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBeUndefined(); // pre-submit, declared path
+
+    store.submit();
+
+    expect(store.getSnapshot().outcomes["completionStatus"]).toBeNull(); // declared, no default
+  });
+});
