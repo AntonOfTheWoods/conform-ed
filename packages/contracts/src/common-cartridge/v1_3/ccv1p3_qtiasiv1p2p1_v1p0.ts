@@ -383,6 +383,7 @@ type QtiMetadataLike = {
   qtimetadatafield?: QtiMetadataFieldEntry[];
 };
 
+// Receives zod-parsed items; zod's `.optional()` infers `| undefined`, so this must too.
 type QtiItemMetadataLike = {
   itemmetadata?:
     | {

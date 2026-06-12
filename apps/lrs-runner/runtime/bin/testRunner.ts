@@ -4,6 +4,7 @@ import { EventEmitter } from "events";
 import path from "path";
 
 import specRefs from "../test/references.json";
+import { definedProps } from "../bun-runtime/defined-props.ts";
 import { versionNumber } from "../version.ts";
 import rollup from "./rollupRules.ts";
 import type { SuiteLike as RollupSuiteLike, SuiteStatus as RollupSuiteStatus } from "./rollupRules.ts";
@@ -44,7 +45,7 @@ type CleanLogRecord = {
   requirement: string;
   log: string;
   status: SuiteStatus;
-  error?: string | undefined;
+  error?: string;
   tests: CleanLogRecord[];
 };
 
@@ -52,13 +53,13 @@ type CleanRunRecord = {
   name: string | null;
   owner: string | null;
   flags: {
-    endpoint?: string | undefined;
-    basicAuth?: boolean | undefined;
-    authUser?: string | undefined;
-    oAuth1?: boolean | undefined;
-    consumer_key?: string | undefined;
-    grep?: string | undefined;
-    optional?: string[] | undefined;
+    endpoint?: string;
+    basicAuth?: boolean;
+    authUser?: string;
+    oAuth1?: boolean;
+    consumer_key?: string;
+    grep?: string;
+    optional?: string[];
   };
   options: RunnerOptions;
   lrsSettingsUUID: string | null;
@@ -72,9 +73,9 @@ type CleanRunRecord = {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string | undefined;
+    version?: string;
   };
-  log?: CleanLogRecord | undefined;
+  log?: CleanLogRecord;
 };
 
 type SpecReference = {
@@ -151,7 +152,7 @@ export class TestRunner extends EventEmitter {
   options: RunnerOptions;
   lrsSettingsUUID: string | null;
   rollupRule: string;
-  xapiVersion: string | undefined;
+  xapiVersion: string;
   uuid: string;
   startTime: number | null = null;
   endTime: number | null = null;
@@ -161,7 +162,7 @@ export class TestRunner extends EventEmitter {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string | undefined;
+    version?: string;
   } = {
     total: null,
     passed: null,
@@ -365,7 +366,7 @@ export class TestRunner extends EventEmitter {
     const runRecord: CleanRunRecord = {
       name: this.name,
       owner: this.owner,
-      flags: {
+      flags: definedProps({
         endpoint: this.flags.endpoint,
         basicAuth: this.flags.basicAuth,
         authUser: this.flags.authUser,
@@ -373,7 +374,7 @@ export class TestRunner extends EventEmitter {
         consumer_key: this.flags.consumer_key,
         grep: this.flags.grep,
         optional: this.flags.optional,
-      },
+      }),
       options: this.options,
       lrsSettingsUUID: this.lrsSettingsUUID,
       rollupRule: this.rollupRule,
@@ -401,7 +402,7 @@ export class TestRunner extends EventEmitter {
         requirement: log.requirement,
         log: log.log,
         status: log.status,
-        error: log.error,
+        ...definedProps({ error: log.error }),
         tests: log.tests
           .map((child) => cleanLog(child))
           .filter((child): child is CleanLogRecord => child !== undefined),

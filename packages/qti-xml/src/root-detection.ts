@@ -48,7 +48,7 @@ function parseAttributes(rawAttributes: string): Record<string, string> {
   return attributes;
 }
 
-function splitXmlName(name: string): { localName: string; prefix?: string | undefined } {
+function splitXmlName(name: string): { localName: string; prefix: string | undefined } {
   const [prefix, localName] = name.includes(":") ? name.split(":", 2) : [undefined, name];
   return {
     prefix,
@@ -175,9 +175,9 @@ export function detectQtiRoot(xml: string): QtiRootDetection | undefined {
   return {
     rootName,
     localName,
-    prefix,
-    namespaceUri,
-    inferredVersion,
-    schemaSelectionKey,
+    ...(prefix !== undefined ? { prefix } : {}),
+    ...(namespaceUri !== undefined ? { namespaceUri } : {}),
+    ...(inferredVersion !== undefined ? { inferredVersion } : {}),
+    ...(schemaSelectionKey !== undefined ? { schemaSelectionKey } : {}),
   };
 }

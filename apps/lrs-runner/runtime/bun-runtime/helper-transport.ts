@@ -545,6 +545,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           if (testRequest["__wrapped"]) return;
           testRequest["__wrapped"] = true;
           const oauthSettings = getOAuthSettings();
+          // Cast of a foreign mutable request object: oauth may be absent, and the
+          // wrapped methods may write a possibly-undefined settings value into it.
           const requestOptions = testRequest["_options"] as { oauth?: OAuthOptions | undefined } | undefined;
           if (requestOptions) requestOptions.oauth = oauthSettings;
           for (const i in testRequest) {

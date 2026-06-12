@@ -15,6 +15,7 @@ import {
   booleanValue,
   coerceScalar,
   floatValue,
+  rpValue,
   scalarsEqual,
   singleBoolean,
   singleNumber,
@@ -190,7 +191,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
       const baseType = expression.baseType;
       const value = expression.value;
 
-      return value === undefined ? null : { cardinality: "single", baseType, values: [coerceScalar(value, baseType)] };
+      return value === undefined ? null : rpValue("single", [coerceScalar(value, baseType)], baseType);
     }
 
     case "variable":
@@ -203,11 +204,11 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
         return null;
       }
 
-      return {
-        cardinality: declaration.cardinality,
-        baseType: declaration.baseType,
-        values: declaration.correctResponse.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
-      };
+      return rpValue(
+        declaration.cardinality,
+        declaration.correctResponse.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
+        declaration.baseType,
+      );
     }
 
     case "mapResponse": {
@@ -260,9 +261,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
       const value = operand === undefined ? null : evaluate(operand);
       const field = value?.fields?.find((entry) => entry.name === expression.fieldIdentifier);
 
-      return field === undefined
-        ? null
-        : { cardinality: "single", ...(field.baseType ? { baseType: field.baseType } : {}), values: [field.value] };
+      return field === undefined ? null : rpValue("single", [field.value], field.baseType);
     }
 
     case "and":
@@ -392,7 +391,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
         return null; // out of range is null, per spec
       }
 
-      return { cardinality: "single", baseType: container.baseType, values: [member] };
+      return rpValue("single", [member], container.baseType);
     }
 
     case "mathConstant": {
@@ -603,9 +602,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
       const remaining = container.values.filter((member) => !scalarsEqual(member, scalar, baseType, env.normalization));
 
       // An empty container is NULL, per the QTI value model.
-      return remaining.length === 0
-        ? null
-        : { cardinality: container.cardinality, baseType: container.baseType, values: remaining };
+      return remaining.length === 0 ? null : rpValue(container.cardinality, remaining, container.baseType);
     }
 
     case "repeat": {
@@ -633,7 +630,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
         }
       }
 
-      return members.length === 0 ? null : { cardinality: "ordered", baseType, values: members };
+      return members.length === 0 ? null : rpValue("ordered", members, baseType);
     }
 
     case "stringMatch":
@@ -728,7 +725,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
         return null;
       }
 
-      return { cardinality: expression.kind, baseType, values: members };
+      return rpValue(expression.kind, members, baseType);
     }
 
     case "randomInteger": {
@@ -798,7 +795,7 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
 
       const pick = container.values[Math.floor(env.random() * container.values.length)]!;
 
-      return { cardinality: "single", baseType: container.baseType, values: [pick] };
+      return rpValue("single", [pick], container.baseType);
     }
 
     default:

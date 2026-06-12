@@ -38,6 +38,12 @@ export interface AttemptSnapshot {
   readonly attemptCount: number;
 }
 
+/**
+ * Consumer-supplied input. Optional members deliberately admit explicit
+ * `undefined` ("undefined means not provided"), so callers can pass
+ * maybe-undefined values straight through; the store reads every member
+ * field-wise (`??`/`?.`) and never spread-merges options over defaults.
+ */
 export interface AttemptStoreOptions {
   readonly outcomeDeclarations?: readonly OutcomeDeclarationView[] | undefined;
   readonly responseProcessing?: ResponseProcessingView | undefined;

@@ -110,6 +110,7 @@ function uniqueIdentifiersRefinement(
 function validateDeclaredValues(
   cardinality: z.infer<typeof QtiCardinalitySchema>,
   baseType: z.infer<typeof QtiBaseTypeSchema> | undefined,
+  // Receives zod-parsed values; zod's `.optional()` infers `| undefined`, so this must too.
   values: Array<{ fieldIdentifier?: string | undefined }>,
   path: Array<string | number>,
   context: z.RefinementCtx,

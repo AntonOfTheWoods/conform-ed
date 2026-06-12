@@ -20,6 +20,7 @@ import {
   floatValue,
   fromFlatValue,
   isNumericBaseType,
+  rpValue,
   singleBoolean,
   toOutcomeValue,
   type MaybeRpValue,
@@ -262,11 +263,14 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
     for (const declaration of view.outcomeDeclarations ?? []) {
       if (declaration.defaultValue) {
-        outcomes.set(declaration.identifier, {
-          cardinality: declaration.cardinality,
-          baseType: declaration.baseType,
-          values: declaration.defaultValue.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
-        });
+        outcomes.set(
+          declaration.identifier,
+          rpValue(
+            declaration.cardinality,
+            declaration.defaultValue.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
+            declaration.baseType,
+          ),
+        );
         continue;
       }
 
@@ -331,7 +335,7 @@ export function createTestController(view: AssessmentTestView, options: TestCont
           members.push(...lifted.values);
         }
 
-        return members.length === 0 ? null : { cardinality: "multiple", baseType, values: members };
+        return members.length === 0 ? null : rpValue("multiple", members, baseType);
       },
       testAggregate: (expression) => {
         const subset = subsetItems(expression);

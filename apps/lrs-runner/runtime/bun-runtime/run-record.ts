@@ -1,14 +1,15 @@
+import { definedProps } from "./defined-props.ts";
 import type { RuntimeNodeResult, RuntimeRunResult } from "./runtime.ts";
 
 export interface RuntimeRunRecordFlags {
-  endpoint?: string | undefined;
-  basicAuth?: boolean | undefined;
-  authUser?: string | undefined;
-  oAuth1?: boolean | undefined;
-  consumer_key?: string | undefined;
-  grep?: string | undefined;
-  optional?: string[] | undefined;
-  file?: string[] | undefined;
+  endpoint?: string;
+  basicAuth?: boolean;
+  authUser?: string;
+  oAuth1?: boolean;
+  consumer_key?: string;
+  grep?: string;
+  optional?: string[];
+  file?: string[];
 }
 
 export interface RuntimeLogRecord {
@@ -17,7 +18,7 @@ export interface RuntimeLogRecord {
   requirement: string;
   log: string;
   status: string;
-  error?: string | undefined;
+  error?: string;
   tests: RuntimeLogRecord[];
 }
 
@@ -37,12 +38,13 @@ export interface RuntimeRunRecord {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string | undefined;
+    version?: string;
   };
-  log?: RuntimeLogRecord | undefined;
+  log: RuntimeLogRecord;
 }
 
-export type SerializableRunRecord = Omit<RuntimeRunRecord, "log"> & { log?: RuntimeLogRecord | undefined };
+/** The output form: `--errors` filters the log down and may drop it entirely. */
+export type SerializableRunRecord = Omit<RuntimeRunRecord, "log"> & { log?: RuntimeLogRecord };
 
 function toLogRecord(node: RuntimeNodeResult): RuntimeLogRecord {
   return {
@@ -51,7 +53,7 @@ function toLogRecord(node: RuntimeNodeResult): RuntimeLogRecord {
     requirement: node.requirement,
     log: node.log.join(""),
     status: node.status,
-    error: node.error,
+    ...definedProps({ error: node.error }),
     tests: node.children.map(toLogRecord),
   };
 }
@@ -89,14 +91,14 @@ export function createRunRecord(
       total: runResult.summary.total,
       passed: runResult.summary.passed,
       failed: runResult.summary.failed,
-      version: metadata.summaryVersion ?? runResult.summary.version,
+      ...definedProps({ version: metadata.summaryVersion ?? runResult.summary.version }),
     },
     log: toLogRecord(runResult.root),
   };
 }
 
-export function filterFailedLogRecord(log: RuntimeLogRecord | undefined): RuntimeLogRecord | undefined {
-  if (!log || log.status !== "failed") {
+export function filterFailedLogRecord(log: RuntimeLogRecord): RuntimeLogRecord | undefined {
+  if (log.status !== "failed") {
     return undefined;
   }
 
@@ -111,8 +113,11 @@ export function createOutputRunRecord(record: RuntimeRunRecord, errorsOnly: bool
     return record;
   }
 
+  const { log, ...rest } = record;
+  const failedLog = filterFailedLogRecord(log);
+
   return {
-    ...record,
-    log: filterFailedLogRecord(record.log),
+    ...rest,
+    ...(failedLog ? { log: failedLog } : {}),
   };
 }

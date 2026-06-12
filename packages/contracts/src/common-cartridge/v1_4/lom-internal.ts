@@ -109,6 +109,7 @@ type LomVocabularySchemaConfig = {
 function createLomProfileSchemas(config: {
   allowExtensions: boolean;
   values: LomVocabularySchemaConfig;
+  // Input bag: callers pass a maybe-undefined requirements block straight through.
   requirements?:
     | {
         requireGeneral?: boolean;

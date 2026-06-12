@@ -9,8 +9,8 @@ export interface QtiXmlElementNode {
   type: "element";
   name: string;
   localName: string;
-  prefix?: string | undefined;
-  namespaceUri?: string | undefined;
+  prefix?: string;
+  namespaceUri?: string;
   attributes: Record<string, string>;
   children: QtiXmlNode[];
 }
@@ -28,7 +28,7 @@ const parser = new XMLParser({
   parseAttributeValue: false,
 });
 
-function splitXmlName(name: string): { localName: string; prefix?: string | undefined } {
+function splitXmlName(name: string): { localName: string; prefix: string | undefined } {
   const [prefix, localName] = name.includes(":") ? name.split(":", 2) : [undefined, name];
   return {
     prefix,
@@ -113,13 +113,14 @@ function buildXmlNodes(entries: unknown, parentScope: Record<string, string>): Q
     const namespaceScope = buildNamespaceScope(parentScope, attributes);
     const strippedAttributes = stripNamespaceAttributes(attributes);
     const { localName, prefix } = splitXmlName(elementName);
+    const namespaceUri = prefix ? namespaceScope[prefix] : namespaceScope[""];
 
     nodes.push({
       type: "element",
       name: elementName,
       localName,
-      prefix,
-      namespaceUri: prefix ? namespaceScope[prefix] : namespaceScope[""],
+      ...(prefix !== undefined ? { prefix } : {}),
+      ...(namespaceUri !== undefined ? { namespaceUri } : {}),
       attributes: strippedAttributes,
       children: buildXmlNodes(record[elementName], namespaceScope),
     });

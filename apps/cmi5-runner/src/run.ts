@@ -73,7 +73,7 @@ export type ValidateCmi5ConfigResult =
       valid: false;
       code: RunCmi5Failure["code"];
       message: string;
-      details?: Record<string, unknown> | undefined;
+      details?: Record<string, unknown>;
     };
 
 async function readConfig(configPath: string): Promise<unknown> {
@@ -143,7 +143,6 @@ function findOptionalOperationPath(
 }
 
 async function callAdapterOperation(
-  _operationName: string,
   path: string,
   baseUrl: string,
   token: string | null,
@@ -434,15 +433,9 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     };
   };
 
-  const fixtureResponse = await callAdapterOperation(
-    "fixtures.provision",
-    fixtureOperationPath,
-    adapter.baseUrl,
-    token,
-    {
-      fixtureId: `emergent-lts-${runId}`,
-    },
-  );
+  const fixtureResponse = await callAdapterOperation(fixtureOperationPath, adapter.baseUrl, token, {
+    fixtureId: `emergent-lts-${runId}`,
+  });
   if (fixtureResponse.ok) {
     recordRequirement(requirements, "lts-fixtures-provision", "passed", ["fixtures.provision returned success"]);
   } else {
@@ -455,15 +448,9 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     );
   }
 
-  const invalidImportResponse = await callAdapterOperation(
-    "cmi5.package.import",
-    packageImportPath,
-    adapter.baseUrl,
-    token,
-    {
-      packageBase64: "not-base64",
-    },
-  );
+  const invalidImportResponse = await callAdapterOperation(packageImportPath, adapter.baseUrl, token, {
+    packageBase64: "not-base64",
+  });
   if (invalidImportResponse.status === 400) {
     recordRequirement(requirements, "lts-invalid-package-rejection", "passed", [
       "cmi5.package.import rejected invalid base64 with 400",
@@ -518,15 +505,9 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     ] as const;
 
     for (const testCase of invalidPackageCases) {
-      const invalidStructureResponse = await callAdapterOperation(
-        "cmi5.package.import",
-        packageImportPath,
-        adapter.baseUrl,
-        token,
-        {
-          packageBase64: testCase.packageBase64,
-        },
-      );
+      const invalidStructureResponse = await callAdapterOperation(packageImportPath, adapter.baseUrl, token, {
+        packageBase64: testCase.packageBase64,
+      });
 
       packageStructureEvidence.push(`${testCase.label}=>expected:400,actual:${invalidStructureResponse.status}`);
       if (invalidStructureResponse.status !== 400) {
@@ -558,7 +539,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     typeof config.suiteConfig.packageId === "string" ? config.suiteConfig.packageId.trim() : "";
   importedPackageId = packageIdFromConfig.length > 0 ? packageIdFromConfig : importedPackageId;
 
-  const importResponse = await callAdapterOperation("cmi5.package.import", packageImportPath, adapter.baseUrl, token, {
+  const importResponse = await callAdapterOperation(packageImportPath, adapter.baseUrl, token, {
     packageId: importedPackageId,
     packageBase64,
   });
@@ -576,16 +557,10 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
 
   const expectedLearnerId = "learner@emergent.test";
 
-  const initialLaunchResponse = await callAdapterOperation(
-    "cmi5.launch.create",
-    launchCreatePath,
-    adapter.baseUrl,
-    token,
-    {
-      packageId: importedPackageId,
-      learnerId: expectedLearnerId,
-    },
-  );
+  const initialLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+    packageId: importedPackageId,
+    learnerId: expectedLearnerId,
+  });
 
   const initialLaunchBody = await parseObjectResponse(initialLaunchResponse);
   if (!initialLaunchResponse.ok || !initialLaunchBody) {
@@ -918,16 +893,10 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       const securityEvidence: string[] = [];
       let securityFailed = false;
 
-      const securityLaunchResponse = await callAdapterOperation(
-        "cmi5.launch.create",
-        launchCreatePath,
-        adapter.baseUrl,
-        token,
-        {
-          packageId: importedPackageId,
-          learnerId: `${expectedLearnerId}.security-base`,
-        },
-      );
+      const securityLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+        packageId: importedPackageId,
+        learnerId: `${expectedLearnerId}.security-base`,
+      });
       const securityLaunchBody = await parseObjectResponse(securityLaunchResponse);
       const securitySessionId = securityLaunchBody ? readStringField(securityLaunchBody, "sessionId") : null;
       const securityRegistrationId = securityLaunchBody ? readStringField(securityLaunchBody, "registrationId") : null;
@@ -987,16 +956,10 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
           securityFailed = true;
         }
 
-        const secondaryLaunchResponse = await callAdapterOperation(
-          "cmi5.launch.create",
-          launchCreatePath,
-          adapter.baseUrl,
-          token,
-          {
-            packageId: importedPackageId,
-            learnerId: `${expectedLearnerId}.security`,
-          },
-        );
+        const secondaryLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+          packageId: importedPackageId,
+          learnerId: `${expectedLearnerId}.security`,
+        });
         const secondaryLaunchBody = await parseObjectResponse(secondaryLaunchResponse);
         const secondaryFetchUrl = secondaryLaunchBody ? readStringField(secondaryLaunchBody, "fetch") : null;
 
@@ -1128,17 +1091,11 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       ] as const;
 
       for (const matrixCase of statementMatrix) {
-        const launchResponse = await callAdapterOperation(
-          "cmi5.launch.create",
-          launchCreatePath,
-          adapter.baseUrl,
-          token,
-          {
-            packageId: importedPackageId,
-            learnerId: expectedLearnerId,
-            moveOn: matrixCase.moveOn,
-          },
-        );
+        const launchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+          packageId: importedPackageId,
+          learnerId: expectedLearnerId,
+          moveOn: matrixCase.moveOn,
+        });
         const launchBody = await parseObjectResponse(launchResponse);
         const matrixRegistrationId = launchBody ? readStringField(launchBody, "registrationId") : null;
         const matrixSessionId = launchBody ? readStringField(launchBody, "sessionId") : null;
@@ -1288,17 +1245,11 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     let identityMatrixFailed = false;
 
     for (const matrixCase of identityMatrixCases) {
-      const matrixResponse = await callAdapterOperation(
-        "cmi5.launch.create",
-        launchCreatePath,
-        adapter.baseUrl,
-        token,
-        {
-          packageId: importedPackageId,
-          learnerId: matrixCase.learnerId,
-          entitlementKey: matrixCase.entitlementKey,
-        },
-      );
+      const matrixResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+        packageId: importedPackageId,
+        learnerId: matrixCase.learnerId,
+        entitlementKey: matrixCase.entitlementKey,
+      });
 
       const matrixBody = await parseObjectResponse(matrixResponse);
       const returnedLearnerId = matrixBody ? readStringField(matrixBody, "learnerId") : null;
@@ -1368,19 +1319,13 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     let launchIdentityFailed = false;
 
     for (const matrixCase of launchIdentityCases) {
-      const matrixResponse = await callAdapterOperation(
-        "cmi5.launch.create",
-        launchCreatePath,
-        adapter.baseUrl,
-        token,
-        {
-          packageId: importedPackageId,
-          launchId: matrixCase.launchId,
-          registrationId: matrixCase.registrationId,
-          sessionId: matrixCase.sessionId,
-          learnerId: expectedLearnerId,
-        },
-      );
+      const matrixResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+        packageId: importedPackageId,
+        launchId: matrixCase.launchId,
+        registrationId: matrixCase.registrationId,
+        sessionId: matrixCase.sessionId,
+        learnerId: expectedLearnerId,
+      });
 
       const matrixBody = await parseObjectResponse(matrixResponse);
       const returnedLaunchId = matrixBody ? readStringField(matrixBody, "launchId") : null;
@@ -1461,18 +1406,12 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     let contextTemplateFailed = false;
 
     for (const matrixMoveOn of moveOnMatrix) {
-      const matrixResponse = await callAdapterOperation(
-        "cmi5.launch.create",
-        launchCreatePath,
-        adapter.baseUrl,
-        token,
-        {
-          packageId: importedPackageId,
-          moveOn: matrixMoveOn,
-          learnerId: "learner@emergent.test",
-          activityId: activityId || undefined,
-        },
-      );
+      const matrixResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+        packageId: importedPackageId,
+        moveOn: matrixMoveOn,
+        learnerId: "learner@emergent.test",
+        activityId: activityId || undefined,
+      });
 
       const matrixBody = await parseObjectResponse(matrixResponse);
       const returnedMoveOn = matrixBody ? readStringField(matrixBody, "moveOn") : null;
@@ -1536,17 +1475,11 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     let launchModeFailed = false;
 
     for (const matrixLaunchMode of launchModeMatrix) {
-      const matrixResponse = await callAdapterOperation(
-        "cmi5.launch.create",
-        launchCreatePath,
-        adapter.baseUrl,
-        token,
-        {
-          packageId: importedPackageId,
-          launchMode: matrixLaunchMode,
-          learnerId: "learner@emergent.test",
-        },
-      );
+      const matrixResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+        packageId: importedPackageId,
+        launchMode: matrixLaunchMode,
+        learnerId: "learner@emergent.test",
+      });
       const matrixBody = await parseObjectResponse(matrixResponse);
       const returnedLaunchMode = matrixBody ? readStringField(matrixBody, "launchMode") : null;
       const passed = matrixResponse.ok && returnedLaunchMode === matrixLaunchMode;
@@ -1660,13 +1593,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     let invalidMatrixFailed = false;
 
     for (const testCase of invalidLaunchCases) {
-      const invalidResponse = await callAdapterOperation(
-        "cmi5.launch.create",
-        launchCreatePath,
-        adapter.baseUrl,
-        token,
-        testCase.payload,
-      );
+      const invalidResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, testCase.payload);
 
       const passed = invalidResponse.status === testCase.expectedStatus;
       invalidMatrixEvidence.push(
@@ -1690,17 +1617,11 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     }
   }
 
-  const resumeLaunchResponse = await callAdapterOperation(
-    "cmi5.launch.create",
-    launchCreatePath,
-    adapter.baseUrl,
-    token,
-    {
-      packageId: importedPackageId,
-      registrationId,
-      learnerId: "learner@emergent.test",
-    },
-  );
+  const resumeLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+    packageId: importedPackageId,
+    registrationId,
+    learnerId: "learner@emergent.test",
+  });
   const resumeLaunchBody = await parseObjectResponse(resumeLaunchResponse);
   if (!resumeLaunchResponse.ok || !resumeLaunchBody) {
     recordRequirement(
@@ -1769,13 +1690,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
   let resumeMatrixFailed = false;
 
   for (const testCase of resumeMatrixCases) {
-    const response = await callAdapterOperation(
-      "cmi5.launch.create",
-      launchCreatePath,
-      adapter.baseUrl,
-      token,
-      testCase.payload,
-    );
+    const response = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, testCase.payload);
 
     const passed = response.status === testCase.expectedStatus;
     resumeMatrixEvidence.push(`${testCase.label}=>expected:${testCase.expectedStatus},actual:${response.status}`);
@@ -1815,7 +1730,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     lifecycleActive = true;
     let waivedAtValue: string | null = null;
 
-    const waiveResponse = await callAdapterOperation("cmi5.registration.waive", waivePath, adapter.baseUrl, token, {
+    const waiveResponse = await callAdapterOperation(waivePath, adapter.baseUrl, token, {
       registrationId,
     });
 
@@ -1836,15 +1751,9 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       );
     }
 
-    const waiveRepeatResponse = await callAdapterOperation(
-      "cmi5.registration.waive",
-      waivePath,
-      adapter.baseUrl,
-      token,
-      {
-        registrationId,
-      },
-    );
+    const waiveRepeatResponse = await callAdapterOperation(waivePath, adapter.baseUrl, token, {
+      registrationId,
+    });
     const waiveRepeatBody = await parseObjectResponse(waiveRepeatResponse);
     const repeatAlreadyWaived =
       waiveRepeatBody && typeof waiveRepeatBody.alreadyWaived === "boolean" ? waiveRepeatBody.alreadyWaived : null;
@@ -1861,17 +1770,11 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       lifecycleFailed = true;
     }
 
-    const waivedLaunchResponse = await callAdapterOperation(
-      "cmi5.launch.create",
-      launchCreatePath,
-      adapter.baseUrl,
-      token,
-      {
-        packageId: importedPackageId,
-        registrationId,
-        learnerId: expectedLearnerId,
-      },
-    );
+    const waivedLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+      packageId: importedPackageId,
+      registrationId,
+      learnerId: expectedLearnerId,
+    });
     const waivedLaunchBody = await parseObjectResponse(waivedLaunchResponse);
     const waivedRegistrationFlag =
       waivedLaunchBody && typeof waivedLaunchBody.waivedRegistration === "boolean"
@@ -1901,7 +1804,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     lifecycleEvidence.push("abandoned-session-launch=>skipped:missing-sessionId");
     lifecycleFailed = true;
   } else {
-    const abandonResponse = await callAdapterOperation("cmi5.session.abandon", abandonPath, adapter.baseUrl, token, {
+    const abandonResponse = await callAdapterOperation(abandonPath, adapter.baseUrl, token, {
       sessionId,
     });
     if (abandonResponse.ok) {
@@ -1916,32 +1819,20 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       );
     }
 
-    const repeatAbandonResponse = await callAdapterOperation(
-      "cmi5.session.abandon",
-      abandonPath,
-      adapter.baseUrl,
-      token,
-      {
-        sessionId,
-      },
-    );
+    const repeatAbandonResponse = await callAdapterOperation(abandonPath, adapter.baseUrl, token, {
+      sessionId,
+    });
     const repeatAbandonPassed = repeatAbandonResponse.status === 409;
     lifecycleEvidence.push(`abandon-repeat=>expected:409,actual:${repeatAbandonResponse.status}`);
     if (!repeatAbandonPassed) {
       lifecycleFailed = true;
     }
 
-    const abandonedLaunchResponse = await callAdapterOperation(
-      "cmi5.launch.create",
-      launchCreatePath,
-      adapter.baseUrl,
-      token,
-      {
-        packageId: importedPackageId,
-        sessionId,
-        learnerId: expectedLearnerId,
-      },
-    );
+    const abandonedLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+      packageId: importedPackageId,
+      sessionId,
+      learnerId: expectedLearnerId,
+    });
     const abandonedLaunchPassed = abandonedLaunchResponse.status === 409;
     lifecycleEvidence.push(`abandoned-session-launch=>expected:409,actual:${abandonedLaunchResponse.status}`);
     if (!abandonedLaunchPassed) {
@@ -1971,7 +1862,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       durableFailed = true;
       durableEvidence.push("stateReloadPathMissing=true");
     } else {
-      const reloadResponse = await callAdapterOperation("cmi5.state.reload", stateReloadPath, adapter.baseUrl, token, {
+      const reloadResponse = await callAdapterOperation(stateReloadPath, adapter.baseUrl, token, {
         reason: "lts-durable-state-matrix",
       });
       const reloadBody = await parseObjectResponse(reloadResponse);
@@ -1983,13 +1874,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       }
 
       if (registrationId.length > 0) {
-        const rewaiveResponse = await callAdapterOperation(
-          "cmi5.registration.waive",
-          waivePath,
-          adapter.baseUrl,
-          token,
-          { registrationId },
-        );
+        const rewaiveResponse = await callAdapterOperation(waivePath, adapter.baseUrl, token, { registrationId });
         const rewaiveBody = await parseObjectResponse(rewaiveResponse);
         const alreadyWaived =
           rewaiveBody && typeof rewaiveBody.alreadyWaived === "boolean" ? rewaiveBody.alreadyWaived : null;
@@ -2003,29 +1888,17 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       }
 
       if (sessionId.length > 0) {
-        const reabandonResponse = await callAdapterOperation(
-          "cmi5.session.abandon",
-          abandonPath,
-          adapter.baseUrl,
-          token,
-          { sessionId },
-        );
+        const reabandonResponse = await callAdapterOperation(abandonPath, adapter.baseUrl, token, { sessionId });
         durableEvidence.push(`postReloadReabandonStatus=${reabandonResponse.status}`);
         if (reabandonResponse.status !== 409) {
           durableFailed = true;
         }
 
-        const postReloadLaunchResponse = await callAdapterOperation(
-          "cmi5.launch.create",
-          launchCreatePath,
-          adapter.baseUrl,
-          token,
-          {
-            packageId: importedPackageId,
-            sessionId,
-            learnerId: expectedLearnerId,
-          },
-        );
+        const postReloadLaunchResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
+          packageId: importedPackageId,
+          sessionId,
+          learnerId: expectedLearnerId,
+        });
         durableEvidence.push(`postReloadAbandonedSessionLaunchStatus=${postReloadLaunchResponse.status}`);
         if (postReloadLaunchResponse.status !== 409) {
           durableFailed = true;
@@ -2057,7 +1930,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     const crossSystemEvidence: string[] = [];
     let crossSystemFailed = false;
 
-    const launchAResponse = await callAdapterOperation("cmi5.launch.create", launchCreatePath, adapter.baseUrl, token, {
+    const launchAResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
       packageId: importedPackageId,
       learnerId: `${expectedLearnerId}.cross-a`,
       registrationId: `registration-cross-a-${runId}`,
@@ -2068,7 +1941,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     const registrationA = launchABody ? readStringField(launchABody, "registrationId") : null;
     const fetchA = launchABody ? readStringField(launchABody, "fetch") : null;
 
-    const launchBResponse = await callAdapterOperation("cmi5.launch.create", launchCreatePath, adapter.baseUrl, token, {
+    const launchBResponse = await callAdapterOperation(launchCreatePath, adapter.baseUrl, token, {
       packageId: importedPackageId,
       learnerId: `${expectedLearnerId}.cross-b`,
       registrationId: `registration-cross-b-${runId}`,
@@ -2280,13 +2153,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
   let invalidOperationFailed = false;
 
   for (const testCase of invalidOperationCases) {
-    const invalidResponse = await callAdapterOperation(
-      "cmi5.operation",
-      testCase.path,
-      adapter.baseUrl,
-      token,
-      testCase.payload,
-    );
+    const invalidResponse = await callAdapterOperation(testCase.path, adapter.baseUrl, token, testCase.payload);
 
     const passed = invalidResponse.status === testCase.expectedStatus;
     invalidOperationEvidence.push(
@@ -2440,6 +2307,6 @@ export async function validateCmi5Config(configPath: string): Promise<ValidateCm
     valid: false,
     code: result.code,
     message: result.message,
-    details: result.details,
+    ...(result.details !== undefined ? { details: result.details } : {}),
   };
 }

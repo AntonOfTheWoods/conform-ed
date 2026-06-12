@@ -20,7 +20,7 @@ function render(item: AssessmentItemView): string {
 function bodyItem(content: AssessmentItemView["itemBody"]["content"]): AssessmentItemView {
   return {
     responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "identifier" }],
-    itemBody: { ...(content === undefined ? {} : { content }) },
+    itemBody: content === undefined ? {} : { content },
   };
 }
 

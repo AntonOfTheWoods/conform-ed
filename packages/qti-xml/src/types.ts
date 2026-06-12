@@ -21,10 +21,10 @@ export type QtiSchemaSelectionKey =
 export interface QtiRootDetection {
   rootName: string;
   localName: string;
-  prefix?: string | undefined;
-  namespaceUri?: string | undefined;
-  inferredVersion?: QtiVersion | undefined;
-  schemaSelectionKey?: QtiSchemaSelectionKey | undefined;
+  prefix?: string;
+  namespaceUri?: string;
+  inferredVersion?: QtiVersion;
+  schemaSelectionKey?: QtiSchemaSelectionKey;
 }
 
 export interface QtiExampleInventoryEntry {
@@ -36,9 +36,9 @@ export interface QtiExampleInventoryEntry {
   supportStatus: QtiSupportStatus;
   rootName?: string;
   localName?: string;
-  namespaceUri?: string | undefined;
-  inferredVersion?: QtiVersion | undefined;
-  schemaSelectionKey?: QtiSchemaSelectionKey | undefined;
+  namespaceUri?: string;
+  inferredVersion?: QtiVersion;
+  schemaSelectionKey?: QtiSchemaSelectionKey;
   contentHash: string;
   note?: string;
 }
@@ -66,7 +66,7 @@ export interface QtiValidationResult {
   filePath: string;
   rootDetection?: QtiRootDetection;
   status: QtiValidationStatus;
-  schemaSelectionKey?: QtiSchemaSelectionKey | undefined;
+  schemaSelectionKey?: QtiSchemaSelectionKey;
   normalizedDocument?: unknown;
   issues: QtiValidationIssue[];
 }

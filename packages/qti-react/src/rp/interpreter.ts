@@ -30,6 +30,7 @@ import {
   fromFlatValue,
   fromResponse,
   isNumericBaseType,
+  rpValue,
   singleBoolean,
   toOutcomeValue,
   type MaybeRpValue,
@@ -50,11 +51,14 @@ function defaultOutcomes(declarations: readonly OutcomeDeclarationView[]): Map<s
 
   for (const declaration of declarations) {
     if (declaration.defaultValue) {
-      outcomes.set(declaration.identifier, {
-        cardinality: declaration.cardinality,
-        baseType: declaration.baseType,
-        values: declaration.defaultValue.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
-      });
+      outcomes.set(
+        declaration.identifier,
+        rpValue(
+          declaration.cardinality,
+          declaration.defaultValue.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
+          declaration.baseType,
+        ),
+      );
       continue;
     }
 

@@ -48,6 +48,7 @@ import {
   W3cCredentialsV2ContextSchema,
 } from "../../vc-data-model/v2_0/shared";
 
+// Declared output of a zod schema (z.ZodType<...>): zod's `.optional()` infers `| undefined`, so this must too.
 type ClrSubject = {
   id?: UriValue | undefined;
   type: unknown;
@@ -58,6 +59,7 @@ type ClrSubject = {
   [key: string]: unknown;
 };
 
+// Declared output of a zod schema (z.ZodType<...>): zod's `.optional()` infers `| undefined`, so this must too.
 type ClrCredential = {
   "@context": Array<Record<string, unknown> | UriValue>;
   type: unknown;

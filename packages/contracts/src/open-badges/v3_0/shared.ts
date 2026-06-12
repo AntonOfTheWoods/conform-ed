@@ -27,6 +27,7 @@ const OpenBadgesV30ContextUrlSchema = z
   .string()
   .regex(/^https:\/\/purl\.imsglobal\.org\/spec\/ob\/v3p0\/context(-3\.\d\.\d)*\.json$/u);
 
+// Declared output of a zod schema (z.ZodType<...>): zod's `.optional()` infers `| undefined`, so this must too.
 type Profile = {
   id: UriValue;
   type: unknown;
@@ -55,6 +56,7 @@ type Profile = {
 
 type ProfileRef = Profile | UriValue;
 
+// Declared output of a zod schema (z.ZodType<...>): zod's `.optional()` infers `| undefined`, so this must too.
 type EndorsementCredential = {
   "@context": JsonLdContextEntry[];
   type: unknown;

@@ -1,3 +1,4 @@
+import { definedProps } from "./defined-props.ts";
 import {
   defaultXapiVersion,
   getSpecFromFolder,
@@ -5,6 +6,11 @@ import {
   type SupportedXapiVersion,
 } from "./spec-config.ts";
 
+/**
+ * Raw CLI/consumer input bag: optional members deliberately admit explicit
+ * `undefined` ("undefined means not provided") so parse results pass straight
+ * through; the normalizer reads every member field-wise.
+ */
 export interface RunnerInputOptions {
   xapiVersion?: string | undefined;
   directory?: string[] | undefined;
@@ -28,25 +34,26 @@ export interface RunnerInputOptions {
   errors?: boolean | undefined;
 }
 
+/** Normalized record: a missing setting is an absent key, never an undefined value. */
 export interface NormalizedRunnerOptions {
   xapiVersion: SupportedXapiVersion;
   directory: string[];
-  optional?: string[] | undefined;
-  file?: string[] | undefined;
+  optional?: string[];
+  file?: string[];
   endpoint: string;
-  grep?: string | undefined;
+  grep?: string;
   basicAuth: boolean;
-  authUser?: string | undefined;
-  authPass?: string | undefined;
+  authUser?: string;
+  authPass?: string;
   oAuth1: boolean;
-  consumer_key?: string | undefined;
-  consumer_secret?: string | undefined;
-  token?: string | undefined;
-  token_secret?: string | undefined;
-  verifier?: string | undefined;
-  request_token_path?: string | undefined;
-  auth_token_path?: string | undefined;
-  authorization_path?: string | undefined;
+  consumer_key?: string;
+  consumer_secret?: string;
+  token?: string;
+  token_secret?: string;
+  verifier?: string;
+  request_token_path?: string;
+  auth_token_path?: string;
+  authorization_path?: string;
   bail: boolean;
   errors: boolean;
 }
@@ -139,23 +146,25 @@ export function normalizeRunnerOptions(input: RunnerInputOptions): NormalizedRun
   return {
     xapiVersion,
     directory: resolvedDirectories,
-    optional,
-    file,
     endpoint: input.endpoint,
-    grep: input.grep,
     basicAuth: input.basicAuth ?? false,
-    authUser: input.authUser,
-    authPass: input.authPass,
     oAuth1: input.oAuth1 ?? false,
-    consumer_key: input.consumer_key,
-    consumer_secret: input.consumer_secret,
-    token: input.token,
-    token_secret: input.token_secret,
-    verifier: input.verifier,
-    request_token_path: input.request_token_path,
-    auth_token_path: input.auth_token_path,
-    authorization_path: input.authorization_path,
     bail: input.bail ?? false,
     errors: input.errors ?? false,
+    ...definedProps({
+      optional,
+      file,
+      grep: input.grep,
+      authUser: input.authUser,
+      authPass: input.authPass,
+      consumer_key: input.consumer_key,
+      consumer_secret: input.consumer_secret,
+      token: input.token,
+      token_secret: input.token_secret,
+      verifier: input.verifier,
+      request_token_path: input.request_token_path,
+      auth_token_path: input.auth_token_path,
+      authorization_path: input.authorization_path,
+    }),
   };
 }

@@ -28,12 +28,12 @@ function readString(record: Record<string, unknown>, key: string): string | unde
   return typeof value === "string" ? value : undefined;
 }
 
-function normalizeTextBlock(block: unknown): { langstrings: Array<{ lang?: string | undefined; value: string }> } {
+function normalizeTextBlock(block: unknown): { langstrings: Array<{ lang?: string; value: string }> } {
   const record = (block ?? {}) as Record<string, unknown>;
   return {
     langstrings: asArray(record.langstring as Record<string, unknown> | Array<Record<string, unknown>> | undefined).map(
       (langstring) => ({
-        lang: typeof langstring["@_lang"] === "string" ? langstring["@_lang"] : undefined,
+        ...(typeof langstring["@_lang"] === "string" ? { lang: langstring["@_lang"] } : {}),
         value: normalizeText(typeof langstring["#text"] === "string" ? langstring["#text"] : undefined),
       }),
     ),
@@ -92,8 +92,8 @@ function normalizeCourseItem(item: Record<string, unknown>): unknown {
 function normalizeKeywordSet(value: unknown): {
   keywords: Array<{
     id: string;
-    title: { langstrings: Array<{ lang?: string | undefined; value: string }> };
-    description?: { langstrings: Array<{ lang?: string | undefined; value: string }> } | undefined;
+    title: { langstrings: Array<{ lang?: string; value: string }> };
+    description?: { langstrings: Array<{ lang?: string; value: string }> };
   }>;
 } {
   const record = (value ?? {}) as Record<string, unknown>;
@@ -102,7 +102,7 @@ function normalizeKeywordSet(value: unknown): {
       (keyword) => ({
         id: readString(keyword, "@_id") ?? "",
         title: normalizeTextBlock(keyword["kw:title"]),
-        description: keyword["kw:description"] ? normalizeTextBlock(keyword["kw:description"]) : undefined,
+        ...(keyword["kw:description"] ? { description: normalizeTextBlock(keyword["kw:description"]) } : {}),
       }),
     ),
   };

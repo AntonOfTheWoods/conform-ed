@@ -25,6 +25,8 @@ type SuiteBefore = {
   (fn: (done?: (error?: unknown) => void) => unknown): void;
 };
 
+// Mutable global slots: save/restore writes the possibly-undefined previous
+// value back, so these members must admit explicit undefined.
 type SuiteGlobalShape = typeof globalThis & {
   context?: SuiteDescribe | undefined;
   describe?: SuiteDescribe | undefined;

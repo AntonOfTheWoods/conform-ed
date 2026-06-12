@@ -7,7 +7,7 @@ export interface RuntimeNodeBase {
   name: string;
   requirement: string;
   status: RuntimeStatus;
-  error?: string | undefined;
+  error?: string;
   log: string[];
 }
 
@@ -29,7 +29,7 @@ export interface RuntimeRunSummary {
   failed: number;
   skipped: number;
   cancelled: number;
-  version?: string | undefined;
+  version?: string;
 }
 
 export interface RuntimeRunResult {
@@ -70,7 +70,7 @@ interface SuiteDefinition {
 interface CaseDefinition {
   kind: "case";
   title: string;
-  fn?: Runnable | undefined;
+  fn?: Runnable;
 }
 
 type DefinitionNode = SuiteDefinition | CaseDefinition;
@@ -84,7 +84,7 @@ interface ExecutionState {
   summary: RuntimeRunSummary;
   cancelRemaining: boolean;
   bail: boolean;
-  grep?: RegExp | undefined;
+  grep?: RegExp;
 }
 
 export interface DescribeRuntime {
@@ -107,6 +107,8 @@ type RuntimeGlobalState = ExecutionSuiteGlobals & {
   __lrsConformanceCaptureExecutionState?: CaptureExecutionState;
 };
 
+// Mutable global slots: save/restore writes the possibly-undefined previous
+// value back, so these members must admit explicit undefined.
 type ExecutionSuiteGlobals = typeof globalThis & {
   before?:
     | {
@@ -464,7 +466,7 @@ function createCaseResult(title: string, status: RuntimeStatus, error?: string):
     name: metadata.name,
     requirement: metadata.requirement,
     status,
-    error,
+    ...(error !== undefined ? { error } : {}),
     log: [],
     children: [],
   };
@@ -652,7 +654,7 @@ export function createDescribeRuntime(options: DescribeRuntimeOptions): Describe
     getCurrentSuite().children.push({
       kind: "case",
       title,
-      fn,
+      ...(fn !== undefined ? { fn } : {}),
     });
   };
 
@@ -678,7 +680,7 @@ export function createDescribeRuntime(options: DescribeRuntimeOptions): Describe
       failed: 0,
       skipped: 0,
       cancelled: 0,
-      version: options.version,
+      ...(options.version !== undefined ? { version: options.version } : {}),
     };
     activeSummary = summary;
 
@@ -686,7 +688,7 @@ export function createDescribeRuntime(options: DescribeRuntimeOptions): Describe
       summary,
       cancelRemaining: false,
       bail: options.bail ?? false,
-      grep: options.grep,
+      ...(options.grep !== undefined ? { grep: options.grep } : {}),
     };
 
     try {

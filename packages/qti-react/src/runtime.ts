@@ -693,11 +693,13 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
         const parsed = descriptor.schema.safeParse(node);
 
         if (!parsed.success) {
+          const detail = parsed.error.issues[0]?.message;
+
           report({
             type: "invalid-interaction",
             name: node.kind,
             responseIdentifier: node.responseIdentifier,
-            detail: parsed.error.issues[0]?.message,
+            ...(detail !== undefined ? { detail } : {}),
           });
         }
 

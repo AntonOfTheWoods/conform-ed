@@ -50,7 +50,7 @@ export type ValidateLti13ConfigResult =
       valid: false;
       code: RunLti13Failure["code"];
       message: string;
-      details?: Record<string, unknown> | undefined;
+      details?: Record<string, unknown>;
     };
 
 type ExecutableOperation = {
@@ -358,6 +358,6 @@ export async function validateLti13Config(configPath: string): Promise<ValidateL
     valid: false,
     code: result.code,
     message: result.message,
-    details: result.details,
+    ...(result.details !== undefined ? { details: result.details } : {}),
   };
 }

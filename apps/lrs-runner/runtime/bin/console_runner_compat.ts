@@ -19,7 +19,7 @@ type CleanLogRecord = {
   requirement: string;
   log: string;
   status: string;
-  error?: string | undefined;
+  error?: string;
   tests: CleanLogRecord[];
 };
 
@@ -38,9 +38,9 @@ type CleanRunRecord = {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string | undefined;
+    version?: string;
   };
-  log?: CleanLogRecord | undefined;
+  log?: CleanLogRecord;
 };
 
 type RunnerInstance = {
@@ -53,7 +53,7 @@ type RunnerInstance = {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string | undefined;
+    version?: string;
   };
   uuid: string;
 };
@@ -125,7 +125,7 @@ function removeNulls(log: CleanLogRecord | undefined): CleanLogRecord | undefine
     requirement: log.requirement,
     log: log.log,
     status: log.status,
-    error: log.error,
+    ...(log.error !== undefined ? { error: log.error } : {}),
     tests,
   };
 }

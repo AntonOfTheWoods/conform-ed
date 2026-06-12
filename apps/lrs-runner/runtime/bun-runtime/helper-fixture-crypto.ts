@@ -49,6 +49,8 @@ type SignStatementOptions = {
   privateKey?: string;
 };
 
+// Accepts statements typed by the xAPI statement typings, whose optional
+// members admit explicit undefined, so this must too.
 type SignableStatement = AnyRecord & {
   attachments?:
     | Array<{

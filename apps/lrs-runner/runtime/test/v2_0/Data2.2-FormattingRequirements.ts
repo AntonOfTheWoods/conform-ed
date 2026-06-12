@@ -18,11 +18,11 @@ type StatementTemplateBundle = {
   statement: StatementV2;
 };
 
-type ScoreLike = {
-  max?: number | undefined;
-  min?: number | undefined;
-  raw?: number | undefined;
-  scaled?: number | undefined;
+type VerifiedScore = {
+  max: number;
+  min: number;
+  raw: number;
+  scaled: number;
 };
 
 type AttachmentLike = {
@@ -44,7 +44,7 @@ function createStatementFromTemplate(templates: Array<Record<string, unknown>>):
   return (helper.createFromTemplate(templates) as StatementTemplateBundle).statement;
 }
 
-function requireScore(statement: StatementV2, source: string): ScoreLike {
+function requireScore(statement: StatementV2, source: string): VerifiedScore {
   const score = statement.result?.score;
   if (
     !score ||
@@ -56,7 +56,7 @@ function requireScore(statement: StatementV2, source: string): ScoreLike {
     throw new Error(`${source} must include result.score with numeric min/raw/max/scaled values`);
   }
 
-  return score;
+  return { max: score.max, min: score.min, raw: score.raw, scaled: score.scaled };
 }
 
 function getActorRecord(statement: StatementV2, source: string): Record<string, JsonValue> {

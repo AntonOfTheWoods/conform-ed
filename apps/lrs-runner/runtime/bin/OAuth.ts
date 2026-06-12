@@ -4,6 +4,7 @@ import { EventEmitter } from "events";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 
+// Input bag: callers pass maybe-undefined values straight through.
 type OAuthConfig = {
   auth_token_path: string;
   authorization_path: string;

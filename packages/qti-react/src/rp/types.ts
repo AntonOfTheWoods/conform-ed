@@ -17,14 +17,14 @@ export type OutcomeValue = RpScalar | readonly RpScalar[] | null;
 /** One named member of a record-cardinality value (QTI record containers). */
 export interface RpRecordField {
   readonly name: string;
-  readonly baseType?: string | undefined;
+  readonly baseType?: string;
   readonly value: RpScalar;
 }
 
 /** The interpreter's typed value model: (baseType, cardinality, members); NULL is null. */
 export interface RpValue {
   readonly cardinality: Cardinality;
-  readonly baseType?: string | undefined;
+  readonly baseType?: string;
   readonly values: readonly RpScalar[];
   /** Present only when cardinality is "record"; `values` mirrors the field values. */
   readonly fields?: readonly RpRecordField[];
@@ -35,7 +35,7 @@ export type MaybeRpValue = RpValue | null;
 export interface OutcomeDeclarationView {
   readonly identifier: string;
   readonly cardinality: Cardinality;
-  readonly baseType?: string | undefined;
+  readonly baseType?: string;
   readonly defaultValue?: { readonly values: ReadonlyArray<{ readonly value: RpScalar }> };
 }
 
@@ -46,7 +46,7 @@ export interface OutcomeDeclarationView {
 export interface RpExpressionView {
   readonly kind: string;
   readonly identifier?: string;
-  readonly baseType?: string | undefined;
+  readonly baseType?: string;
   readonly value?: RpScalar;
   readonly expressions?: readonly RpExpressionView[];
   /** Bounds/step for the random operators (template processing). */
@@ -130,10 +130,16 @@ export type ResponseNormalization = (value: string, declaration?: ResponseDeclar
 export interface TemplateDeclarationView {
   readonly identifier: string;
   readonly cardinality: Cardinality;
-  readonly baseType?: string | undefined;
+  readonly baseType?: string;
   readonly defaultValue?: { readonly values: ReadonlyArray<{ readonly value: RpScalar }> };
 }
 
+/**
+ * Consumer-supplied input. Optional members deliberately admit explicit
+ * `undefined` ("undefined means not provided"): callers pass maybe-undefined
+ * values straight through, and the interpreter reads every member field-wise
+ * (`??`/`?.`) — option bags are never spread-merged over defaults.
+ */
 export interface ResponseProcessingContext {
   readonly responseDeclarations: readonly ResponseDeclarationView[];
   readonly outcomeDeclarations: readonly OutcomeDeclarationView[];

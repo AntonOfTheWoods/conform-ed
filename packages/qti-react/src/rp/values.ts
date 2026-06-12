@@ -61,11 +61,11 @@ export function fromResponse(declaration: ResponseDeclarationView, response: Res
     return null;
   }
 
-  return {
-    cardinality: declaration.cardinality,
-    baseType: declaration.baseType,
-    values: raw.map((value) => coerceScalar(value, declaration.baseType)),
-  };
+  return rpValue(
+    declaration.cardinality,
+    raw.map((value) => coerceScalar(value, declaration.baseType)),
+    declaration.baseType,
+  );
 }
 
 export function singleNumber(value: MaybeRpValue): number | null {
@@ -86,6 +86,15 @@ export function singleBoolean(value: MaybeRpValue): boolean | null {
   const member = value.values[0];
 
   return typeof member === "boolean" ? member : null;
+}
+
+/** Construct a typed value; an unknown baseType is omitted, never stored as undefined. */
+export function rpValue(cardinality: Cardinality, values: readonly RpScalar[], baseType?: string): RpValue {
+  return {
+    cardinality,
+    values,
+    ...(baseType !== undefined ? { baseType } : {}),
+  };
 }
 
 export function booleanValue(value: boolean): RpValue {
@@ -182,7 +191,11 @@ export function fromFlatValue(value: OutcomeValue, cardinality: Cardinality, bas
     return null;
   }
 
-  return { cardinality, baseType, values: values.map((member) => coerceScalar(member, baseType)) };
+  return rpValue(
+    cardinality,
+    values.map((member) => coerceScalar(member, baseType)),
+    baseType,
+  );
 }
 
 export function toOutcomeValue(value: MaybeRpValue): OutcomeValue {

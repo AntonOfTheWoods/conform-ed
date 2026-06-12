@@ -2,10 +2,11 @@ import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
 import { parseConsoleRunnerArgv, type ConsoleRunnerOptions } from "./cli-args.ts";
+import { definedProps } from "./defined-props.ts";
 import { normalizeRunnerOptions, type NormalizedRunnerOptions } from "./options.ts";
-import { createRunRecord, createOutputRunRecord } from "./run-record.ts";
+import { createRunRecord, createOutputRunRecord, type RuntimeRunRecordFlags } from "./run-record.ts";
 import { installRunnerEnvironment, registerSuiteFiles } from "./suite-loader.ts";
-import { createDescribeRuntime, type RuntimeRunResult } from "./runtime.ts";
+import { createDescribeRuntime, type RuntimeRunResult, type RuntimeRunSummary } from "./runtime.ts";
 
 export type BunConsoleRunnerMode = "native";
 
@@ -38,7 +39,7 @@ export interface BunConsoleRunnerExecution {
 }
 
 export function startNativeSummaryHeartbeat(options: {
-  getSummary: () => { failed: number; passed: number; total: number; version?: string | undefined } | undefined;
+  getSummary: () => RuntimeRunSummary | undefined;
   emit?: (message: string) => void;
   intervalMs?: number;
   logger: {
@@ -118,10 +119,6 @@ function resolveRuntimeRoot(cwd: string | undefined): string {
   return cwd ?? resolve(import.meta.dir, "..");
 }
 
-function resolveRunnerMode(_value: string | undefined): BunConsoleRunnerMode {
-  return "native";
-}
-
 function readLegacyVersionNumber(runtimeRoot: string): string {
   const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "package.json"));
   const versionModule = requireFromRuntimeRoot(resolve(runtimeRoot, "version.ts")) as {
@@ -131,28 +128,18 @@ function readLegacyVersionNumber(runtimeRoot: string): string {
   return typeof versionModule.versionNumber === "string" ? versionModule.versionNumber : "";
 }
 
-function buildRuntimeRecordFlags(
-  _parsedOptions: ConsoleRunnerOptions,
-  normalizedOptions: NormalizedRunnerOptions,
-): {
-  endpoint?: string | undefined;
-  basicAuth?: boolean | undefined;
-  authUser?: string | undefined;
-  oAuth1?: boolean | undefined;
-  consumer_key?: string | undefined;
-  grep?: string | undefined;
-  optional?: string[] | undefined;
-  file?: string[] | undefined;
-} {
+function buildRuntimeRecordFlags(normalizedOptions: NormalizedRunnerOptions): RuntimeRunRecordFlags {
   return {
     endpoint: normalizedOptions.endpoint,
     basicAuth: normalizedOptions.basicAuth,
-    authUser: normalizedOptions.authUser,
     oAuth1: normalizedOptions.oAuth1,
-    consumer_key: normalizedOptions.consumer_key,
-    grep: normalizedOptions.grep,
-    optional: normalizedOptions.optional,
-    file: normalizedOptions.file,
+    ...definedProps({
+      authUser: normalizedOptions.authUser,
+      consumer_key: normalizedOptions.consumer_key,
+      grep: normalizedOptions.grep,
+      optional: normalizedOptions.optional,
+      file: normalizedOptions.file,
+    }),
   };
 }
 
@@ -213,7 +200,7 @@ async function defaultRunNativeConsoleRunner(options: {
     const runResult: RuntimeRunResult = await runtime.run();
     const summaryVersion = options.parsedOptions.xapiVersion ?? readLegacyVersionNumber(options.runtimeRoot);
     const runRecord = createRunRecord(runResult, {
-      flags: buildRuntimeRecordFlags(options.parsedOptions, options.normalizedOptions),
+      flags: buildRuntimeRecordFlags(options.normalizedOptions),
       name: "console",
       options: createRuntimeOptions(options.normalizedOptions),
       rollupRule: "mustPassAll",
@@ -246,7 +233,7 @@ export async function runConsoleRunnerArgv(
   const normalizedOptions = normalizeRunnerOptions(parsedOptions);
   const forwardedArgv = buildForwardedConsoleRunnerArgv(parsedOptions, normalizedOptions);
   const runtimeRoot = resolveRuntimeRoot(dependencies.cwd);
-  const runnerMode = resolveRunnerMode(dependencies.runnerMode ?? process.env["LRS_BUN_CONSOLE_RUNNER_MODE"]);
+  const runnerMode: BunConsoleRunnerMode = dependencies.runnerMode ?? "native";
   const logger = dependencies.logger ?? console;
   const exitCode = await (dependencies.runNativeConsoleRunner ?? defaultRunNativeConsoleRunner)({
     parsedOptions,

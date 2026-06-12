@@ -128,6 +128,7 @@ function createVariableSuperRefine(valueKey: "values" | "candidateResponse", can
   return (
     value: {
       cardinality: z.infer<typeof QtiCardinalitySchema>;
+      // Receives zod-parsed variables; zod's `.optional()` infers `| undefined`, so these must too.
       baseType?: z.infer<typeof QtiBaseTypeSchema> | undefined;
       values?: readonly z.infer<typeof QtiResultValueSchema>[] | undefined;
       candidateResponse?: { values?: readonly z.infer<typeof QtiResultValueSchema>[] | undefined } | undefined;

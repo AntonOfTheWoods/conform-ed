@@ -18,7 +18,7 @@ import {
   type EvalEnv,
 } from "./evaluate";
 import type { CustomOperatorImplementation, OutcomeValue, RpExpressionView, TemplateDeclarationView } from "./types";
-import { coerceScalar, singleBoolean, toOutcomeValue, type MaybeRpValue } from "./values";
+import { coerceScalar, rpValue, singleBoolean, toOutcomeValue, type MaybeRpValue } from "./values";
 
 export interface TemplateConditionBranch {
   readonly expression: RpExpressionView;
@@ -101,11 +101,11 @@ export function executeTemplateProcessing(
       values.set(
         declaration.identifier,
         declaration.defaultValue
-          ? {
-              cardinality: declaration.cardinality,
-              baseType: declaration.baseType,
-              values: declaration.defaultValue.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
-            }
+          ? rpValue(
+              declaration.cardinality,
+              declaration.defaultValue.values.map((entry) => coerceScalar(entry.value, declaration.baseType)),
+              declaration.baseType,
+            )
           : null,
       );
     }
@@ -153,11 +153,7 @@ export function executeTemplateProcessing(
             rule.identifier,
             value === null || !declaration
               ? value
-              : {
-                  cardinality: declaration.cardinality,
-                  baseType: declaration.baseType ?? value.baseType,
-                  values: value.values,
-                },
+              : rpValue(declaration.cardinality, value.values, declaration.baseType ?? value.baseType),
           );
         }
         continue;
