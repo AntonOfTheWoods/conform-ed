@@ -830,6 +830,60 @@ export function createTestController(view: AssessmentTestView, options: TestCont
     return { ...flushed, status: "ended", currentItemKey: null, testOutcomes: runOutcomeProcessing(flushed) };
   }
 
+  /**
+   * "The value is obtained by evaluating an expression defined within the reference
+   * to the item at test level and which may therefore depend on the values of
+   * variables taken from other items in the test or from outcomes defined at test
+   * level itself." (§5.152) Unsupported expressions are statically reported; the
+   * declared default stands.
+   */
+  function evaluateTemplateDefaults(
+    state: TestSessionState,
+    item: TestPlanItem,
+  ): Readonly<Record<string, OutcomeValue>> | undefined {
+    const defaults = item.ref.templateDefaults;
+
+    if (!defaults || defaults.length === 0) {
+      return undefined;
+    }
+
+    const env = makeEnv(state);
+    const values: Record<string, OutcomeValue> = {};
+
+    for (const entry of defaults) {
+      try {
+        values[entry.templateIdentifier] = toOutcomeValue(evaluateExpression(entry.expression, env));
+      } catch (error) {
+        if (!(error instanceof RpUnsupportedError)) {
+          throw error;
+        }
+      }
+    }
+
+    return values;
+  }
+
+  /** Record templateDefault values for any of `items` not yet evaluated ("the first attempt"). */
+  function withTemplateDefaults(state: TestSessionState, items: readonly TestPlanItem[]): TestSessionState {
+    let merged = state.templateDefaultValues ?? {};
+    let changed = false;
+
+    for (const item of items) {
+      if (merged[item.key] !== undefined) {
+        continue;
+      }
+
+      const values = evaluateTemplateDefaults(state, item);
+
+      if (values) {
+        merged = { ...merged, [item.key]: values };
+        changed = true;
+      }
+    }
+
+    return changed ? { ...state, templateDefaultValues: merged } : state;
+  }
+
   function moveToItem(state: TestSessionState, item: TestPlanItem | null): TestSessionState {
     if (item === null) {
       return ended(state);
@@ -846,6 +900,16 @@ export function createTestController(view: AssessmentTestView, options: TestCont
       if (flushed !== state) {
         next = { ...flushed, testOutcomes: runOutcomeProcessing(flushed) };
       }
+    }
+
+    // templateDefault timing (§5.152): linear — "immediately prior to the start of
+    // the first attempt, after any pre-conditions are evaluated" (the item has just
+    // been chosen as current); nonlinear — "at the start of the testPart" (first
+    // entry computes every ref's defaults). Already-recorded keys are never redone.
+    const part = toPart === undefined ? undefined : plan.parts[toPart];
+
+    if (part) {
+      next = withTemplateDefaults(next, part.navigationMode === "nonlinear" ? part.items : [item]);
     }
 
     return markPresented({ ...next, currentItemKey: item.key }, item.key);
@@ -1094,6 +1158,10 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
     for (const branchRule of item.ref.branchRules ?? []) {
       collectExpressionIssues(branchRule.expression, testExpressionKinds, report);
+    }
+
+    for (const entry of item.ref.templateDefaults ?? []) {
+      collectExpressionIssues(entry.expression, testExpressionKinds, report);
     }
   }
 

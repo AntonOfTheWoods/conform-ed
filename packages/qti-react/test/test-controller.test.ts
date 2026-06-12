@@ -1145,6 +1145,88 @@ describe("outcome processing and test feedback", () => {
   });
 });
 
+describe("templateDefault (test-level template-variable overrides)", () => {
+  // "The default value of a template variable in an item can be overridden based on
+  // the test context in which the template is instantiated. … When the
+  // assessmentItemRef occurs in a testPart navigated in linear mode the expression is
+  // evaluated immediately prior to the start of the first attempt, after any
+  // pre-conditions are evaluated and acted upon but before the templateProcessing
+  // rules of the item itself are followed. In nonlinear mode the expression is
+  // evaluated at the start of the testPart." (§5.152)
+  const withDefaults = (navigationMode: "linear" | "nonlinear"): AssessmentTestView => ({
+    identifier: "T-TD",
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode,
+        submissionMode: "individual",
+        assessmentSections: [
+          {
+            kind: "assessmentSection",
+            identifier: "S1",
+            children: [
+              itemRef("I1"),
+              itemRef("I2", {
+                templateDefaults: [
+                  { templateIdentifier: "X", expression: { kind: "variable", identifier: "I1.SCORE" } },
+                ],
+              }),
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  test("linear: evaluated when the item first becomes current, not before", () => {
+    const controller = createTestController(withDefaults("linear"), { seed: 1 });
+    let state = controller.start();
+
+    expect(state.templateDefaultValues?.["I2"]).toBeUndefined();
+
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 7 } });
+    state = controller.next(state);
+
+    expect(controller.currentItem(state)?.key).toBe("I2");
+    expect(state.templateDefaultValues?.["I2"]).toEqual({ X: 7 });
+  });
+
+  test("nonlinear: evaluated at the start of the testPart for every ref", () => {
+    const controller = createTestController(withDefaults("nonlinear"), { seed: 1 });
+    const state = controller.start();
+
+    expect(controller.currentItem(state)?.key).toBe("I1");
+    // Evaluated already — I1.SCORE does not exist yet, so the recorded value is NULL.
+    expect(state.templateDefaultValues?.["I2"]).toEqual({ X: null });
+  });
+
+  test("the static walk gates templateDefault expressions", () => {
+    const broken: AssessmentTestView = {
+      identifier: "T-TD-BROKEN",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              children: [
+                itemRef("I1", {
+                  templateDefaults: [{ templateIdentifier: "X", expression: { kind: "frobnicate" } }],
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(createTestController(broken, { seed: 1 }).issues[0]?.name).toBe("frobnicate");
+  });
+});
+
 describe("test-level duration tracking", () => {
   // "The time spent on the test is recorded as if it were a built-in response variable
   // called 'duration' declared at the test-level … time spent on test parts or

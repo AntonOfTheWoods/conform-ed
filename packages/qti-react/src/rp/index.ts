@@ -1,6 +1,7 @@
 export { collectRpIssues, executeResponseProcessing } from "./interpreter";
 export {
   applyCorrectResponseOverrides,
+  applyTemplateDefaultOverrides,
   collectTemplateIssues,
   executeTemplateProcessing,
   mulberry32,

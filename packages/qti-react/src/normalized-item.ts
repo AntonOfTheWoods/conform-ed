@@ -486,6 +486,14 @@ function convertItemRef(ref: Record<string, unknown>): AssessmentItemRefView {
     ...(Array.isArray(ref["weights"])
       ? { weights: ref["weights"] as NonNullable<AssessmentItemRefView["weights"]> }
       : {}),
+    ...(Array.isArray(ref["templateDefaults"])
+      ? {
+          templateDefaults: asRecords(ref["templateDefaults"]).map((entry) => ({
+            templateIdentifier: typeof entry["templateIdentifier"] === "string" ? entry["templateIdentifier"] : "",
+            expression: convertExpression(entry["expression"]),
+          })),
+        }
+      : {}),
     ...sessionControlAndTimeLimits(ref),
   };
 }

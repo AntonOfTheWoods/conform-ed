@@ -14,6 +14,7 @@ export type {
   OutcomeConditionBranch,
   OutcomeRuleView,
   RejectedSubmission,
+  TemplateDefaultView,
   TestController,
   TestFeedbackView,
   TestItemResult,

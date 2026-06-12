@@ -242,6 +242,34 @@ export function executeTemplateProcessing(
   };
 }
 
+/**
+ * The effective template declarations for a clone: test-level `templateDefault`
+ * values (§5.152) replace the declared defaults. A NULL value clears the default.
+ */
+export function applyTemplateDefaultOverrides(
+  declarations: readonly TemplateDeclarationView[],
+  overrides: Readonly<Record<string, OutcomeValue>>,
+): readonly TemplateDeclarationView[] {
+  return declarations.map((declaration) => {
+    if (!(declaration.identifier in overrides)) {
+      return declaration;
+    }
+
+    const value = overrides[declaration.identifier];
+
+    if (value === null || value === undefined) {
+      const { defaultValue: _cleared, ...rest } = declaration;
+
+      return rest;
+    }
+
+    return {
+      ...declaration,
+      defaultValue: { values: (Array.isArray(value) ? value : [value]).map((member) => ({ value: member })) },
+    };
+  });
+}
+
 /** The effective response declarations for a clone: setCorrectResponse overrides applied. */
 export function applyCorrectResponseOverrides(
   declarations: readonly ResponseDeclarationView[],

@@ -44,6 +44,16 @@ export interface TimeLimitsView {
   readonly allowLateSubmission?: boolean;
 }
 
+/**
+ * "The default value of a template variable in an item can be overridden based on
+ * the test context in which the template is instantiated." (§5.152) The expression
+ * evaluates at test level (it may read other items' variables and test outcomes).
+ */
+export interface TemplateDefaultView {
+  readonly templateIdentifier: string;
+  readonly expression: RpExpressionView;
+}
+
 export interface AssessmentItemRefView {
   readonly kind: "assessmentItemRef";
   readonly identifier: string;
@@ -57,6 +67,7 @@ export interface AssessmentItemRefView {
   readonly timeLimits?: TimeLimitsView;
   /** Named weights for `testVariables`/aggregate weighting (missing names weigh 1). */
   readonly weights?: ReadonlyArray<{ readonly identifier: string; readonly value: number }>;
+  readonly templateDefaults?: readonly TemplateDefaultView[];
 }
 
 export interface AssessmentSectionView {
@@ -246,6 +257,12 @@ export interface TestSessionState {
   readonly testOutcomes: Readonly<Record<string, OutcomeValue>>;
   /** Timing accumulators; absent on pre-timing persisted states (initialized lazily). */
   readonly timing?: TestTimingState;
+  /**
+   * Evaluated `templateDefault` values per item key, recorded at the spec's times
+   * (§5.152: linear — when the item first becomes current; nonlinear — at testPart
+   * start) so item-store creation reads a stable, replayable value.
+   */
+  readonly templateDefaultValues?: Readonly<Record<string, Readonly<Record<string, OutcomeValue>>>>;
   /** Latest consumer-reported item-session duration per item key (feeds `ITEM.duration`). */
   readonly itemDurationSeconds?: Readonly<Record<string, number>>;
   readonly rejectedSubmissions?: readonly RejectedSubmission[];

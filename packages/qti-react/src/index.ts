@@ -74,6 +74,7 @@ export {
   type TestFeedbackView,
   type TestItemResult,
   type RejectedSubmission,
+  type TemplateDefaultView,
   type TestPartView,
   type TestPlan,
   type TestPlanItem,

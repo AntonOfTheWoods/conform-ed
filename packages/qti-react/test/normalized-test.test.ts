@@ -212,7 +212,19 @@ describe("assessmentTestViewFromNormalized", () => {
                 identifier: "SECTION-1",
                 title: "Main",
                 visible: true,
-                children: [{ identifier: "ITEM-1", href: "items/one.xml" }],
+                children: [
+                  {
+                    identifier: "ITEM-1",
+                    href: "items/one.xml",
+                    templateDefaults: [
+                      {
+                        kind: "templateDefault",
+                        templateIdentifier: "X",
+                        expression: { kind: "baseValue", baseType: "integer", value: "3" },
+                      },
+                    ],
+                  },
+                ],
               },
             ],
           },
@@ -241,6 +253,11 @@ describe("assessmentTestViewFromNormalized", () => {
     expect(fragment?.rules?.[0]).toMatchObject({ kind: "lookupOutcomeValue", identifier: "GRADE" });
     expect(view!.outcomeDeclarations?.[0]?.interpolationTable?.interpolationTableEntries).toEqual([
       { sourceValue: 1, targetValue: "pass", includeBoundary: true },
+    ]);
+
+    const ref = view!.testParts[0]!.assessmentSections[0]!.children[0]!;
+    expect((ref as { templateDefaults?: unknown }).templateDefaults).toEqual([
+      { templateIdentifier: "X", expression: { kind: "baseValue", baseType: "integer", value: "3" } },
     ]);
   });
 

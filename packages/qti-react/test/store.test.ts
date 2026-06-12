@@ -250,6 +250,42 @@ describe("numAttempts built-in", () => {
   });
 });
 
+describe("templateDefault overrides (test-level, §5.152)", () => {
+  const integerResponse: ResponseDeclarationView[] = [
+    { identifier: "RESPONSE", cardinality: "single", baseType: "integer" },
+  ];
+  const optionsWith = (overrides: Record<string, number | null> | undefined) => ({
+    templateDeclarations: [
+      {
+        identifier: "X",
+        cardinality: "single" as const,
+        baseType: "integer",
+        defaultValue: { values: [{ value: 1 }] },
+      },
+    ],
+    templateProcessing: { rules: [] },
+    ...(overrides === undefined ? {} : { templateDefaultValues: overrides }),
+  });
+
+  test("an override replaces the declared default for the clone", () => {
+    const store = createAttemptStore(integerResponse, {}, optionsWith({ X: 5 }));
+
+    expect(store.getSnapshot().templateValues["X"]).toBe(5);
+  });
+
+  test("without overrides the declared default stands", () => {
+    const store = createAttemptStore(integerResponse, {}, optionsWith(undefined));
+
+    expect(store.getSnapshot().templateValues["X"]).toBe(1);
+  });
+
+  test("a NULL override clears the declared default", () => {
+    const store = createAttemptStore(integerResponse, {}, optionsWith({ X: null }));
+
+    expect(store.getSnapshot().templateValues["X"]).toBeNull();
+  });
+});
+
 describe("completionStatus lifecycle (built-in outcome)", () => {
   // "It starts with the reserved value 'not_attempted'. At the start of the first
   // attempt it changes to the reserved value 'unknown'." (§2.2.2.3) — the attempt

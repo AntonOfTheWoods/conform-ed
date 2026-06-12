@@ -307,6 +307,56 @@ describe("test session store: simultaneous submission", () => {
   });
 });
 
+describe("test session store: templateDefault", () => {
+  test("values recorded in test state flow into the item store's clone", () => {
+    const view: AssessmentTestView = {
+      identifier: "TEST-TD",
+      testParts: [
+        {
+          identifier: "PART-1",
+          navigationMode: "nonlinear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "SECTION-1",
+              children: [
+                {
+                  kind: "assessmentItemRef",
+                  identifier: "ITEM-TD",
+                  templateDefaults: [
+                    {
+                      templateIdentifier: "X",
+                      expression: { kind: "baseValue", baseType: "integer", value: 9 },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const templated: AssessmentItemView = {
+      responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "integer" }],
+      templateDeclarations: [
+        {
+          identifier: "X",
+          cardinality: "single",
+          baseType: "integer",
+          defaultValue: { values: [{ value: 1 }] },
+        },
+      ],
+      templateProcessing: { rules: [] },
+      itemBody: { content: [] },
+    };
+    const controller = createTestController(view, { seed: 3 });
+    const session = createTestSessionStore(controller, { seed: 3, resolveItem: () => templated });
+
+    expect(session.itemStore("ITEM-TD")!.getSnapshot().templateValues["X"]).toBe(9);
+  });
+});
+
 describe("test session store: timing", () => {
   test("submitted attempts forward their item-session duration to the controller", () => {
     const session = makeSession();

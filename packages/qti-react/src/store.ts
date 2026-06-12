@@ -13,7 +13,13 @@
  */
 
 import { scoreResponse } from "./response-processing";
-import { applyCorrectResponseOverrides, executeResponseProcessing, executeTemplateProcessing, mulberry32 } from "./rp";
+import {
+  applyCorrectResponseOverrides,
+  applyTemplateDefaultOverrides,
+  executeResponseProcessing,
+  executeTemplateProcessing,
+  mulberry32,
+} from "./rp";
 import type {
   CustomOperatorImplementation,
   OutcomeDeclarationView,
@@ -57,6 +63,12 @@ export interface AttemptStoreOptions {
   readonly normalization?: ResponseNormalization | undefined;
   readonly templateDeclarations?: readonly TemplateDeclarationView[] | undefined;
   readonly templateProcessing?: TemplateProcessingView | undefined;
+  /**
+   * Test-level `templateDefault` values (§5.152) overriding the template
+   * declarations' defaults for this clone; the test session store supplies them from
+   * the controller's recorded `templateDefaultValues`.
+   */
+  readonly templateDefaultValues?: Readonly<Record<string, OutcomeValue>> | undefined;
   /** Clone seed for template processing; store it to replay the same clone. */
   readonly seed?: number | undefined;
   /** QTI adaptive item: multiple attempts, outcome carry-over, completionStatus lock. */
@@ -96,9 +108,13 @@ export function createAttemptStore(
   options?: AttemptStoreOptions,
 ): AttemptStore {
   const seed = options?.seed ?? Math.floor(Math.random() * 2 ** 31);
+  // Test-level templateDefault values replace the declared defaults for this clone.
+  const templateDeclarations = options?.templateDefaultValues
+    ? applyTemplateDefaultOverrides(options.templateDeclarations ?? [], options.templateDefaultValues)
+    : (options?.templateDeclarations ?? []);
   const templateResult = options?.templateProcessing
     ? executeTemplateProcessing(options.templateProcessing, {
-        templateDeclarations: options.templateDeclarations ?? [],
+        templateDeclarations,
         responseDeclarations: declarations,
         seed,
         customOperators: options.customOperators,
@@ -166,7 +182,7 @@ export function createAttemptStore(
       outcomeDeclarations: options.outcomeDeclarations ?? [],
       responses,
       normalization: options.normalization,
-      templateDeclarations: options.templateDeclarations,
+      templateDeclarations,
       templateValues: snapshot.templateValues,
       priorOutcomes,
       random: rpRandom,

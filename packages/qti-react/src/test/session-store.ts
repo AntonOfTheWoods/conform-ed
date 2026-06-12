@@ -197,6 +197,8 @@ export function createTestSessionStore(controller: TestController, options: Test
         seed: deriveItemSeed(options.seed, itemKey),
         normalization: options.normalization,
         customOperators: options.customOperators,
+        // Test-level templateDefault values recorded by the controller (§5.152).
+        templateDefaultValues: state.templateDefaultValues?.[itemKey],
       },
     );
 
