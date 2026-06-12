@@ -7,8 +7,10 @@
  *   registry.registerModule("math-entry", mathEntryModule);
  */
 
+import type { PciModule } from "@conform-ed/qti-react";
+
 import { mathLiveInput } from "./mathlive-input";
 import { createMathEntryModule } from "./module";
 
-export const mathEntryModule = createMathEntryModule(mathLiveInput);
+export const mathEntryModule: PciModule = createMathEntryModule(mathLiveInput);
 export { mathEntryTypeIdentifier } from "./module";

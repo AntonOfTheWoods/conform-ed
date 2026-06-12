@@ -545,7 +545,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           if (testRequest["__wrapped"]) return;
           testRequest["__wrapped"] = true;
           const oauthSettings = getOAuthSettings();
-          const requestOptions = testRequest["_options"] as { oauth?: OAuthOptions } | undefined;
+          const requestOptions = testRequest["_options"] as { oauth?: OAuthOptions | undefined } | undefined;
           if (requestOptions) requestOptions.oauth = oauthSettings;
           for (const i in testRequest) {
             (function (methodName) {
@@ -555,7 +555,9 @@ function createHelperTransportSupport(context: HelperTransportContext) {
               testRequest[methodName] = function () {
                 const nextTest = preAuthMethod.apply(testRequest, arguments as unknown as []);
                 const wrappedNextTest = nextTest as AnyRecord | undefined;
-                const wrappedOptions = wrappedNextTest?.["_options"] as { oauth?: OAuthOptions } | undefined;
+                const wrappedOptions = wrappedNextTest?.["_options"] as
+                  | { oauth?: OAuthOptions | undefined }
+                  | undefined;
                 if (wrappedNextTest && wrappedOptions && !wrappedOptions.oauth) {
                   wrappedOptions.oauth = getOAuthSettings();
                   wrapMethods(wrappedNextTest);

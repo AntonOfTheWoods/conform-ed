@@ -110,7 +110,7 @@ function uniqueIdentifiersRefinement(
 function validateDeclaredValues(
   cardinality: z.infer<typeof QtiCardinalitySchema>,
   baseType: z.infer<typeof QtiBaseTypeSchema> | undefined,
-  values: Array<{ fieldIdentifier?: string }>,
+  values: Array<{ fieldIdentifier?: string | undefined }>,
   path: Array<string | number>,
   context: z.RefinementCtx,
 ) {

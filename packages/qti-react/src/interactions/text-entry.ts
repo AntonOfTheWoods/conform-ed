@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const textEntryInteractionNodeSchema = z.object({
@@ -11,7 +11,7 @@ const textEntryInteractionNodeSchema = z.object({
   patternMask: z.string().optional(),
 });
 
-export const textEntryInteraction = defineInteraction({
+export const textEntryInteraction: InteractionDescriptor<"textEntryInteraction"> = defineInteraction({
   kind: "textEntryInteraction",
   schema: textEntryInteractionNodeSchema,
   scoring: "qti-standard",

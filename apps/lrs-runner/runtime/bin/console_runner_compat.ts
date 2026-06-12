@@ -19,7 +19,7 @@ type CleanLogRecord = {
   requirement: string;
   log: string;
   status: string;
-  error?: string;
+  error?: string | undefined;
   tests: CleanLogRecord[];
 };
 
@@ -38,9 +38,9 @@ type CleanRunRecord = {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string;
+    version?: string | undefined;
   };
-  log?: CleanLogRecord;
+  log?: CleanLogRecord | undefined;
 };
 
 type RunnerInstance = {
@@ -53,7 +53,7 @@ type RunnerInstance = {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string;
+    version?: string | undefined;
   };
   uuid: string;
 };
@@ -61,9 +61,9 @@ type RunnerInstance = {
 type OAuthConfig = {
   auth_token_path: string;
   authorization_path: string;
-  consumer_key?: string;
-  consumer_secret?: string;
-  endpoint?: string;
+  consumer_key?: string | undefined;
+  consumer_secret?: string | undefined;
+  endpoint?: string | undefined;
   request_token_path: string;
 };
 
@@ -183,7 +183,6 @@ function start(runnerOptions: Record<string, unknown>): void {
       fs.mkdir(outDir, { mode: 0o775 }, function () {
         if (!testRunner) {
           process.exit(1);
-          return;
         }
 
         const outPath = path.join(outDir, testRunner.uuid + ".log");
@@ -191,7 +190,6 @@ function start(runnerOptions: Record<string, unknown>): void {
           if (error) {
             console.log(error);
             process.exit(1);
-            return;
           }
 
           console.log("Full run log written to", outPath);

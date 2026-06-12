@@ -73,7 +73,7 @@ export type ValidateCmi5ConfigResult =
       valid: false;
       code: RunCmi5Failure["code"];
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 async function readConfig(configPath: string): Promise<unknown> {
@@ -143,7 +143,7 @@ function findOptionalOperationPath(
 }
 
 async function callAdapterOperation(
-  operationName: string,
+  _operationName: string,
   path: string,
   baseUrl: string,
   token: string | null,

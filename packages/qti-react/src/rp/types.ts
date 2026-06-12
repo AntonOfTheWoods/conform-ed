@@ -17,14 +17,14 @@ export type OutcomeValue = RpScalar | readonly RpScalar[] | null;
 /** One named member of a record-cardinality value (QTI record containers). */
 export interface RpRecordField {
   readonly name: string;
-  readonly baseType?: string;
+  readonly baseType?: string | undefined;
   readonly value: RpScalar;
 }
 
 /** The interpreter's typed value model: (baseType, cardinality, members); NULL is null. */
 export interface RpValue {
   readonly cardinality: Cardinality;
-  readonly baseType?: string;
+  readonly baseType?: string | undefined;
   readonly values: readonly RpScalar[];
   /** Present only when cardinality is "record"; `values` mirrors the field values. */
   readonly fields?: readonly RpRecordField[];
@@ -35,7 +35,7 @@ export type MaybeRpValue = RpValue | null;
 export interface OutcomeDeclarationView {
   readonly identifier: string;
   readonly cardinality: Cardinality;
-  readonly baseType?: string;
+  readonly baseType?: string | undefined;
   readonly defaultValue?: { readonly values: ReadonlyArray<{ readonly value: RpScalar }> };
 }
 
@@ -46,7 +46,7 @@ export interface OutcomeDeclarationView {
 export interface RpExpressionView {
   readonly kind: string;
   readonly identifier?: string;
-  readonly baseType?: string;
+  readonly baseType?: string | undefined;
   readonly value?: RpScalar;
   readonly expressions?: readonly RpExpressionView[];
   /** Bounds/step for the random operators (template processing). */
@@ -130,7 +130,7 @@ export type ResponseNormalization = (value: string, declaration?: ResponseDeclar
 export interface TemplateDeclarationView {
   readonly identifier: string;
   readonly cardinality: Cardinality;
-  readonly baseType?: string;
+  readonly baseType?: string | undefined;
   readonly defaultValue?: { readonly values: ReadonlyArray<{ readonly value: RpScalar }> };
 }
 
@@ -138,20 +138,20 @@ export interface ResponseProcessingContext {
   readonly responseDeclarations: readonly ResponseDeclarationView[];
   readonly outcomeDeclarations: readonly OutcomeDeclarationView[];
   readonly responses: Readonly<Record<string, ResponseValue>>;
-  readonly normalization?: ResponseNormalization;
+  readonly normalization?: ResponseNormalization | undefined;
   /** Template variables for this clone (read by `variable` lookups). */
-  readonly templateDeclarations?: readonly TemplateDeclarationView[];
-  readonly templateValues?: Readonly<Record<string, OutcomeValue>>;
+  readonly templateDeclarations?: readonly TemplateDeclarationView[] | undefined;
+  readonly templateValues?: Readonly<Record<string, OutcomeValue>> | undefined;
   /** Adaptive carry-over: outcome values from earlier attempts replace declared defaults. */
-  readonly priorOutcomes?: Readonly<Record<string, OutcomeValue>>;
+  readonly priorOutcomes?: Readonly<Record<string, OutcomeValue>> | undefined;
   /**
    * Random source for `random`/`randomInteger`/`randomFloat` in RP (adaptive items,
    * e.g. Monty Hall door reveals). Seed it from the attempt seed: the seed plus the
    * submission sequence then replays the exact same outcomes (ADR-0004 determinism).
    */
-  readonly random?: () => number;
+  readonly random?: (() => number) | undefined;
   /** Registered vendor `customOperator` implementations by class (opt-in). */
-  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>> | undefined;
 }
 
 export interface ResponseProcessingResult {

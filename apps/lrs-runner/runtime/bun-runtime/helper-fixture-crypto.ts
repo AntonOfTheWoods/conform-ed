@@ -50,14 +50,16 @@ type SignStatementOptions = {
 };
 
 type SignableStatement = AnyRecord & {
-  attachments?: Array<{
-    contentType: string;
-    description?: Record<string, string>;
-    display: Record<string, string>;
-    length: number;
-    sha2: string;
-    usageType: string;
-  }>;
+  attachments?:
+    | Array<{
+        contentType: string;
+        description?: Record<string, string> | undefined;
+        display: Record<string, string>;
+        length: number;
+        sha2: string;
+        usageType: string;
+      }>
+    | undefined;
 };
 
 function createMapping(mapper: JsonMapping, input: string) {

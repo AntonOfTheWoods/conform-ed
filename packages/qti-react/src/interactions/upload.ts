@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const uploadInteractionNodeSchema = z.object({
@@ -9,7 +9,7 @@ const uploadInteractionNodeSchema = z.object({
   type: z.string().optional(),
 });
 
-export const uploadInteraction = defineInteraction({
+export const uploadInteraction: InteractionDescriptor<"uploadInteraction"> = defineInteraction({
   kind: "uploadInteraction",
   schema: uploadInteractionNodeSchema,
   scoring: "qti-standard",

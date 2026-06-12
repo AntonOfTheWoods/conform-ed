@@ -28,7 +28,7 @@ function readString(record: Record<string, unknown>, key: string): string | unde
   return typeof value === "string" ? value : undefined;
 }
 
-function normalizeTextBlock(block: unknown): { langstrings: Array<{ lang?: string; value: string }> } {
+function normalizeTextBlock(block: unknown): { langstrings: Array<{ lang?: string | undefined; value: string }> } {
   const record = (block ?? {}) as Record<string, unknown>;
   return {
     langstrings: asArray(record.langstring as Record<string, unknown> | Array<Record<string, unknown>> | undefined).map(
@@ -92,8 +92,8 @@ function normalizeCourseItem(item: Record<string, unknown>): unknown {
 function normalizeKeywordSet(value: unknown): {
   keywords: Array<{
     id: string;
-    title: { langstrings: Array<{ lang?: string; value: string }> };
-    description?: { langstrings: Array<{ lang?: string; value: string }> };
+    title: { langstrings: Array<{ lang?: string | undefined; value: string }> };
+    description?: { langstrings: Array<{ lang?: string | undefined; value: string }> } | undefined;
   }>;
 } {
   const record = (value ?? {}) as Record<string, unknown>;

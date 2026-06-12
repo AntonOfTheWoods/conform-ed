@@ -6,7 +6,7 @@
 
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const objectSchema = z.object({
@@ -26,7 +26,7 @@ function nullInitial(): ResponseValue {
   return null;
 }
 
-export const hotspotInteraction = defineInteraction({
+export const hotspotInteraction: InteractionDescriptor<"hotspotInteraction"> = defineInteraction({
   kind: "hotspotInteraction",
   schema: z.object({
     kind: z.literal("hotspotInteraction"),
@@ -39,7 +39,7 @@ export const hotspotInteraction = defineInteraction({
   initialResponse: nullInitial,
 });
 
-export const graphicOrderInteraction = defineInteraction({
+export const graphicOrderInteraction: InteractionDescriptor<"graphicOrderInteraction"> = defineInteraction({
   kind: "graphicOrderInteraction",
   schema: z.object({
     kind: z.literal("graphicOrderInteraction"),
@@ -51,7 +51,7 @@ export const graphicOrderInteraction = defineInteraction({
   initialResponse: nullInitial,
 });
 
-export const graphicAssociateInteraction = defineInteraction({
+export const graphicAssociateInteraction: InteractionDescriptor<"graphicAssociateInteraction"> = defineInteraction({
   kind: "graphicAssociateInteraction",
   schema: z.object({
     kind: z.literal("graphicAssociateInteraction"),
@@ -64,7 +64,7 @@ export const graphicAssociateInteraction = defineInteraction({
   initialResponse: nullInitial,
 });
 
-export const graphicGapMatchInteraction = defineInteraction({
+export const graphicGapMatchInteraction: InteractionDescriptor<"graphicGapMatchInteraction"> = defineInteraction({
   kind: "graphicGapMatchInteraction",
   schema: z.object({
     kind: z.literal("graphicGapMatchInteraction"),
@@ -77,7 +77,7 @@ export const graphicGapMatchInteraction = defineInteraction({
   initialResponse: nullInitial,
 });
 
-export const selectPointInteraction = defineInteraction({
+export const selectPointInteraction: InteractionDescriptor<"selectPointInteraction"> = defineInteraction({
   kind: "selectPointInteraction",
   schema: z.object({
     kind: z.literal("selectPointInteraction"),
@@ -90,7 +90,7 @@ export const selectPointInteraction = defineInteraction({
 });
 
 /** The common single-interaction stage; multi-interaction stages fail validation. */
-export const positionObjectStage = defineInteraction({
+export const positionObjectStage: InteractionDescriptor<"positionObjectStage"> = defineInteraction({
   kind: "positionObjectStage",
   schema: z.object({
     kind: z.literal("positionObjectStage"),

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const associateInteractionNodeSchema = z.object({
@@ -12,7 +12,7 @@ const associateInteractionNodeSchema = z.object({
   maxAssociations: z.number().int().optional(),
 });
 
-export const associateInteraction = defineInteraction({
+export const associateInteraction: InteractionDescriptor<"associateInteraction"> = defineInteraction({
   kind: "associateInteraction",
   schema: associateInteractionNodeSchema,
   scoring: "qti-standard",

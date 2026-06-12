@@ -6,12 +6,12 @@ type SupportedSpecVersion = "2.0.0" | "1.0.3";
 
 interface ExportRunConfig {
   baseUrl: string;
-  directory?: string[];
-  file?: string[];
-  grep?: string;
+  directory?: string[] | undefined;
+  file?: string[] | undefined;
+  grep?: string | undefined;
   version: SupportedSpecVersion;
-  username?: string;
-  password?: string;
+  username?: string | undefined;
+  password?: string | undefined;
 }
 
 function parseCsvFlag(args: string[], flag: string): string[] | undefined {

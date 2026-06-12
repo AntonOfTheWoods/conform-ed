@@ -139,7 +139,7 @@ describe("assessmentTestViewFromNormalized", () => {
     expect(refOne).toMatchObject({ kind: "assessmentItemRef", identifier: "ITEM-1", categories: ["easy", "practice"] });
     expect(refTwo).toMatchObject({ kind: "assessmentItemRef", identifier: "ITEM-2" });
 
-    const itemTwo = refTwo as { preConditions?: unknown[]; branchRules?: Array<Record<string, unknown>> };
+    const itemTwo = refTwo as unknown as { preConditions?: unknown[]; branchRules?: Array<Record<string, unknown>> };
     expect(itemTwo.preConditions?.[0]).toEqual({
       kind: "gte",
       expressions: [

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const interactionModuleSchema = z.object({
@@ -32,7 +32,7 @@ const pciNodeSchema = z.object({
  * this descriptor plus a skin from `createPciSkin` (ADR-0003 — the capability gate
  * keeps PCI items undeliverable until then).
  */
-export const portableCustomInteraction = defineInteraction({
+export const portableCustomInteraction: InteractionDescriptor<"portableCustomInteraction"> = defineInteraction({
   kind: "portableCustomInteraction",
   schema: pciNodeSchema,
   scoring: "qti-standard",

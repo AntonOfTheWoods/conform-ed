@@ -50,7 +50,7 @@ export type ValidateLti13ConfigResult =
       valid: false;
       code: RunLti13Failure["code"];
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 type ExecutableOperation = {

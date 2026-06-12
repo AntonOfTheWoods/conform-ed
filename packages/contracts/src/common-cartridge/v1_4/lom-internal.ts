@@ -109,14 +109,16 @@ type LomVocabularySchemaConfig = {
 function createLomProfileSchemas(config: {
   allowExtensions: boolean;
   values: LomVocabularySchemaConfig;
-  requirements?: {
-    requireGeneral?: boolean;
-    requireGeneralTitle?: boolean;
-    requireGeneralKeyword?: boolean;
-    requireEducational?: boolean;
-    requireEducationalIntendedEndUserRole?: boolean;
-    requireEducationalTypicalAgeRange?: boolean;
-  };
+  requirements?:
+    | {
+        requireGeneral?: boolean;
+        requireGeneralTitle?: boolean;
+        requireGeneralKeyword?: boolean;
+        requireEducational?: boolean;
+        requireEducationalIntendedEndUserRole?: boolean;
+        requireEducationalTypicalAgeRange?: boolean;
+      }
+    | undefined;
 }) {
   const object = config.allowExtensions ? looseObject : strictObject;
 

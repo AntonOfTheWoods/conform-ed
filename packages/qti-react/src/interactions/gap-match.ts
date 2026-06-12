@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const gapMatchInteractionNodeSchema = z.object({
@@ -12,7 +12,7 @@ const gapMatchInteractionNodeSchema = z.object({
   content: z.array(z.looseObject({ kind: z.string().min(1) })).min(1),
 });
 
-export const gapMatchInteraction = defineInteraction({
+export const gapMatchInteraction: InteractionDescriptor<"gapMatchInteraction"> = defineInteraction({
   kind: "gapMatchInteraction",
   schema: gapMatchInteractionNodeSchema,
   scoring: "qti-standard",

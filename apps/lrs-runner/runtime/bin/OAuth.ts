@@ -7,9 +7,9 @@ import { serve } from "@hono/node-server";
 type OAuthConfig = {
   auth_token_path: string;
   authorization_path: string;
-  consumer_key?: string;
-  consumer_secret?: string;
-  endpoint?: string;
+  consumer_key?: string | undefined;
+  consumer_secret?: string | undefined;
+  endpoint?: string | undefined;
   request_token_path: string;
 };
 

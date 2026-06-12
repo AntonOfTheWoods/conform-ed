@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const orderInteractionNodeSchema = z.object({
@@ -11,7 +11,7 @@ const orderInteractionNodeSchema = z.object({
   orientation: z.enum(["horizontal", "vertical"]).optional(),
 });
 
-export const orderInteraction = defineInteraction({
+export const orderInteraction: InteractionDescriptor<"orderInteraction"> = defineInteraction({
   kind: "orderInteraction",
   schema: orderInteractionNodeSchema,
   scoring: "qti-standard",

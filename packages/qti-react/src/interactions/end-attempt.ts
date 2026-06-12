@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const endAttemptInteractionNodeSchema = z.object({
@@ -9,7 +9,7 @@ const endAttemptInteractionNodeSchema = z.object({
   title: z.string().min(1),
 });
 
-export const endAttemptInteraction = defineInteraction({
+export const endAttemptInteraction: InteractionDescriptor<"endAttemptInteraction"> = defineInteraction({
   kind: "endAttemptInteraction",
   schema: endAttemptInteractionNodeSchema,
   scoring: "qti-standard",

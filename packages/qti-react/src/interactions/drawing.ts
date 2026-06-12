@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const drawingInteractionNodeSchema = z.object({
@@ -14,7 +14,7 @@ const drawingInteractionNodeSchema = z.object({
   }),
 });
 
-export const drawingInteraction = defineInteraction({
+export const drawingInteraction: InteractionDescriptor<"drawingInteraction"> = defineInteraction({
   kind: "drawingInteraction",
   schema: drawingInteractionNodeSchema,
   scoring: "qti-standard",

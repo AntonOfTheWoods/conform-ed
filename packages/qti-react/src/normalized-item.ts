@@ -266,7 +266,7 @@ function convertExpression(expression: unknown): RpExpressionView {
   return {
     ...rest,
     ...(Array.isArray(children) ? { expressions: children.map(convertExpression) } : {}),
-  } as RpExpressionView;
+  } as unknown as RpExpressionView;
 }
 
 function convertBranch(branch: unknown, convertRule: (rule: unknown) => Record<string, unknown>) {
@@ -472,7 +472,9 @@ function convertItemRef(ref: Record<string, unknown>): AssessmentItemRefView {
     ...(typeof ref["required"] === "boolean" ? { required: ref["required"] } : {}),
     ...(ref["preConditions"] !== undefined ? { preConditions: convertPreConditions(ref["preConditions"]) } : {}),
     ...(ref["branchRules"] !== undefined ? { branchRules: convertBranchRules(ref["branchRules"]) } : {}),
-    ...(Array.isArray(ref["weights"]) ? { weights: ref["weights"] as AssessmentItemRefView["weights"] } : {}),
+    ...(Array.isArray(ref["weights"])
+      ? { weights: ref["weights"] as NonNullable<AssessmentItemRefView["weights"]> }
+      : {}),
     ...sessionControlAndTimeLimits(ref),
   };
 }
@@ -493,10 +495,10 @@ function convertSection(section: Record<string, unknown>): AssessmentSectionView
     ...(typeof section["fixed"] === "boolean" ? { fixed: section["fixed"] } : {}),
     ...(typeof section["required"] === "boolean" ? { required: section["required"] } : {}),
     ...(isRecord(section["selection"])
-      ? { selection: section["selection"] as unknown as AssessmentSectionView["selection"] }
+      ? { selection: section["selection"] as unknown as NonNullable<AssessmentSectionView["selection"]> }
       : {}),
     ...(isRecord(section["ordering"])
-      ? { ordering: section["ordering"] as unknown as AssessmentSectionView["ordering"] }
+      ? { ordering: section["ordering"] as unknown as NonNullable<AssessmentSectionView["ordering"]> }
       : {}),
     ...(section["preConditions"] !== undefined
       ? { preConditions: convertPreConditions(section["preConditions"]) }

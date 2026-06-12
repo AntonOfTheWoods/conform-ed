@@ -27,19 +27,19 @@ export interface EvalEnv {
   readonly lookupVariable: (identifier: string) => MaybeRpValue;
   readonly responseDeclaration: (identifier: string) => ResponseDeclarationView | undefined;
   readonly responseValue: (identifier: string) => ResponseValue;
-  readonly normalization?: ResponseNormalization;
+  readonly normalization?: ResponseNormalization | undefined;
   /** Seeded PRNG in [0, 1); present only in template processing. */
-  readonly random?: () => number;
+  readonly random?: (() => number) | undefined;
   /** `testVariables` aggregation; present only in test-level outcome processing. */
   readonly testVariables?: (expression: RpExpressionView) => MaybeRpValue;
   /** The `number*` item-session aggregates; present only in test-level outcome processing. */
   readonly testAggregate?: (expression: RpExpressionView) => MaybeRpValue;
   /** Registered vendor operators by class; unregistered classes stay unsupported. */
-  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>> | undefined;
 }
 
 /** Expression kinds legal everywhere (deterministic). */
-export const deterministicExpressionKinds = new Set([
+export const deterministicExpressionKinds: ReadonlySet<string> = new Set([
   "and",
   "baseValue",
   "correct",
@@ -86,7 +86,7 @@ export const deterministicExpressionKinds = new Set([
 ]);
 
 /** Expression kinds requiring the seeded PRNG (template processing only). */
-export const randomExpressionKinds = new Set(["random", "randomFloat", "randomInteger"]);
+export const randomExpressionKinds: ReadonlySet<string> = new Set(["random", "randomFloat", "randomInteger"]);
 
 export class RpUnsupportedError extends Error {
   constructor(readonly kindName: string) {

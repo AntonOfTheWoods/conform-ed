@@ -49,12 +49,12 @@ import {
 } from "../../vc-data-model/v2_0/shared";
 
 type ClrSubject = {
-  id?: UriValue;
+  id?: UriValue | undefined;
   type: unknown;
-  identifier?: OneOrManyValue<Record<string, unknown>>;
-  achievement?: OneOrManyValue<Record<string, unknown>>;
+  identifier?: OneOrManyValue<Record<string, unknown>> | undefined;
+  achievement?: OneOrManyValue<Record<string, unknown>> | undefined;
   verifiableCredential: OneOrManyValue<Record<string, unknown>>;
-  association?: OneOrManyValue<Record<string, unknown>>;
+  association?: OneOrManyValue<Record<string, unknown>> | undefined;
   [key: string]: unknown;
 };
 
@@ -63,22 +63,22 @@ type ClrCredential = {
   type: unknown;
   id: UriValue;
   name: TextValue;
-  description?: TextValue;
-  endorsement?: OneOrManyValue<Record<string, unknown>>;
-  endorsementJwt?: OneOrManyValue<string | Record<string, string>>;
-  image?: Record<string, unknown>;
-  partial?: boolean;
+  description?: TextValue | undefined;
+  endorsement?: OneOrManyValue<Record<string, unknown>> | undefined;
+  endorsementJwt?: OneOrManyValue<string | Record<string, string>> | undefined;
+  image?: Record<string, unknown> | undefined;
+  partial?: boolean | undefined;
   credentialSubject: ClrSubject;
-  awardedDate?: string;
+  awardedDate?: string | undefined;
   issuer: UriValue | Record<string, unknown>;
   validFrom: string;
-  validUntil?: string;
-  proof?: OneOrManyValue<Record<string, unknown>>;
-  credentialSchema?: OneOrManyValue<Record<string, unknown>>;
-  credentialStatus?: Record<string, unknown>;
-  refreshService?: Record<string, unknown>;
-  termsOfUse?: OneOrManyValue<Record<string, unknown>>;
-  evidence?: OneOrManyValue<Record<string, unknown>>;
+  validUntil?: string | undefined;
+  proof?: OneOrManyValue<Record<string, unknown>> | undefined;
+  credentialSchema?: OneOrManyValue<Record<string, unknown>> | undefined;
+  credentialStatus?: Record<string, unknown> | undefined;
+  refreshService?: Record<string, unknown> | undefined;
+  termsOfUse?: OneOrManyValue<Record<string, unknown>> | undefined;
+  evidence?: OneOrManyValue<Record<string, unknown>> | undefined;
   [key: string]: unknown;
 };
 

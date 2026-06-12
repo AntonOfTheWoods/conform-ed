@@ -9,8 +9,8 @@ export interface QtiXmlElementNode {
   type: "element";
   name: string;
   localName: string;
-  prefix?: string;
-  namespaceUri?: string;
+  prefix?: string | undefined;
+  namespaceUri?: string | undefined;
   attributes: Record<string, string>;
   children: QtiXmlNode[];
 }
@@ -28,7 +28,7 @@ const parser = new XMLParser({
   parseAttributeValue: false,
 });
 
-function splitXmlName(name: string): { localName: string; prefix?: string } {
+function splitXmlName(name: string): { localName: string; prefix?: string | undefined } {
   const [prefix, localName] = name.includes(":") ? name.split(":", 2) : [undefined, name];
   return {
     prefix,

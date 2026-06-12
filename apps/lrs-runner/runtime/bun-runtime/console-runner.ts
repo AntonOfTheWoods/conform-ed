@@ -15,7 +15,7 @@ export interface BunConsoleRunnerDependencies {
     error: (...args: unknown[]) => void;
     log: (...args: unknown[]) => void;
   };
-  now?: () => number;
+  now?: (() => number) | undefined;
   runnerMode?: BunConsoleRunnerMode;
   runNativeConsoleRunner?: (options: {
     parsedOptions: ConsoleRunnerOptions;
@@ -25,7 +25,7 @@ export interface BunConsoleRunnerDependencies {
       error: (...args: unknown[]) => void;
       log: (...args: unknown[]) => void;
     };
-    now?: () => number;
+    now?: (() => number) | undefined;
   }) => Promise<number>;
 }
 
@@ -38,7 +38,7 @@ export interface BunConsoleRunnerExecution {
 }
 
 export function startNativeSummaryHeartbeat(options: {
-  getSummary: () => { failed: number; passed: number; total: number; version?: string } | undefined;
+  getSummary: () => { failed: number; passed: number; total: number; version?: string | undefined } | undefined;
   emit?: (message: string) => void;
   intervalMs?: number;
   logger: {
@@ -132,17 +132,17 @@ function readLegacyVersionNumber(runtimeRoot: string): string {
 }
 
 function buildRuntimeRecordFlags(
-  parsedOptions: ConsoleRunnerOptions,
+  _parsedOptions: ConsoleRunnerOptions,
   normalizedOptions: NormalizedRunnerOptions,
 ): {
-  endpoint?: string;
-  basicAuth?: boolean;
-  authUser?: string;
-  oAuth1?: boolean;
-  consumer_key?: string;
-  grep?: string;
-  optional?: string[];
-  file?: string[];
+  endpoint?: string | undefined;
+  basicAuth?: boolean | undefined;
+  authUser?: string | undefined;
+  oAuth1?: boolean | undefined;
+  consumer_key?: string | undefined;
+  grep?: string | undefined;
+  optional?: string[] | undefined;
+  file?: string[] | undefined;
 } {
   return {
     endpoint: normalizedOptions.endpoint,
@@ -182,7 +182,7 @@ async function defaultRunNativeConsoleRunner(options: {
     error: (...args: unknown[]) => void;
     log: (...args: unknown[]) => void;
   };
-  now?: () => number;
+  now?: (() => number) | undefined;
 }): Promise<number> {
   const restoreRunnerEnvironment = installRunnerEnvironment(options.normalizedOptions);
   const writeRawStdout = process.stdout.write.bind(process.stdout);

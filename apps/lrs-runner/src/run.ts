@@ -4,12 +4,12 @@ export type LrsSpecVersion = "1.0.3" | "2.0.0";
 
 export interface LrsRunConfig {
   baseUrl: string;
-  directory?: string[];
-  file?: string[];
-  grep?: string;
-  password?: string;
-  timeoutMs?: number;
-  username?: string;
+  directory?: string[] | undefined;
+  file?: string[] | undefined;
+  grep?: string | undefined;
+  password?: string | undefined;
+  timeoutMs?: number | undefined;
+  username?: string | undefined;
   version: LrsSpecVersion;
 }
 

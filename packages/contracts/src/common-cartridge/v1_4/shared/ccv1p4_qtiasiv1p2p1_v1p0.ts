@@ -384,9 +384,11 @@ type QtiMetadataLike = {
 };
 
 type QtiItemMetadataLike = {
-  itemmetadata?: {
-    qtimetadata?: QtiMetadataLike[];
-  };
+  itemmetadata?:
+    | {
+        qtimetadata?: QtiMetadataLike[] | undefined;
+      }
+    | undefined;
 };
 
 type QtiRenderLike = {

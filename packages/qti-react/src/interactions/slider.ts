@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const sliderInteractionNodeSchema = z.object({
@@ -14,7 +14,7 @@ const sliderInteractionNodeSchema = z.object({
   reverse: z.boolean().optional(),
 });
 
-export const sliderInteraction = defineInteraction({
+export const sliderInteraction: InteractionDescriptor<"sliderInteraction"> = defineInteraction({
   kind: "sliderInteraction",
   schema: sliderInteractionNodeSchema,
   scoring: "qti-standard",

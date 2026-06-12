@@ -7,7 +7,7 @@ export interface RuntimeNodeBase {
   name: string;
   requirement: string;
   status: RuntimeStatus;
-  error?: string;
+  error?: string | undefined;
   log: string[];
 }
 
@@ -29,7 +29,7 @@ export interface RuntimeRunSummary {
   failed: number;
   skipped: number;
   cancelled: number;
-  version?: string;
+  version?: string | undefined;
 }
 
 export interface RuntimeRunResult {
@@ -43,10 +43,10 @@ export interface RuntimeRunResult {
 
 export interface DescribeRuntimeOptions {
   rootTitle: string;
-  version?: string;
-  bail?: boolean;
-  grep?: RegExp;
-  now?: () => number;
+  version?: string | undefined;
+  bail?: boolean | undefined;
+  grep?: RegExp | undefined;
+  now?: (() => number) | undefined;
 }
 
 export type DoneCallback = (error?: unknown, ...ignored: unknown[]) => void;
@@ -70,7 +70,7 @@ interface SuiteDefinition {
 interface CaseDefinition {
   kind: "case";
   title: string;
-  fn?: Runnable;
+  fn?: Runnable | undefined;
 }
 
 type DefinitionNode = SuiteDefinition | CaseDefinition;
@@ -84,7 +84,7 @@ interface ExecutionState {
   summary: RuntimeRunSummary;
   cancelRemaining: boolean;
   bail: boolean;
-  grep?: RegExp;
+  grep?: RegExp | undefined;
 }
 
 export interface DescribeRuntime {
@@ -108,14 +108,20 @@ type RuntimeGlobalState = ExecutionSuiteGlobals & {
 };
 
 type ExecutionSuiteGlobals = typeof globalThis & {
-  before?: {
-    (title: string, fn: Runnable): void;
-    (fn: Runnable): void;
-  };
-  context?: ((title: string, build: SuiteBuilder) => void) & { skip?: (title: string, build: SuiteBuilder) => void };
-  describe?: ((title: string, build: SuiteBuilder) => void) & { skip?: (title: string, build: SuiteBuilder) => void };
-  it?: ((title: string, fn?: Runnable) => void) & { skip?: (title: string, fn?: Runnable) => void };
-  specify?: ((title: string, fn?: Runnable) => void) & { skip?: (title: string, fn?: Runnable) => void };
+  before?:
+    | {
+        (title: string, fn: Runnable): void;
+        (fn: Runnable): void;
+      }
+    | undefined;
+  context?:
+    | (((title: string, build: SuiteBuilder) => void) & { skip?: (title: string, build: SuiteBuilder) => void })
+    | undefined;
+  describe?:
+    | (((title: string, build: SuiteBuilder) => void) & { skip?: (title: string, build: SuiteBuilder) => void })
+    | undefined;
+  it?: (((title: string, fn?: Runnable) => void) & { skip?: (title: string, fn?: Runnable) => void }) | undefined;
+  specify?: (((title: string, fn?: Runnable) => void) & { skip?: (title: string, fn?: Runnable) => void }) | undefined;
 };
 
 function parseTitleMetadata(title: string): TitleMetadata {

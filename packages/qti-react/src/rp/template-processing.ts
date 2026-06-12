@@ -43,7 +43,7 @@ export interface TemplateProcessingContext {
   readonly responseDeclarations: readonly ResponseDeclarationView[];
   readonly seed: number;
   /** Registered vendor `customOperator` implementations by class (opt-in). */
-  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>> | undefined;
 }
 
 export interface TemplateProcessingResult {

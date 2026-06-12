@@ -44,7 +44,7 @@ type CleanLogRecord = {
   requirement: string;
   log: string;
   status: SuiteStatus;
-  error?: string;
+  error?: string | undefined;
   tests: CleanLogRecord[];
 };
 
@@ -52,13 +52,13 @@ type CleanRunRecord = {
   name: string | null;
   owner: string | null;
   flags: {
-    endpoint?: string;
-    basicAuth?: boolean;
-    authUser?: string;
-    oAuth1?: boolean;
-    consumer_key?: string;
-    grep?: string;
-    optional?: string[];
+    endpoint?: string | undefined;
+    basicAuth?: boolean | undefined;
+    authUser?: string | undefined;
+    oAuth1?: boolean | undefined;
+    consumer_key?: string | undefined;
+    grep?: string | undefined;
+    optional?: string[] | undefined;
   };
   options: RunnerOptions;
   lrsSettingsUUID: string | null;
@@ -72,9 +72,9 @@ type CleanRunRecord = {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string;
+    version?: string | undefined;
   };
-  log?: CleanLogRecord;
+  log?: CleanLogRecord | undefined;
 };
 
 type SpecReference = {
@@ -161,7 +161,7 @@ export class TestRunner extends EventEmitter {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string;
+    version?: string | undefined;
   } = {
     total: null,
     passed: null,

@@ -17,7 +17,7 @@ const runtime = createQtiRuntime({
 function itemWith(content: AssessmentItemView["itemBody"]["content"]): AssessmentItemView {
   return {
     responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "identifier" }],
-    itemBody: { content },
+    itemBody: { ...(content === undefined ? {} : { content }) },
   };
 }
 

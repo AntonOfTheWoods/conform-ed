@@ -128,9 +128,9 @@ function createVariableSuperRefine(valueKey: "values" | "candidateResponse", can
   return (
     value: {
       cardinality: z.infer<typeof QtiCardinalitySchema>;
-      baseType?: z.infer<typeof QtiBaseTypeSchema>;
-      values?: readonly z.infer<typeof QtiResultValueSchema>[];
-      candidateResponse?: { values?: readonly z.infer<typeof QtiResultValueSchema>[] };
+      baseType?: z.infer<typeof QtiBaseTypeSchema> | undefined;
+      values?: readonly z.infer<typeof QtiResultValueSchema>[] | undefined;
+      candidateResponse?: { values?: readonly z.infer<typeof QtiResultValueSchema>[] | undefined } | undefined;
     },
     context: z.RefinementCtx,
   ) => {

@@ -1,14 +1,14 @@
 import type { RuntimeNodeResult, RuntimeRunResult } from "./runtime.ts";
 
 export interface RuntimeRunRecordFlags {
-  endpoint?: string;
-  basicAuth?: boolean;
-  authUser?: string;
-  oAuth1?: boolean;
-  consumer_key?: string;
-  grep?: string;
-  optional?: string[];
-  file?: string[];
+  endpoint?: string | undefined;
+  basicAuth?: boolean | undefined;
+  authUser?: string | undefined;
+  oAuth1?: boolean | undefined;
+  consumer_key?: string | undefined;
+  grep?: string | undefined;
+  optional?: string[] | undefined;
+  file?: string[] | undefined;
 }
 
 export interface RuntimeLogRecord {
@@ -17,7 +17,7 @@ export interface RuntimeLogRecord {
   requirement: string;
   log: string;
   status: string;
-  error?: string;
+  error?: string | undefined;
   tests: RuntimeLogRecord[];
 }
 
@@ -37,12 +37,12 @@ export interface RuntimeRunRecord {
     total: number | null;
     passed: number | null;
     failed: number | null;
-    version?: string;
+    version?: string | undefined;
   };
-  log?: RuntimeLogRecord;
+  log?: RuntimeLogRecord | undefined;
 }
 
-export type SerializableRunRecord = Omit<RuntimeRunRecord, "log"> & { log?: RuntimeLogRecord };
+export type SerializableRunRecord = Omit<RuntimeRunRecord, "log"> & { log?: RuntimeLogRecord | undefined };
 
 function toLogRecord(node: RuntimeNodeResult): RuntimeLogRecord {
   return {

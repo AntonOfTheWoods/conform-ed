@@ -48,7 +48,7 @@ function parseAttributes(rawAttributes: string): Record<string, string> {
   return attributes;
 }
 
-function splitXmlName(name: string): { localName: string; prefix?: string } {
+function splitXmlName(name: string): { localName: string; prefix?: string | undefined } {
   const [prefix, localName] = name.includes(":") ? name.split(":", 2) : [undefined, name];
   return {
     prefix,

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const mediaInteractionNodeSchema = z.object({
@@ -14,7 +14,7 @@ const mediaInteractionNodeSchema = z.object({
   content: z.array(z.looseObject({ kind: z.string().min(1) })).min(1),
 });
 
-export const mediaInteraction = defineInteraction({
+export const mediaInteraction: InteractionDescriptor<"mediaInteraction"> = defineInteraction({
   kind: "mediaInteraction",
   schema: mediaInteractionNodeSchema,
   scoring: "qti-standard",

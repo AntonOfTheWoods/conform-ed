@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defineInteraction } from "../runtime";
+import { defineInteraction, type InteractionDescriptor } from "../runtime";
 import type { ResponseValue } from "../types";
 
 const inlineChoiceInteractionNodeSchema = z.object({
@@ -9,7 +9,7 @@ const inlineChoiceInteractionNodeSchema = z.object({
   inlineChoices: z.array(z.object({ identifier: z.string().min(1) })).min(1),
 });
 
-export const inlineChoiceInteraction = defineInteraction({
+export const inlineChoiceInteraction: InteractionDescriptor<"inlineChoiceInteraction"> = defineInteraction({
   kind: "inlineChoiceInteraction",
   schema: inlineChoiceInteractionNodeSchema,
   scoring: "qti-standard",

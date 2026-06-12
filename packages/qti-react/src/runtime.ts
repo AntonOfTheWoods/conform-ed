@@ -175,9 +175,9 @@ export interface ItemRendererProps {
    * per-mount store; passing one enables review/replay modes (rehydrate a stored,
    * already-submitted attempt) and server-side rendering of submitted states.
    */
-  store?: AttemptStore;
+  store?: AttemptStore | undefined;
   /** Clone seed for template processing; store it to replay the same clone. */
-  seed?: number;
+  seed?: number | undefined;
   // Rendered inside the same runtime context as the item body, after it. Lets a consumer
   // drop controls (a Submit bar, a score panel) that call `useAttempt()` for this item —
   // the attempt store is per-item and scoped to this subtree.
@@ -185,9 +185,9 @@ export interface ItemRendererProps {
 }
 
 export interface ContentRendererProps {
-  nodes?: readonly BodyNode[];
+  nodes?: readonly BodyNode[] | undefined;
   /** Values for printedVariable (and showHide-gated feedback) inside the content. */
-  outcomes?: Readonly<Record<string, OutcomeValue>>;
+  outcomes?: Readonly<Record<string, OutcomeValue>> | undefined;
 }
 
 export interface QtiRuntime {
@@ -437,7 +437,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
   }: {
     feedback: FeedbackView;
     element: "span" | "div";
-    overrides?: NodeOverrides;
+    overrides?: NodeOverrides | undefined;
   }): ReactNode {
     const { store } = useRuntimeContext();
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
@@ -461,7 +461,7 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
   }: {
     view: TemplateContentView;
     element: "span" | "div";
-    overrides?: NodeOverrides;
+    overrides?: NodeOverrides | undefined;
   }): ReactNode {
     const { store } = useRuntimeContext();
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);

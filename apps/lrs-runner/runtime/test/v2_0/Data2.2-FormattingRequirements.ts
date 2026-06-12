@@ -19,10 +19,10 @@ type StatementTemplateBundle = {
 };
 
 type ScoreLike = {
-  max?: number;
-  min?: number;
-  raw?: number;
-  scaled?: number;
+  max?: number | undefined;
+  min?: number | undefined;
+  raw?: number | undefined;
+  scaled?: number | undefined;
 };
 
 type AttachmentLike = {

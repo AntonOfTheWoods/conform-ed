@@ -39,18 +39,18 @@ export interface AttemptSnapshot {
 }
 
 export interface AttemptStoreOptions {
-  readonly outcomeDeclarations?: readonly OutcomeDeclarationView[];
-  readonly responseProcessing?: ResponseProcessingView;
+  readonly outcomeDeclarations?: readonly OutcomeDeclarationView[] | undefined;
+  readonly responseProcessing?: ResponseProcessingView | undefined;
   /** The Response Normalization hook (ADR-0004); applies to scores and outcomes alike. */
-  readonly normalization?: ResponseNormalization;
-  readonly templateDeclarations?: readonly TemplateDeclarationView[];
-  readonly templateProcessing?: TemplateProcessingView;
+  readonly normalization?: ResponseNormalization | undefined;
+  readonly templateDeclarations?: readonly TemplateDeclarationView[] | undefined;
+  readonly templateProcessing?: TemplateProcessingView | undefined;
   /** Clone seed for template processing; store it to replay the same clone. */
-  readonly seed?: number;
+  readonly seed?: number | undefined;
   /** QTI adaptive item: multiple attempts, outcome carry-over, completionStatus lock. */
-  readonly adaptive?: boolean;
+  readonly adaptive?: boolean | undefined;
   /** Registered vendor `customOperator` implementations by class (opt-in). */
-  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
+  readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>> | undefined;
 }
 
 export interface AttemptStore {

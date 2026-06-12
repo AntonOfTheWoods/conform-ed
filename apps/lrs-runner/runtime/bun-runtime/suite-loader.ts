@@ -26,11 +26,11 @@ type SuiteBefore = {
 };
 
 type SuiteGlobalShape = typeof globalThis & {
-  context?: SuiteDescribe;
-  describe?: SuiteDescribe;
-  specify?: SuiteIt;
-  it?: SuiteIt;
-  before?: SuiteBefore;
+  context?: SuiteDescribe | undefined;
+  describe?: SuiteDescribe | undefined;
+  specify?: SuiteIt | undefined;
+  it?: SuiteIt | undefined;
+  before?: SuiteBefore | undefined;
 };
 
 const timeMarginSetupFiles = new Set<string>([

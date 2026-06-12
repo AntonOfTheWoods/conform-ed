@@ -110,7 +110,7 @@ export async function mountPci(options: PciMountOptions): Promise<PciMountHandle
       : {}),
     status: "interacting",
     onready: (instance) => resolveReady(instance),
-    ondone: (instance, response, state) => options.ondone?.(pciResponseToValue(response), state),
+    ondone: (_instance, response, state) => options.ondone?.(pciResponseToValue(response), state),
   };
 
   // The spec delivers the instance via onready; implementations commonly also return

@@ -15,7 +15,7 @@ export interface CapabilityIssue {
   /** The interaction kind, element name, or RP rule/operator/template at issue. */
   readonly name: string;
   readonly responseIdentifier?: string;
-  readonly detail?: string;
+  readonly detail?: string | undefined;
 }
 
 export interface CapabilityReport {
