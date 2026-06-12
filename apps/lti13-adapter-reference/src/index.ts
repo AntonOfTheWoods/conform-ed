@@ -10,7 +10,7 @@ import { capabilitiesRoute } from "./routes/capabilities";
 import { healthRoute } from "./routes/health";
 import { profileRoute } from "./routes/profile";
 
-const port = Number(process.env.PORT ?? 4600);
+const port = Number(process.env["PORT"] ?? 4600);
 
 Bun.serve({
   port,

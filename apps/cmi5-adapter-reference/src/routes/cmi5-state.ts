@@ -114,7 +114,7 @@ const waivedRegistrations = new Map<string, WaivedRegistrationRecord>();
 const abandonedSessions = new Map<string, AbandonedSessionRecord>();
 
 function stateFilePath(): string {
-  const configuredPath = process.env.CMI5_STATE_FILE_PATH?.trim();
+  const configuredPath = process.env["CMI5_STATE_FILE_PATH"]?.trim();
   if (configuredPath && configuredPath.length > 0) {
     return resolve(configuredPath);
   }

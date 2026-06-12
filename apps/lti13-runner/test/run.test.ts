@@ -9,7 +9,7 @@ const originalFetch = globalThis.fetch;
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  delete process.env.CONFORM_ED_ADAPTER_TOKEN;
+  delete process.env["CONFORM_ED_ADAPTER_TOKEN"];
 });
 
 async function withTempConfig(config: unknown): Promise<{ configPath: string; cleanup: () => Promise<void> }> {
@@ -132,7 +132,7 @@ test("runLti13 returns error when bearer token env var is unset", async () => {
 });
 
 test("runLti13 returns execution_passed when capabilities, profile, and operations are compatible", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
   const fixture = await withTempConfig(baseConfig());
 
   mockFetch(async (input) => {
@@ -160,7 +160,7 @@ test("runLti13 returns execution_passed when capabilities, profile, and operatio
 });
 
 test("runLti13 returns lti_operation_failed when an operation endpoint fails", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
   const fixture = await withTempConfig(baseConfig());
 
   mockFetch(async (input) => {
@@ -191,7 +191,7 @@ test("runLti13 returns lti_operation_failed when an operation endpoint fails", a
 });
 
 test("runLti13 returns error when capabilities are missing required operation", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
   const fixture = await withTempConfig(baseConfig());
 
   mockFetch(async (input) => {
@@ -217,7 +217,7 @@ test("runLti13 returns error when capabilities are missing required operation", 
 });
 
 test("validateLti13Config returns valid true when matrix execution passes", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
   const fixture = await withTempConfig(baseConfig());
 
   mockFetch(async (input) => {
@@ -241,7 +241,7 @@ test("validateLti13Config returns valid true when matrix execution passes", asyn
 });
 
 test("validateLti13Config returns valid false when compatibility checks fail", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
   const fixture = await withTempConfig(baseConfig());
 
   mockFetch(async () =>

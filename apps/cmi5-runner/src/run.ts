@@ -153,7 +153,7 @@ async function callAdapterOperation(
   };
 
   if (token) {
-    headers.authorization = `Bearer ${token}`;
+    headers["authorization"] = `Bearer ${token}`;
   }
 
   return fetch(new URL(path, baseUrl), {
@@ -163,13 +163,43 @@ async function callAdapterOperation(
   });
 }
 
-async function parseObjectResponse(response: Response): Promise<Record<string, unknown> | null> {
+/**
+ * Structural views of the cmi5 adapter-protocol JSON the runner reads.
+ * Payloads arrive as raw JSON, so each declared field stays `unknown` until
+ * narrowed at its use site; undeclared extras flow through the index
+ * signature. The declared names are the protocol vocabulary.
+ */
+type AdapterResponseView = {
+  registrationId?: unknown;
+  sessionId?: unknown;
+  contextTemplate?: unknown;
+  actor?: unknown;
+  statements?: unknown;
+  lifecycle?: unknown;
+  alreadyWaived?: unknown;
+  waivedRegistration?: unknown;
+  loaded?: unknown;
+  [key: string]: unknown;
+};
+
+type ContextTemplateView = {
+  extensions?: unknown;
+  contextActivities?: unknown;
+  [key: string]: unknown;
+};
+
+type ContextActivitiesView = { grouping?: unknown; [key: string]: unknown };
+type ActorView = { account?: unknown; [key: string]: unknown };
+type LifecycleView = { terminated?: unknown; moveOnSatisfied?: unknown; [key: string]: unknown };
+type StatementView = { verb?: unknown; [key: string]: unknown };
+
+async function parseObjectResponse(response: Response): Promise<AdapterResponseView | null> {
   try {
     const parsed = (await response.json()) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return null;
     }
-    return parsed as Record<string, unknown>;
+    return parsed as AdapterResponseView;
   } catch {
     return null;
   }
@@ -532,11 +562,10 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     ]);
   }
 
-  const suiteConfigPackageBase64 =
-    typeof config.suiteConfig.packageBase64 === "string" ? config.suiteConfig.packageBase64 : null;
+  const suiteConfig = config.suiteConfig as { packageBase64?: unknown; packageId?: unknown };
+  const suiteConfigPackageBase64 = typeof suiteConfig.packageBase64 === "string" ? suiteConfig.packageBase64 : null;
   const packageBase64 = suiteConfigPackageBase64 ?? defaultPackageFixtureBase64();
-  const packageIdFromConfig =
-    typeof config.suiteConfig.packageId === "string" ? config.suiteConfig.packageId.trim() : "";
+  const packageIdFromConfig = typeof suiteConfig.packageId === "string" ? suiteConfig.packageId.trim() : "";
   importedPackageId = packageIdFromConfig.length > 0 ? packageIdFromConfig : importedPackageId;
 
   const importResponse = await callAdapterOperation(packageImportPath, adapter.baseUrl, token, {
@@ -612,7 +641,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     const contextTemplateValue = initialLaunchBody.contextTemplate;
     const contextTemplate =
       contextTemplateValue && typeof contextTemplateValue === "object" && !Array.isArray(contextTemplateValue)
-        ? (contextTemplateValue as Record<string, unknown>)
+        ? (contextTemplateValue as ContextTemplateView)
         : null;
     const contextExtensionsValue = contextTemplate?.extensions;
     const contextExtensions =
@@ -628,7 +657,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     const contextActivitiesValue = contextTemplate?.contextActivities;
     const contextActivities =
       contextActivitiesValue && typeof contextActivitiesValue === "object" && !Array.isArray(contextActivitiesValue)
-        ? (contextActivitiesValue as Record<string, unknown>)
+        ? (contextActivitiesValue as ContextActivitiesView)
         : null;
     const groupingValue = contextActivities?.grouping;
     const grouping = Array.isArray(groupingValue) ? groupingValue : null;
@@ -674,9 +703,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
 
     const actorValue = initialLaunchBody.actor;
     const actor =
-      actorValue && typeof actorValue === "object" && !Array.isArray(actorValue)
-        ? (actorValue as Record<string, unknown>)
-        : null;
+      actorValue && typeof actorValue === "object" && !Array.isArray(actorValue) ? (actorValue as ActorView) : null;
     const accountValue = actor?.account;
     const account =
       accountValue && typeof accountValue === "object" && !Array.isArray(accountValue)
@@ -827,7 +854,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
         const launchDataContextValue = launchDataBody?.contextTemplate;
         const launchDataContext =
           launchDataContextValue && typeof launchDataContextValue === "object" && !Array.isArray(launchDataContextValue)
-            ? (launchDataContextValue as Record<string, unknown>)
+            ? (launchDataContextValue as ContextTemplateView)
             : null;
         const launchDataContextRegistration = launchDataContext
           ? readStringField(launchDataContext, "registration")
@@ -1185,7 +1212,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
           : [];
         const verbs = statements
           .map((statement) => {
-            const value = (statement as Record<string, unknown>).verb;
+            const value = (statement as StatementView).verb;
             return typeof value === "string" ? value : null;
           })
           .filter((value): value is string => value !== null);
@@ -1194,7 +1221,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
         const lifecycleValue = getBody?.lifecycle;
         const lifecycle =
           lifecycleValue && typeof lifecycleValue === "object" && !Array.isArray(lifecycleValue)
-            ? (lifecycleValue as Record<string, unknown>)
+            ? (lifecycleValue as LifecycleView)
             : null;
         const lifecycleTerminated = lifecycle?.terminated === true;
         const lifecycleMoveOnSatisfied = lifecycle?.moveOnSatisfied === true;
@@ -1258,7 +1285,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       const matrixActorValue = matrixBody?.actor;
       const matrixActor =
         matrixActorValue && typeof matrixActorValue === "object" && !Array.isArray(matrixActorValue)
-          ? (matrixActorValue as Record<string, unknown>)
+          ? (matrixActorValue as ActorView)
           : null;
       const matrixAccountValue = matrixActor?.account;
       const matrixAccount =
@@ -1350,7 +1377,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       const contextTemplateValue = matrixBody?.contextTemplate;
       const contextTemplate =
         contextTemplateValue && typeof contextTemplateValue === "object" && !Array.isArray(contextTemplateValue)
-          ? (contextTemplateValue as Record<string, unknown>)
+          ? (contextTemplateValue as ContextTemplateView)
           : null;
       const contextExtensionsValue = contextTemplate?.extensions;
       const contextExtensions =
@@ -1423,7 +1450,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
         contextTemplateMatrixValue &&
         typeof contextTemplateMatrixValue === "object" &&
         !Array.isArray(contextTemplateMatrixValue)
-          ? (contextTemplateMatrixValue as Record<string, unknown>)
+          ? (contextTemplateMatrixValue as ContextTemplateView)
           : null;
       const matrixExtensionsValue = contextTemplateMatrix?.extensions;
       const matrixExtensions =
@@ -1433,7 +1460,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
       const matrixActivitiesValue = contextTemplateMatrix?.contextActivities;
       const matrixActivities =
         matrixActivitiesValue && typeof matrixActivitiesValue === "object" && !Array.isArray(matrixActivitiesValue)
-          ? (matrixActivitiesValue as Record<string, unknown>)
+          ? (matrixActivitiesValue as ContextActivitiesView)
           : null;
       const matrixGroupingValue = matrixActivities?.grouping;
       const matrixGrouping = Array.isArray(matrixGroupingValue) ? matrixGroupingValue : null;
@@ -1489,7 +1516,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
         matrixContextTemplateValue &&
         typeof matrixContextTemplateValue === "object" &&
         !Array.isArray(matrixContextTemplateValue)
-          ? (matrixContextTemplateValue as Record<string, unknown>)
+          ? (matrixContextTemplateValue as ContextTemplateView)
           : null;
       const matrixContextExtensionsValue = matrixContextTemplate?.extensions;
       const matrixContextExtensions =
@@ -2238,7 +2265,7 @@ export async function runCmi5(configPath: string): Promise<RunCmi5Result> {
     },
     runner: {
       version: cmi5RunnerVersion,
-      revision: process.env.CONFORM_ED_RUNNER_REVISION?.trim() || "local",
+      revision: process.env["CONFORM_ED_RUNNER_REVISION"]?.trim() || "local",
     },
   });
 

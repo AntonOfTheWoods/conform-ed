@@ -44,10 +44,10 @@ async function withEnv(
 }
 
 afterEach(() => {
-  delete process.env.ADAPTER_AUTH_REQUIRED;
-  delete process.env.ADAPTER_AUTH_TOKEN;
-  delete process.env.ADAPTER_AUTH_TOKEN_NEXT;
-  delete process.env.ADAPTER_AUTH_TOKENS;
+  delete process.env["ADAPTER_AUTH_REQUIRED"];
+  delete process.env["ADAPTER_AUTH_TOKEN"];
+  delete process.env["ADAPTER_AUTH_TOKEN_NEXT"];
+  delete process.env["ADAPTER_AUTH_TOKENS"];
 });
 
 test("auth bypass works when explicitly disabled", async () => {

@@ -12,7 +12,7 @@ import { fixturesProvisionRoute } from "./routes/fixtures-provision";
 import { healthRoute } from "./routes/health";
 import { profileRoute } from "./routes/profile";
 
-const port = Number(process.env.PORT ?? 4500);
+const port = Number(process.env["PORT"] ?? 4500);
 
 Bun.serve({
   port,

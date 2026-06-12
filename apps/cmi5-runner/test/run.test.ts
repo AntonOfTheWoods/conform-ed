@@ -10,7 +10,7 @@ const originalFetch = globalThis.fetch;
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  delete process.env.CONFORM_ED_ADAPTER_TOKEN;
+  delete process.env["CONFORM_ED_ADAPTER_TOKEN"];
 });
 
 async function withTempConfig(config: unknown): Promise<{ configPath: string; cleanup: () => Promise<void> }> {
@@ -33,7 +33,34 @@ function mockFetch(handler: FetchMock): void {
   globalThis.fetch = handler as typeof globalThis.fetch;
 }
 
-function parseJsonBody(init?: RequestInit): Record<string, unknown> {
+/**
+ * The cmi5 adapter-protocol request fields the mock LMS validates. Bodies are
+ * raw JSON, so each field stays `unknown` until narrowed; extras flow through
+ * the index signature.
+ */
+type AdapterRequestView = {
+  launchId?: unknown;
+  registrationId?: unknown;
+  learnerId?: unknown;
+  launchMode?: unknown;
+  moveOn?: unknown;
+  masteryScore?: unknown;
+  launchParameters?: unknown;
+  activityId?: unknown;
+  entitlementKey?: unknown;
+  sessionId?: unknown;
+  packageId?: unknown;
+  packageBase64?: unknown;
+  verb?: unknown;
+  [key: string]: unknown;
+};
+
+/** The adapter package-upload payload: a manifest plus its AUs. */
+type PackageUploadView = { manifest?: unknown; aus?: unknown; [key: string]: unknown };
+type ManifestView = { identifier?: unknown; title?: unknown; version?: unknown; [key: string]: unknown };
+type AuView = { id?: unknown; launchUrl?: unknown; moveOn?: unknown; [key: string]: unknown };
+
+function parseJsonBody(init?: RequestInit): AdapterRequestView {
   if (!init || typeof init.body !== "string") {
     return {};
   }
@@ -106,7 +133,7 @@ function mockCompatibleAdapter(): void {
       return init.headers.get("authorization");
     }
     if (init?.headers && "authorization" in init.headers) {
-      return String(init.headers.authorization);
+      return String(init.headers["authorization"]);
     }
     return null;
   }
@@ -260,11 +287,11 @@ function mockCompatibleAdapter(): void {
 
       const packageObject =
         decodedPackage && typeof decodedPackage === "object" && !Array.isArray(decodedPackage)
-          ? (decodedPackage as Record<string, unknown>)
+          ? (decodedPackage as PackageUploadView)
           : null;
       const manifestObject =
         packageObject?.manifest && typeof packageObject.manifest === "object" && !Array.isArray(packageObject.manifest)
-          ? (packageObject.manifest as Record<string, unknown>)
+          ? (packageObject.manifest as ManifestView)
           : null;
       const ausValue = packageObject?.aus;
 
@@ -285,7 +312,7 @@ function mockCompatibleAdapter(): void {
             return false;
           }
 
-          const auRecord = au as Record<string, unknown>;
+          const auRecord = au as AuView;
           if (
             typeof auRecord.id !== "string" ||
             typeof auRecord.launchUrl !== "string" ||
@@ -674,7 +701,7 @@ test("runCmi5 returns error when bearer token env var is unset", async () => {
 });
 
 test("runCmi5 executes the LTS flow and writes artifacts when adapter is compatible", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
 
   const fixture = await withRunnerFixture();
   mockCompatibleAdapter();
@@ -730,7 +757,7 @@ test("runCmi5 executes the LTS flow and writes artifacts when adapter is compati
 });
 
 test("runCmi5 returns error when capabilities are missing required operation", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
 
   const fixture = await withRunnerFixture();
 
@@ -803,7 +830,7 @@ test("runCmi5 returns error when capabilities are missing required operation", a
 });
 
 test("validateCmi5Config returns valid true when preflight passes", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
 
   const fixture = await withRunnerFixture();
   mockCompatibleAdapter();
@@ -815,7 +842,7 @@ test("validateCmi5Config returns valid true when preflight passes", async () => 
 });
 
 test("validateCmi5Config returns valid false when compatibility checks fail", async () => {
-  process.env.CONFORM_ED_ADAPTER_TOKEN = "token-123";
+  process.env["CONFORM_ED_ADAPTER_TOKEN"] = "token-123";
 
   const fixture = await withRunnerFixture();
 

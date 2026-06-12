@@ -1,24 +1,24 @@
 type AuthErrorCode = "adapter_token_missing" | "unauthorized";
 
 function authRequired(): boolean {
-  const raw = process.env.ADAPTER_AUTH_REQUIRED?.trim().toLowerCase();
+  const raw = process.env["ADAPTER_AUTH_REQUIRED"]?.trim().toLowerCase();
   return !(raw === "0" || raw === "false" || raw === "no");
 }
 
 function configuredTokens(): string[] {
   const tokens = new Set<string>();
 
-  const single = process.env.ADAPTER_AUTH_TOKEN?.trim();
+  const single = process.env["ADAPTER_AUTH_TOKEN"]?.trim();
   if (single) {
     tokens.add(single);
   }
 
-  const next = process.env.ADAPTER_AUTH_TOKEN_NEXT?.trim();
+  const next = process.env["ADAPTER_AUTH_TOKEN_NEXT"]?.trim();
   if (next) {
     tokens.add(next);
   }
 
-  const all = process.env.ADAPTER_AUTH_TOKENS;
+  const all = process.env["ADAPTER_AUTH_TOKENS"];
   if (all) {
     for (const token of all.split(",").map((value) => value.trim())) {
       if (token.length > 0) {

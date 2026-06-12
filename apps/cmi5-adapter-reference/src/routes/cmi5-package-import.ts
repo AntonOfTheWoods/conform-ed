@@ -25,16 +25,24 @@ function isBase64Payload(value: string): boolean {
   return value.length > 0 && value.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/u.test(value);
 }
 
-function asObject(value: unknown): Record<string, unknown> | null {
+/**
+ * Pre-validation views of the adapter package-upload payload: declared names
+ * are the protocol vocabulary, every field stays `unknown` until narrowed.
+ */
+type PackageUploadView = { manifest?: unknown; aus?: unknown; [key: string]: unknown };
+type ManifestView = { identifier?: unknown; title?: unknown; version?: unknown; [key: string]: unknown };
+type AuView = { id?: unknown; launchUrl?: unknown; moveOn?: unknown; [key: string]: unknown };
+
+function asObject<View extends Record<string, unknown>>(value: unknown): View | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
 
-  return value as Record<string, unknown>;
+  return value as View;
 }
 
-function readManifest(packageObject: Record<string, unknown>): PackageManifest | null {
-  const manifestObject = asObject(packageObject.manifest);
+function readManifest(packageObject: PackageUploadView): PackageManifest | null {
+  const manifestObject = asObject<ManifestView>(packageObject.manifest);
   if (!manifestObject) {
     return null;
   }
@@ -50,7 +58,7 @@ function readManifest(packageObject: Record<string, unknown>): PackageManifest |
   return { identifier, title, version };
 }
 
-function readAus(packageObject: Record<string, unknown>): PackageAu[] | null {
+function readAus(packageObject: PackageUploadView): PackageAu[] | null {
   const ausValue = packageObject.aus;
   if (!Array.isArray(ausValue) || ausValue.length === 0) {
     return null;
@@ -60,7 +68,7 @@ function readAus(packageObject: Record<string, unknown>): PackageAu[] | null {
   const seenIds = new Set<string>();
 
   for (const auCandidate of ausValue) {
-    const auObject = asObject(auCandidate);
+    const auObject = asObject<AuView>(auCandidate);
     if (!auObject) {
       return null;
     }

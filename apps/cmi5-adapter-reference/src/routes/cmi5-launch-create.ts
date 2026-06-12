@@ -102,8 +102,8 @@ export async function launchCreateRoute(request: Request): Promise<Response> {
   if (hasEntitlementKey && !readNonEmptyString(body, "entitlementKey")) {
     return jsonError(400, "invalid_entitlement_key", "entitlementKey must be a non-empty string when provided.");
   }
-  const launchBaseUrl = process.env.CMI5_LAUNCH_BASE_URL?.trim() || defaultLaunchBaseUrl;
-  const lrsEndpoint = process.env.CMI5_LRS_ENDPOINT?.trim() || defaultLrsEndpoint;
+  const launchBaseUrl = process.env["CMI5_LAUNCH_BASE_URL"]?.trim() || defaultLaunchBaseUrl;
+  const lrsEndpoint = process.env["CMI5_LRS_ENDPOINT"]?.trim() || defaultLrsEndpoint;
   const requestOrigin = new URL(request.url).origin;
   const fetchToken = `fetch-${sessionId}`;
   const fetchUrl = `${requestOrigin}/v1/cmi5/launch/fetch?sessionId=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(fetchToken)}`;

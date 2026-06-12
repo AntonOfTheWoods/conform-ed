@@ -16,9 +16,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.CMI5_FETCH_TOKEN_TTL_SECONDS;
-  delete process.env.CMI5_AUTH_TOKEN_TTL_SECONDS;
-  delete process.env.CMI5_STATE_FILE_PATH;
+  delete process.env["CMI5_FETCH_TOKEN_TTL_SECONDS"];
+  delete process.env["CMI5_AUTH_TOKEN_TTL_SECONDS"];
+  delete process.env["CMI5_STATE_FILE_PATH"];
 });
 
 const VALID_PACKAGE_BASE64 = Buffer.from(
@@ -240,7 +240,7 @@ test("fetch exchanges once and launch-data requires the exchanged auth token", a
 });
 
 test("fetch rejects expired launch token when TTL window is exceeded", async () => {
-  process.env.CMI5_FETCH_TOKEN_TTL_SECONDS = "0";
+  process.env["CMI5_FETCH_TOKEN_TTL_SECONDS"] = "0";
 
   const packageResponse = await packageImportRoute(
     new Request("http://localhost/v1/cmi5/packages/import", {
@@ -266,7 +266,7 @@ test("fetch rejects expired launch token when TTL window is exceeded", async () 
 });
 
 test("launch-data rejects expired auth token when TTL window is exceeded", async () => {
-  process.env.CMI5_AUTH_TOKEN_TTL_SECONDS = "0";
+  process.env["CMI5_AUTH_TOKEN_TTL_SECONDS"] = "0";
 
   const packageResponse = await packageImportRoute(
     new Request("http://localhost/v1/cmi5/packages/import", {
@@ -750,7 +750,7 @@ test("abandon returns conflict when session already abandoned and launch rejects
 });
 
 test("state reload restores waived and abandoned lifecycle state from durable snapshot", async () => {
-  process.env.CMI5_STATE_FILE_PATH = `${process.cwd()}/tmp/agents/cmi5-state-reload.test.json`;
+  process.env["CMI5_STATE_FILE_PATH"] = `${process.cwd()}/tmp/agents/cmi5-state-reload.test.json`;
 
   const packageResponse = await packageImportRoute(
     new Request("http://localhost/v1/cmi5/packages/import", {

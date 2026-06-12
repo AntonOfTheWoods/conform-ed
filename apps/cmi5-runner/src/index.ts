@@ -17,7 +17,7 @@ function configPathArg(): string | null {
     return candidate ?? null;
   }
 
-  const envPath = process.env.CONFORM_ED_CONFIG?.trim();
+  const envPath = process.env["CONFORM_ED_CONFIG"]?.trim();
   return envPath && envPath.length > 0 ? envPath : null;
 }
 
