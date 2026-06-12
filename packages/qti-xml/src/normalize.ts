@@ -1883,6 +1883,15 @@ function normalizeQti301AssessmentItem(root: QtiXmlElementNode) {
             },
           }
         : {}),
+      ...(childElements(root, "qti-assessment-stimulus-ref").length
+        ? {
+            assessmentStimulusRefs: childElements(root, "qti-assessment-stimulus-ref").map((element) => ({
+              identifier: requireAttribute(element, "identifier"),
+              href: requireAttribute(element, "href"),
+              ...optionalString(element.attributes, "title", "title"),
+            })),
+          }
+        : {}),
       ...(childElements(root, "qti-stylesheet").length
         ? { stylesheets: childElements(root, "qti-stylesheet").map((element) => mapV3StyleSheet(element)) }
         : {}),
@@ -1967,6 +1976,25 @@ function normalizeQti301AssessmentTest(root: QtiXmlElementNode) {
   };
 }
 
+function normalizeQti301AssessmentStimulus(root: QtiXmlElementNode) {
+  return {
+    assessmentStimulus: {
+      identifier: requireAttribute(root, "identifier"),
+      title: requireAttribute(root, "title"),
+      ...optionalString(root.attributes, "label", "label"),
+      ...optionalString(root.attributes, "xml:lang", "xmlLang"),
+      ...optionalString(root.attributes, "tool-name", "toolName"),
+      ...optionalString(root.attributes, "tool-version", "toolVersion"),
+      ...(childElements(root, "qti-stylesheet").length
+        ? { stylesheets: childElements(root, "qti-stylesheet").map((element) => mapV3StyleSheet(element)) }
+        : {}),
+      stimulusBody: {
+        content: mapV3ContentFragments(firstChildElement(root, "qti-stimulus-body")?.children ?? []),
+      },
+    },
+  };
+}
+
 function normalizeQti301AssessmentResult(root: QtiXmlElementNode) {
   return {
     assessmentResult: {
@@ -1995,6 +2023,8 @@ export function normalizeQtiDocument(
       return normalizeQti22Manifest(root);
     case "3.0.1:qtiAssessmentItemDocument":
       return normalizeQti301AssessmentItem(root);
+    case "3.0.1:qtiAssessmentStimulusDocument":
+      return normalizeQti301AssessmentStimulus(root);
     case "3.0.1:qtiAssessmentTestDocument":
       return normalizeQti301AssessmentTest(root);
     case "3.0.1:qtiAssessmentResultDocument":

@@ -28,7 +28,7 @@ import type {
   TemplateProcessingView,
   TemplateRuleView,
 } from "./rp";
-import type { AssessmentItemView, BodyNode, FeedbackView } from "./runtime";
+import type { AssessmentItemView, BodyNode, FeedbackView, StimulusContentView } from "./runtime";
 import type {
   AssessmentItemRefView,
   AssessmentSectionView,
@@ -405,8 +405,34 @@ export function assessmentItemViewFromNormalized(document: unknown): AssessmentI
     ...(Array.isArray(item["modalFeedbacks"])
       ? { modalFeedbacks: item["modalFeedbacks"].map(convertContentValue) as unknown as readonly FeedbackView[] }
       : {}),
+    ...(Array.isArray(item["assessmentStimulusRefs"])
+      ? {
+          assessmentStimulusRefs: asRecords(item["assessmentStimulusRefs"]).map((ref) => ({
+            identifier: typeof ref["identifier"] === "string" ? ref["identifier"] : "",
+            href: typeof ref["href"] === "string" ? ref["href"] : "",
+            ...(typeof ref["title"] === "string" ? { title: ref["title"] } : {}),
+          })),
+        }
+      : {}),
     itemBody: { content: content as BodyNode[] },
   };
+}
+
+/**
+ * The renderable body of a normalized AssessmentStimulus document, for
+ * `QtiRuntimeConfig.resolveStimulus`. Returns null for non-stimulus documents.
+ */
+export function stimulusContentFromNormalized(document: unknown): StimulusContentView | null {
+  if (!isRecord(document) || !isRecord(document["assessmentStimulus"])) {
+    return null;
+  }
+
+  const body = isRecord(document["assessmentStimulus"]["stimulusBody"])
+    ? document["assessmentStimulus"]["stimulusBody"]
+    : {};
+  const content = Array.isArray(body["content"]) ? body["content"].map(convertContentEntry) : [];
+
+  return { content: content as BodyNode[] };
 }
 
 // ---------- assessment tests (ADR-0005) ----------

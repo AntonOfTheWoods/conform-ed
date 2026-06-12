@@ -20,6 +20,8 @@ import {
   portableCustomInteraction,
   qtiCoreInteractions,
   referenceSkin,
+  stimulusContentFromNormalized,
+  type StimulusContentView,
 } from "../packages/qti-react/src";
 import { validateQtiXmlFile } from "../packages/qti-xml/src";
 
@@ -46,11 +48,17 @@ interface DeliveryReport {
   readonly entries: readonly DeliveryEntry[];
 }
 
+// Shared stimuli resolve from the corpus itself: hrefs relative to the referencing
+// item's file, against the pre-validated stimulus documents.
+const stimulusByPath = new Map<string, StimulusContentView>();
+let currentItemDir = "";
+
 // The meter measures the stack with PCI enabled (it ships in qti-react; opt-in for
 // consumers because PCI executes item-supplied JavaScript — see src/pci).
 const runtime = createQtiRuntime({
   interactions: [...qtiCoreInteractions, portableCustomInteraction],
   skin: { ...referenceSkin, portableCustomInteraction: createPciSkin({ registry: createPciModuleRegistry() }) },
+  resolveStimulus: (ref) => stimulusByPath.get(path.resolve(currentItemDir, ref.href)) ?? null,
 });
 
 async function walkXmlFiles(rootPath: string): Promise<string[]> {
@@ -81,13 +89,18 @@ function normalizationBlocker(message: string): string {
   return element ? `normalize:<${element}>` : `normalize:${message.slice(0, 80)}`;
 }
 
-async function classify(rootPath: string, filePath: string): Promise<DeliveryEntry | null> {
+function classify(
+  rootPath: string,
+  filePath: string,
+  result: Awaited<ReturnType<typeof validateQtiXmlFile>>,
+): DeliveryEntry | null {
   const relativePath = path.relative(rootPath, filePath).split(path.sep).join("/");
-  const result = await validateQtiXmlFile(filePath);
 
   if (result.rootDetection?.inferredVersion !== "3.0.1") {
     return null;
   }
+
+  currentItemDir = path.dirname(filePath);
 
   const documentType: DocumentType | null =
     result.rootDetection.schemaSelectionKey === "qtiAssessmentItemDocument"
@@ -180,10 +193,24 @@ async function main(): Promise<number> {
   }
 
   const files = await walkXmlFiles(rootPath);
-  const entries: DeliveryEntry[] = [];
+  const results = new Map<string, Awaited<ReturnType<typeof validateQtiXmlFile>>>();
 
   for (const file of files) {
-    const entry = await classify(rootPath, file);
+    results.set(file, await validateQtiXmlFile(file));
+  }
+
+  for (const [file, result] of results) {
+    const stimulus = result.status === "valid" ? stimulusContentFromNormalized(result.normalizedDocument) : null;
+
+    if (stimulus) {
+      stimulusByPath.set(path.resolve(file), stimulus);
+    }
+  }
+
+  const entries: DeliveryEntry[] = [];
+
+  for (const [file, result] of results) {
+    const entry = classify(rootPath, file, result);
 
     if (entry) {
       entries.push(entry);

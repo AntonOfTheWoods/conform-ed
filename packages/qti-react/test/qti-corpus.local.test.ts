@@ -14,10 +14,14 @@ import { fileURLToPath } from "node:url";
 import { validateQtiXmlFile } from "@conform-ed/qti-xml";
 
 import { qtiCoreInteractions } from "../src/interactions";
-import { assessmentItemViewFromNormalized, assessmentTestViewFromNormalized } from "../src/normalized-item";
+import {
+  assessmentItemViewFromNormalized,
+  assessmentTestViewFromNormalized,
+  stimulusContentFromNormalized,
+} from "../src/normalized-item";
 import { createPciModuleRegistry, createPciSkin, portableCustomInteraction } from "../src/pci";
 import { referenceSkin } from "../src/reference-skin";
-import { createQtiRuntime } from "../src/runtime";
+import { createQtiRuntime, type StimulusContentView } from "../src/runtime";
 import { createTestController } from "../src/test";
 
 const corpusRoot = fileURLToPath(new URL("../../../tmp/qti-examples", import.meta.url));
@@ -47,24 +51,44 @@ async function walkXmlFiles(rootPath: string): Promise<string[]> {
 corpusTest(
   "corpus delivery coverage stays at or above the recorded floors",
   async () => {
+    const files = await walkXmlFiles(corpusRoot);
+    const results = new Map<string, Awaited<ReturnType<typeof validateQtiXmlFile>>>();
+
+    for (const file of files) {
+      results.set(file, await validateQtiXmlFile(file));
+    }
+
+    // Shared stimuli resolve from the package itself: hrefs are relative to the
+    // referencing item's file (same model as the delivery meter).
+    const stimulusByPath = new Map<string, StimulusContentView>();
+
+    for (const [file, result] of results) {
+      const stimulus = result.status === "valid" ? stimulusContentFromNormalized(result.normalizedDocument) : null;
+
+      if (stimulus) {
+        stimulusByPath.set(path.resolve(file), stimulus);
+      }
+    }
+
+    let currentItemDir = corpusRoot;
     // PCI enabled, matching the delivery meter (scripts/generate-qti-delivery-report.ts).
     const runtime = createQtiRuntime({
       interactions: [...qtiCoreInteractions, portableCustomInteraction],
       skin: { ...referenceSkin, portableCustomInteraction: createPciSkin({ registry: createPciModuleRegistry() }) },
+      resolveStimulus: (ref) => stimulusByPath.get(path.resolve(currentItemDir, ref.href)) ?? null,
     });
-    const files = await walkXmlFiles(corpusRoot);
     let items = 0;
     let deliverable = 0;
     let tests = 0;
     let deliverableTests = 0;
     const refusals: Array<{ readonly file: string; readonly blockers: readonly string[] }> = [];
 
-    for (const file of files) {
-      const result = await validateQtiXmlFile(file);
-
+    for (const [file, result] of results) {
       if (result.rootDetection?.inferredVersion !== "3.0.1") {
         continue;
       }
+
+      currentItemDir = path.dirname(file);
 
       if (result.rootDetection.schemaSelectionKey === "qtiAssessmentItemDocument") {
         items += 1;

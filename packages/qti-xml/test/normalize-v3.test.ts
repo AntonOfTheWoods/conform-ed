@@ -697,3 +697,44 @@ test("outcome declarations carry lookup tables; stylesheets map on the item", as
   });
   expect(item["stylesheets"]).toEqual([{ href: "style.css", type: "text/css" }]);
 });
+
+test("assessment-stimulus-ref children normalize onto the item", async () => {
+  const item = await normalizeItem(
+    wrapItem(`
+  <qti-assessment-stimulus-ref identifier="STIM-1" href="shared/passage.xml" title="The passage"/>
+  <qti-item-body><p>Body.</p></qti-item-body>`),
+  );
+
+  expect(item["assessmentStimulusRefs"]).toEqual([
+    { identifier: "STIM-1", href: "shared/passage.xml", title: "The passage" },
+  ]);
+});
+
+test("qti-assessment-stimulus documents normalize and validate", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "conform-ed-normalize-v3-"));
+  createdDirectories.push(directory);
+  const filePath = path.join(directory, "stimulus.xml");
+  await writeFile(
+    filePath,
+    `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-stimulus xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="STIM-1" title="The passage">
+  <qti-stimulus-body><p>Read this carefully.</p></qti-stimulus-body>
+</qti-assessment-stimulus>
+`,
+    "utf8",
+  );
+
+  const result = await validateQtiXmlFile(filePath);
+
+  expect(result.issues).toEqual([]);
+  expect(result.status).toBe("valid");
+
+  const document = result.normalizedDocument as { assessmentStimulus: Record<string, unknown> };
+
+  expect(document.assessmentStimulus["identifier"]).toBe("STIM-1");
+  expect(document.assessmentStimulus["title"]).toBe("The passage");
+
+  const body = document.assessmentStimulus["stimulusBody"] as { content: unknown[] };
+
+  expect(body.content.length).toBeGreaterThan(0);
+});

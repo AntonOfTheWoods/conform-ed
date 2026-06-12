@@ -34,6 +34,7 @@ const normalizationImplemented = new Set<string>([
   "2.2:qtiManifestDocument",
   "3.0.1:qtiAssessmentItemDocument",
   "3.0.1:qtiAssessmentResultDocument",
+  "3.0.1:qtiAssessmentStimulusDocument",
   "3.0.1:qtiAssessmentTestDocument",
 ]);
 

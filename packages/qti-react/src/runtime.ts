@@ -69,6 +69,18 @@ export interface FeedbackView {
   content?: readonly BodyNode[];
 }
 
+/** An item's reference to a shared AssessmentStimulus document (§7.6). */
+export interface AssessmentStimulusRefView {
+  readonly identifier: string;
+  readonly href: string;
+  readonly title?: string;
+}
+
+/** The resolved stimulus body, rendered through the same content walk as the item body. */
+export interface StimulusContentView {
+  readonly content: readonly BodyNode[];
+}
+
 export interface AssessmentItemView {
   responseDeclarations: readonly ResponseDeclarationView[];
   outcomeDeclarations?: readonly OutcomeDeclarationView[];
@@ -78,6 +90,7 @@ export interface AssessmentItemView {
   /** QTI adaptive item: multiple attempts until completionStatus reaches "completed". */
   adaptive?: boolean;
   modalFeedbacks?: readonly FeedbackView[];
+  assessmentStimulusRefs?: readonly AssessmentStimulusRefView[];
   itemBody: { content?: BodyNode[] };
 }
 
@@ -166,6 +179,13 @@ export interface QtiRuntimeConfig {
    * registered classes pass the capability gate; everything else stays unsupported.
    */
   readonly customOperators?: Readonly<Record<string, CustomOperatorImplementation>>;
+  /**
+   * Resolve an item's shared-stimulus reference to its normalized body content
+   * (synchronous by design, like the session store's resolveItem: load the package's
+   * stimuli before mounting; `stimulusContentFromNormalized` reshapes a normalized
+   * document). Unresolved refs are capability issues, never silent drops (ADR-0003).
+   */
+  readonly resolveStimulus?: (ref: AssessmentStimulusRefView) => StimulusContentView | null;
 }
 
 export interface ItemRendererProps {
@@ -637,12 +657,38 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
       [item],
     );
 
+    // Shared stimulus content renders before the body through the same sanitized
+    // walk; an unresolved ref gets the explicit placeholder (ADR-0003 backstop —
+    // canDeliver already reported it).
+    const stimuli = (item.assessmentStimulusRefs ?? []).map((ref, index) => {
+      const stimulus = config.resolveStimulus?.(ref) ?? null;
+
+      return createElement(
+        "section",
+        { key: `stimulus-${index}`, "data-qti-stimulus": ref.identifier },
+        stimulus === null
+          ? createElement(
+              "div",
+              { role: "note", "data-qti-unsupported": "assessmentStimulusRef" },
+              `This content requires a shared stimulus (${ref.href}) this runtime cannot resolve.`,
+            )
+          : stimulus.content.map((node, nodeIndex) => renderNode(node, nodeIndex)),
+      );
+    });
+
     const body = (item.itemBody.content ?? []).map((node, index) => renderNode(node, index));
     const modals = (item.modalFeedbacks ?? []).map((feedback, index) =>
       createElement(ModalFeedbackHost, { key: index, feedback }),
     );
 
-    return createElement(RuntimeContext.Provider, { value: { store, declarationsById } }, body, modals, children);
+    return createElement(
+      RuntimeContext.Provider,
+      { value: { store, declarationsById } },
+      stimuli,
+      body,
+      modals,
+      children,
+    );
   }
 
   function useAttempt(): AttemptController {
@@ -739,6 +785,21 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
 
     for (const node of item.itemBody.content ?? []) {
       walk(node);
+    }
+
+    // Shared stimulus refs must resolve to be deliverable; resolved content passes
+    // through the same content-model gate as the body.
+    for (const ref of item.assessmentStimulusRefs ?? []) {
+      const stimulus = config.resolveStimulus?.(ref) ?? null;
+
+      if (stimulus === null) {
+        report({ type: "unsupported-element", name: "assessmentStimulusRef", detail: ref.href });
+        continue;
+      }
+
+      for (const node of stimulus.content) {
+        walk(node);
+      }
     }
 
     for (const feedback of item.modalFeedbacks ?? []) {

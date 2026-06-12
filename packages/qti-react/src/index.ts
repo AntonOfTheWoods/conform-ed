@@ -14,7 +14,11 @@ export {
 
 export { foldString, mapResponse, matchCorrect, mapResponsePoint, scoreResponse } from "./response-processing";
 
-export { assessmentItemViewFromNormalized, assessmentTestViewFromNormalized } from "./normalized-item";
+export {
+  assessmentItemViewFromNormalized,
+  assessmentTestViewFromNormalized,
+  stimulusContentFromNormalized,
+} from "./normalized-item";
 
 export { formatPoint, parseCoords, parsePoint, pointInShape, type Point, type QtiShape } from "./graphic";
 
@@ -90,6 +94,7 @@ export {
   createQtiRuntime,
   defineInteraction,
   type AssessmentItemView,
+  type AssessmentStimulusRefView,
   type AttemptController,
   type BodyNode,
   type CapabilityIssue,
@@ -109,6 +114,7 @@ export {
   type QtiRuntime,
   type QtiRuntimeConfig,
   type SkinRegistry,
+  type StimulusContentView,
   type XmlContentNode,
 } from "./runtime";
 
