@@ -51,6 +51,15 @@ type SignStatementOptions = {
 
 // Accepts statements typed by the xAPI statement typings, whose optional
 // members admit explicit undefined, so this must too.
+/** A cloned statement template: the xAPI core vocabulary, values unknown until shaped by the test. */
+export type StatementFixture = {
+  actor?: unknown;
+  verb?: unknown;
+  object?: unknown;
+  id?: unknown;
+  [key: string]: unknown;
+};
+
 type SignableStatement = AnyRecord & {
   attachments?:
     | Array<{
@@ -346,7 +355,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
       return document;
     },
 
-    buildStatement: function buildStatement(): Record<string, unknown> {
+    buildStatement: function buildStatement(): StatementFixture {
       const state = context.getState();
       return helper().clone(
         context.helperRequire("./" + state.DIRECTORY + "/templates/statements/default.json"),

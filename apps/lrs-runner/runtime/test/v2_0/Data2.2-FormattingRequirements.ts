@@ -59,7 +59,14 @@ function requireScore(statement: StatementV2, source: string): VerifiedScore {
   return { max: score.max, min: score.min, raw: score.raw, scaled: score.scaled };
 }
 
-function getActorRecord(statement: StatementV2, source: string): Record<string, JsonValue> {
+type ActorRecordLike = {
+  objectType?: JsonValue;
+  openid?: JsonValue;
+  account?: JsonValue;
+  [key: string]: JsonValue;
+};
+
+function getActorRecord(statement: StatementV2, source: string): ActorRecordLike {
   const actor = statement.actor as Record<string, JsonValue>;
   if (!actor || typeof actor !== "object") {
     throw new Error(`${source} must include an object actor`);

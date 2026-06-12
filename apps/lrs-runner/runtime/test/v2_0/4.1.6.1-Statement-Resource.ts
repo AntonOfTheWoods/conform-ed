@@ -19,6 +19,7 @@ import {
   requireV20CategoryActivity,
   requireV20Context,
   requireV20SubStatementObject,
+  type StatementResultLike,
 } from "../typing-helpers.ts";
 import xapiRequestsImport from "./util/requests.ts";
 import type { RuntimeHelper, RuntimeRequestFactory } from "../harness-types.ts";
@@ -1212,43 +1213,45 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       let query = helper.getUrlEncoding({ format: "canonical" });
 
       // Build a better actor
-      let canonicalActor: Record<string, JsonValue> = {};
-      canonicalActor.mbox = agent.mbox ?? null;
-      canonicalActor.objectType = agent.objectType ?? null;
-      canonicalActor.name = agent.name ?? null;
+      const canonicalActor: Record<string, JsonValue> = {
+        mbox: agent.mbox ?? null,
+        objectType: agent.objectType ?? null,
+        name: agent.name ?? null,
+      };
 
       // Build a better verb
-      let mainVerb: Record<string, JsonValue> = {};
-      mainVerb.id = verb1.id ?? "";
-      mainVerb.display = {};
-      mainVerb.display["en-GB"] = verb1.display?.["en-GB"] ?? "";
+      const mainVerb = {
+        id: verb1.id ?? "",
+        display: { "en-GB": verb1.display?.["en-GB"] ?? "" },
+      };
 
       // Build a better substatement verb
-      let subVerb: Record<string, JsonValue> = {};
-      subVerb.id = verb2.id ?? "";
-      subVerb.display = {};
-      subVerb.display["en-GB"] = verb2.display?.["en-GB"] ?? "";
+      const subVerb = {
+        id: verb2.id ?? "",
+        display: { "en-GB": verb2.display?.["en-GB"] ?? "" },
+      };
 
       // Build a better activity
-      let canonicalSubActivity: Record<string, JsonValue> = {};
-      canonicalSubActivity.objectType = activity.objectType ?? null;
-      canonicalSubActivity.id = activity.id ?? "";
-      canonicalSubActivity.definition = {};
-      canonicalSubActivity.definition.name = {};
-      canonicalSubActivity.definition.name["en-GB"] = activity.definition?.name?.["en-GB"] ?? "";
-      canonicalSubActivity.definition.description = {};
-      canonicalSubActivity.definition.description["en-GB"] = activity.definition?.description?.["en-GB"] ?? "";
-      canonicalSubActivity.definition.type = activity.definition?.type ?? null;
-      canonicalSubActivity.definition.moreInfo = activity.definition?.moreInfo ?? null;
-      canonicalSubActivity.definition.interactionType = activity.definition?.interactionType ?? null;
-      canonicalSubActivity.definition.correctResponsesPattern = activity.definition?.correctResponsesPattern ?? null;
-      canonicalSubActivity.definition.extensions = (activity.definition?.extensions as JsonValue) ?? null;
+      const canonicalSubActivity: Record<string, JsonValue> = {
+        objectType: activity.objectType ?? null,
+        id: activity.id ?? "",
+        definition: {
+          name: { "en-GB": activity.definition?.name?.["en-GB"] ?? "" },
+          description: { "en-GB": activity.definition?.description?.["en-GB"] ?? "" },
+          type: activity.definition?.type ?? null,
+          moreInfo: activity.definition?.moreInfo ?? null,
+          interactionType: activity.definition?.interactionType ?? null,
+          correctResponsesPattern: activity.definition?.correctResponsesPattern ?? null,
+          extensions: (activity.definition?.extensions as JsonValue) ?? null,
+        },
+      };
 
       // Build a better group
-      let canonicalGroup: Record<string, JsonValue> = {};
-      canonicalGroup.mbox = group.mbox ?? null;
-      canonicalGroup.objectType = group.objectType ?? null;
-      canonicalGroup.name = group.name ?? null;
+      const canonicalGroup: Record<string, JsonValue> = {
+        mbox: group.mbox ?? null,
+        objectType: group.objectType ?? null,
+        name: group.name ?? null,
+      };
 
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1265,8 +1268,8 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         if (stmt.id === id) {
           const stmtSubStatement = requireV20SubStatementObject(stmt.object, "format canonical substatement");
           expect(stmt.actor).toEqual(canonicalActor);
-          expect(stmt.verb.id).toEqual(mainVerb.id as string);
-          expect(stmtSubStatement.verb.id).toEqual(subVerb.id as string);
+          expect(stmt.verb.id).toEqual(mainVerb.id);
+          expect(stmtSubStatement.verb.id).toEqual(subVerb.id);
           expect(stmtSubStatement.object as unknown).toEqual(canonicalSubActivity);
           expect(stmtSubStatement.actor).toEqual(canonicalGroup);
         }
@@ -2006,7 +2009,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       expect(result).toHaveProperty("statements");
       expect(Array.isArray(result.statements)).toBe(true);
       expect(result.statements).toHaveLength(0);
@@ -2874,7 +2877,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ actor?: { mbox?: string } }>;
       expect(statements.every((statementItem) => statementItem.actor?.mbox === statement.actor.mbox)).toBe(true);
     });
@@ -2889,7 +2892,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ verb?: { id?: string } }>;
       expect(statements.every((statementItem) => statementItem.verb?.id === statement.verb.id)).toBe(true);
     });
@@ -2906,7 +2909,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ object?: { id?: string } }>;
       expect(
         statements.every(
@@ -2928,7 +2931,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ context?: { registration?: string } }>;
       expect(
         statements.every(
@@ -3080,7 +3083,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       expect(result).toHaveProperty("statements");
       expect(Array.isArray(result.statements)).toBe(true);
     });

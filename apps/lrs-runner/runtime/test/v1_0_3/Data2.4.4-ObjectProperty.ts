@@ -10,7 +10,7 @@ import templatingSelectionImport from "../templatingSelection.ts";
 import type { Statement } from "@conform-ed/contracts/xapi/v1_0_3";
 
 import { describe, it } from "../bun-test.ts";
-import { createStatement } from "../typing-helpers.ts";
+import { createStatement, type TemplateBundleLike } from "../typing-helpers.ts";
 import type { RuntimeHelper, RuntimeRequestFactory, RuntimeTemplatingSelection } from "../harness-types.ts";
 const helper = helperImport as RuntimeHelper;
 const templatingSelection = templatingSelectionImport as RuntimeTemplatingSelection;
@@ -237,7 +237,9 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
   describe('Statements that use an Agent or Group as an Object MUST specify an "objectType" property. (Data 2.4.4.2.s1.b1, XAPI-00065)', () => {
     it("should fail when using agent as object and no objectType", async () => {
       let templates = [{ statement: "{{statements.object_agent_default}}" }];
-      let data = helper.createFromTemplate(templates).statement as { object: Record<string, unknown> };
+      let data = (helper.createFromTemplate(templates) as TemplateBundleLike).statement as {
+        object: { objectType?: unknown } & Record<string, unknown>;
+      };
       delete data.object.objectType;
 
       await expectAsync(
@@ -251,7 +253,9 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
 
     it("should fail when using group as object and no objectType", async () => {
       let templates = [{ statement: "{{statements.object_group_default}}" }];
-      let data = helper.createFromTemplate(templates).statement as { object: Record<string, unknown> };
+      let data = (helper.createFromTemplate(templates) as TemplateBundleLike).statement as {
+        object: { objectType?: unknown } & Record<string, unknown>;
+      };
       delete data.object.objectType;
 
       await expectAsync(
@@ -268,7 +272,9 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.object_agent_default}}" },
       ];
-      let data = helper.createFromTemplate(templates).statement as { object: Record<string, unknown> };
+      let data = (helper.createFromTemplate(templates) as TemplateBundleLike).statement as {
+        object: { objectType?: unknown } & Record<string, unknown>;
+      };
       delete data.object.objectType;
 
       await expectAsync(
@@ -285,7 +291,9 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.object_group_default}}" },
       ];
-      let data = helper.createFromTemplate(templates).statement as { object: Record<string, unknown> };
+      let data = (helper.createFromTemplate(templates) as TemplateBundleLike).statement as {
+        object: { objectType?: unknown } & Record<string, unknown>;
+      };
       delete data.object.objectType;
 
       await expectAsync(

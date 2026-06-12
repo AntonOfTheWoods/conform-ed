@@ -15,6 +15,7 @@ import {
   requireV103CategoryActivity,
   requireV103Context,
   requireV103SubStatementObject,
+  type TemplateBundleLike,
 } from "../typing-helpers.ts";
 
 const helper = helperImport as RuntimeHelper;
@@ -52,8 +53,8 @@ describe("Retrieval of Statements (Data 2.5)", function () {
   describe('An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113)', function () {
     beforeAll(async function () {
       let template = [{ statement: "{{statements.default}}" }],
-        s1 = helper.createFromTemplate(template).statement,
-        s2 = helper.createFromTemplate(template).statement,
+        s1 = (helper.createFromTemplate(template) as TemplateBundleLike).statement,
+        s2 = (helper.createFromTemplate(template) as TemplateBundleLike).statement,
         stmts = [s1, s2];
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -101,7 +102,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         },
       ];
       let data = helper.createFromTemplate(templates);
-      statement = data.statement as Statement;
+      statement = (data as TemplateBundleLike).statement as Statement;
 
       //randomize data to prevent old results from breaking assertion logic
       const statementContext = requireV103Context(statement, "primary statement");
@@ -142,7 +143,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         },
       ];
       let data = helper.createFromTemplate(templates);
-      substatement = data.statement as Statement;
+      substatement = (data as TemplateBundleLike).statement as Statement;
 
       //randomize data to prevent old results from breaking assertion logic
       substatement.verb.id += helper.generateUUID();
@@ -193,9 +194,9 @@ describe("Retrieval of Statements (Data 2.5)", function () {
   it('A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)', async function () {
     let statementTemplates = [{ statement: "{{statements.default}}" }];
 
-    let statement1 = helper.createFromTemplate(statementTemplates).statement as Statement;
+    let statement1 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as Statement;
 
-    let statement2 = helper.createFromTemplate(statementTemplates).statement as Statement;
+    let statement2 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as Statement;
 
     let query = helper.getUrlEncoding({ limit: 1 });
     let stmtTime = Date.now();
@@ -279,11 +280,11 @@ describe("Retrieval of Statements (Data 2.5)", function () {
     let id2 = helper.generateUUID();
     let statementTemplates = [{ statement: "{{statements.default}}" }];
 
-    const statement1 = helper.createFromTemplate(statementTemplates).statement as Statement;
+    const statement1 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as Statement;
     statement1.verb.id = verbTemplate + "one";
     statement1.id = id1;
 
-    const statement2 = helper.createFromTemplate(statementTemplates).statement as Statement;
+    const statement2 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as Statement;
     statement2.verb.id = verbTemplate + "two";
     statement2.id = id2;
     let query = helper.getUrlEncoding({ limit: 1 });

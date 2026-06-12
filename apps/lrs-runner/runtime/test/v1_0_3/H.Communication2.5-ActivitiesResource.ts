@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from "../bun-test.ts";
+import type { TemplateBundleLike } from "../typing-helpers.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import type { RuntimeHelper, RuntimeRequestFactory } from "../harness-types.ts";
@@ -28,7 +29,7 @@ describe("Activities Resource Requirements (Communication 2.5)", () => {
   it('An LRS has an Activities Resource with endpoint "base IRI" + /activities" (Communication 2.5, Implicit) **Implicit** (in that it is not named this by the spec)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
-    let statement = data.statement as { object: { id: string } };
+    let statement = (data as TemplateBundleLike).statement as { object: { id: string } };
     let parameters = {
       activityId: statement.object.id,
     };
@@ -43,7 +44,7 @@ describe("Activities Resource Requirements (Communication 2.5)", () => {
   it("An LRS's Activities Resource accepts GET requests (Communication 2.5, XAPI-00253)", () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
-    let statement = data.statement as { object: { id: string } };
+    let statement = (data as TemplateBundleLike).statement as { object: { id: string } };
     let parameters = {
       activityId: statement.object.id,
     };
@@ -58,7 +59,7 @@ describe("Activities Resource Requirements (Communication 2.5)", () => {
   it("An LRS's Activities Resource upon processing a successful GET request returns the complete Activity Object (Communication 2.5.s1)", () => {
     let templates = [{ statement: "{{statements.object_activity}}" }, { object: "{{activities.default}}" }];
     let data = helper.createFromTemplate(templates);
-    let statement = data.statement as { object: { id: string } };
+    let statement = (data as TemplateBundleLike).statement as { object: { id: string } };
     statement.object.id = "http://www.example.com/verify/complete/34534";
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
@@ -98,8 +99,8 @@ describe("Activities Resource Requirements (Communication 2.5)", () => {
     type ActivityStatementObj = { object: { id: string; definition: { name: Record<string, string> } } };
     let data = helper.createFromTemplate(templates);
     let data2 = helper.createFromTemplate(templates);
-    let statement = data.statement as ActivityStatementObj;
-    let statement2 = data2.statement as ActivityStatementObj;
+    let statement = (data as TemplateBundleLike).statement as ActivityStatementObj;
+    let statement2 = (data2 as TemplateBundleLike).statement as ActivityStatementObj;
     statement.object.id = "http://www.example.com/verify/complete/34534100123";
     statement2.object.id = "http://www.example.com/verify/complete/34534100123";
 

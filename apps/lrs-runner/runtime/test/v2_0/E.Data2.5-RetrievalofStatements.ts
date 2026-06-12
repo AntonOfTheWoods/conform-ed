@@ -14,6 +14,7 @@ import {
   requireV20CategoryActivity,
   requireV20Context,
   requireV20SubStatementObject,
+  type TemplateBundleLike,
 } from "../typing-helpers.ts";
 const helper = helperImport as RuntimeHelper;
 let request: RuntimeRequestFactory = requestBase;
@@ -52,8 +53,8 @@ describe("Retrieval of Statements (Data 2.5)", function () {
   describe('An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113)', function () {
     beforeAll(async function () {
       const template = [{ statement: "{{statements.default}}" }];
-      const s1 = helper.createFromTemplate(template).statement;
-      const s2 = helper.createFromTemplate(template).statement;
+      const s1 = (helper.createFromTemplate(template) as TemplateBundleLike).statement;
+      const s2 = (helper.createFromTemplate(template) as TemplateBundleLike).statement;
       const stmts = [s1, s2];
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -101,7 +102,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         },
       ];
       const data = helper.createFromTemplate(templates);
-      statement = data.statement as StatementV2;
+      statement = (data as TemplateBundleLike).statement as StatementV2;
 
       //randomize data to prevent old results from breaking assertion logic
       const statementContext = requireV20Context(statement, "primary statement");
@@ -142,7 +143,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         },
       ];
       const data = helper.createFromTemplate(templates);
-      substatement = data.statement as StatementV2;
+      substatement = (data as TemplateBundleLike).statement as StatementV2;
 
       //randomize data to prevent old results from breaking assertion logic
       substatement.verb.id += helper.generateUUID();
@@ -193,9 +194,9 @@ describe("Retrieval of Statements (Data 2.5)", function () {
   it('A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)', async function () {
     const statementTemplates = [{ statement: "{{statements.default}}" }];
 
-    const statement1 = helper.createFromTemplate(statementTemplates).statement as StatementV2;
+    const statement1 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as StatementV2;
 
-    const statement2 = helper.createFromTemplate(statementTemplates).statement as StatementV2;
+    const statement2 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as StatementV2;
 
     const query = helper.getUrlEncoding({ limit: 1 });
     const stmtTime = Date.now();
@@ -280,11 +281,11 @@ describe("Retrieval of Statements (Data 2.5)", function () {
     const id2 = helper.generateUUID();
     const statementTemplates = [{ statement: "{{statements.default}}" }];
 
-    const statement1 = helper.createFromTemplate(statementTemplates).statement as StatementV2;
+    const statement1 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as StatementV2;
     statement1.verb.id = verbTemplate + "one";
     statement1.id = id1;
 
-    const statement2 = helper.createFromTemplate(statementTemplates).statement as StatementV2;
+    const statement2 = (helper.createFromTemplate(statementTemplates) as TemplateBundleLike).statement as StatementV2;
     statement2.verb.id = verbTemplate + "two";
     statement2.id = id2;
     const query = helper.getUrlEncoding({ limit: 1 });

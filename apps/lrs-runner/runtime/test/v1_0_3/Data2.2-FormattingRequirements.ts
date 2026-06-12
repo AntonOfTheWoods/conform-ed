@@ -56,7 +56,14 @@ function requireScore(statement: Statement, source: string): ScoreLike {
   return score as ScoreLike;
 }
 
-function getActorRecord(statement: Statement, source: string): Record<string, JsonValue> {
+type ActorRecordLike = {
+  objectType?: JsonValue;
+  openid?: JsonValue;
+  account?: JsonValue;
+  [key: string]: JsonValue;
+};
+
+function getActorRecord(statement: Statement, source: string): ActorRecordLike {
   const actor = statement.actor as Record<string, JsonValue>;
   if (!actor || typeof actor !== "object") {
     throw new Error(`${source} must include an object actor`);
@@ -253,7 +260,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     it("An LRS rejects a not well-created JSON Object", async function () {
       const malformedTemplates = [{ statement: "{{statements.default}}" }];
       const malformed = createStatementFromTemplate(malformedTemplates);
-      (getActorRecord(malformed, "malformed statement").objectType as string | undefined) = '"objectType": "Agent"';
+      getActorRecord(malformed, "malformed statement").objectType = '"objectType": "Agent"';
 
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -285,7 +292,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     it("should fail with bad verb openid scheme", async function () {
       const data = createStatementFromTemplate([{ statement: "{{statements.actor}}" }]);
       data.id = helper.generateUUID();
-      (getActorRecord(data, "bad openid statement").openid as string | undefined) = "open.id.com/testUser";
+      getActorRecord(data, "bad openid statement").openid = "open.id.com/testUser";
       const headers = helper.addAllHeaders({});
 
       request(helper.getEndpointAndAuth())
@@ -298,7 +305,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     it("should fail with bad account homePage", async function () {
       const data = createStatementFromTemplate([{ statement: "{{statements.actor}}" }]);
       data.id = helper.generateUUID();
-      (getActorRecord(data, "bad account statement").account as { homePage: string; name: string } | undefined) = {
+      getActorRecord(data, "bad account statement").account = {
         homePage: "homePage.com/testUser",
         name: "123456",
       };

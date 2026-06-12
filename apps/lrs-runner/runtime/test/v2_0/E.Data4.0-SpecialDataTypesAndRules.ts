@@ -8,7 +8,7 @@ import helperImport from "../helper.ts";
 import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 import type { StatementV2 } from "@conform-ed/contracts/xapi/v2_0";
-import { createStatementV2 } from "../typing-helpers.ts";
+import { createStatementV2, type StatementResultLike } from "../typing-helpers.ts";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -506,12 +506,12 @@ describe("Special Data Types and Rules (Data 4.0)", () => {
           .expect(200),
       );
 
-      const result = helper.parse(res.body as string) as Record<string, unknown>;
+      const result = helper.parse(res.body as string) as StatementResultLike;
       const stmts = result.statements as Array<Record<string, string | undefined>>;
       const milliChecker = (num: number) => {
         const indexedStatement = stmts[num];
         expect(indexedStatement).toHaveProperty("timestamp");
-        const milliseconds = parseMillisecondsFromIso(indexedStatement?.timestamp);
+        const milliseconds = parseMillisecondsFromIso(indexedStatement?.["timestamp"]);
         expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {
@@ -535,12 +535,12 @@ describe("Special Data Types and Rules (Data 4.0)", () => {
           .expect(200),
       );
 
-      const result = helper.parse(res.body as string) as Record<string, unknown>;
+      const result = helper.parse(res.body as string) as StatementResultLike;
       const stmts = result.statements as Array<Record<string, string | undefined>>;
       const milliChecker = (num: number) => {
         const indexedStatement = stmts[num];
         expect(indexedStatement).toHaveProperty("stored");
-        const milliseconds = parseMillisecondsFromIso(indexedStatement?.stored);
+        const milliseconds = parseMillisecondsFromIso(indexedStatement?.["stored"]);
         expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {

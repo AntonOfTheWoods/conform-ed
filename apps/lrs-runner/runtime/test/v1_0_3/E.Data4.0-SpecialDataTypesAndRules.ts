@@ -8,7 +8,7 @@ import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
-import { createStatement } from "../typing-helpers.ts";
+import { createStatement, type StatementResultLike } from "../typing-helpers.ts";
 import type { RuntimeHelper, RuntimeRequestFactory, RuntimeTemplatingSelection } from "../harness-types.ts";
 
 const helper = helperImport as RuntimeHelper;
@@ -492,12 +492,12 @@ describe("Special Data Types and Rules (Data 4.0)", () => {
           .expect(200),
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       let stmts = result.statements as Array<Record<string, unknown>>;
       let milliChecker = (num: number) => {
         const indexedStatement = stmts[num];
         expect(indexedStatement).toHaveProperty("timestamp");
-        const milliseconds = parseMillisecondsFromIso(indexedStatement?.timestamp);
+        const milliseconds = parseMillisecondsFromIso(indexedStatement?.["timestamp"]);
         expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {
@@ -521,12 +521,12 @@ describe("Special Data Types and Rules (Data 4.0)", () => {
           .expect(200),
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       let stmts = result.statements as Array<Record<string, unknown>>;
       let milliChecker = (num: number) => {
         const indexedStatement = stmts[num];
         expect(indexedStatement).toHaveProperty("stored");
-        const milliseconds = parseMillisecondsFromIso(indexedStatement?.stored);
+        const milliseconds = parseMillisecondsFromIso(indexedStatement?.["stored"]);
         expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {

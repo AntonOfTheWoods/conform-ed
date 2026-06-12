@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from "../bun-test.ts";
+import type { StatementResultLike } from "../typing-helpers.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -74,7 +75,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
 
       let result = helper.parse(getRes.body as string, () => undefined) as Record<string, unknown>;
       expect(result).toHaveProperty("stored");
-      let stmtStored = result.stored;
+      let stmtStored = result["stored"];
       expect(stmtStored).not.toEqual(storedTime);
     });
 
@@ -101,7 +102,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
 
       let result = helper.parse(getRes.body as string, () => undefined) as Record<string, unknown>;
       expect(result).toHaveProperty("stored");
-      let stmtStored = result.stored;
+      let stmtStored = result["stored"];
       expect(stmtStored).not.toEqual(storedTime);
     });
   });
@@ -118,12 +119,12 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           .expect(200),
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       let stmts = result.statements as Array<Record<string, unknown>>;
       let milliChecker = (num: number) => {
         const indexedStatement = stmts[num];
         expect(indexedStatement).toHaveProperty("stored");
-        const milliseconds = parseMillisecondsFromIso(indexedStatement?.stored);
+        const milliseconds = parseMillisecondsFromIso(indexedStatement?.["stored"]);
         expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {

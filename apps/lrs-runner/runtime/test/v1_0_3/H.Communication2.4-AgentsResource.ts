@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from "../bun-test.ts";
+import { createStatement } from "../typing-helpers.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import type { RuntimeHelper, RuntimeRequestFactory } from "../harness-types.ts";
@@ -49,8 +50,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('An LRS has an Agents Resource with endpoint "base IRI" + /agents" (Communication 2.4, XAPI-00245) **Implicit** (in that it is not named this by the spec)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
     let parameters = {
       agent: statement.actor,
     };
@@ -71,15 +71,14 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('An LRS\'s Agent Resource upon processing a successful GET request returns a Person Object if the "agent" parameter can be found in the LRS and code 200 OK (Communication 2.4.s2.table1.row1, XAPI-00248)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       let parameters = {
         agent: statement.actor,
       };
       return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then((res) => {
-        expect((res.body as Record<string, unknown>).objectType).toEqual("Person");
+        expect((res.body as Record<string, unknown>)["objectType"]).toEqual("Person");
         expect(!!res.body && typeof res.body === "object").toBe(true);
       });
     });
@@ -97,8 +96,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "objectType" property is a String and is "Person" (Format, Vocabulary, Communication 2.4.s5.table1.row1, XAPI-00237)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
@@ -116,8 +114,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "name" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row2, XAPI-00238)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
@@ -138,8 +135,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "mbox" property is an Array of IRIs (Multiplicity, Communication 2.4.s5.table1.row3, XAPI-00239)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
     let MAIL_TO = "mailto:";
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
@@ -162,8 +158,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "mbox" entries have the form "mailto:emailaddress" (Format, Communication 2.4.s5.table1.row3, XAPI-00244)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
@@ -185,8 +180,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "mbox_sha1sum" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row4, XAPI-00240)', () => {
     let templates = [{ statement: "{{statements.no_actor}}" }, { actor: "{{agents.mbox_sha1sum}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
@@ -207,8 +201,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "openid" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row5, XAPI-00241)', () => {
     let templates = [{ statement: "{{statements.no_actor}}" }, { actor: "{{agents.openid}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
@@ -229,8 +222,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
    */
   it('A Person Object\'s "account" property is an Array of Account Objects (Multiplicity, Communication 2.4.s5.table1.row6, XAPI-00242)', () => {
     let templates = [{ statement: "{{statements.no_actor}}" }, { actor: "{{agents.account}}" }];
-    let data = helper.createFromTemplate(templates);
-    let statement = data.statement as Record<string, unknown>;
+    const statement = createStatement(helper, templates);
 
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper

@@ -106,6 +106,16 @@ export function requireV20SubStatementObject(object: StatementV2["object"], sour
 //   data = data.statement;
 // by returning .statement directly, with proper typing.
 
+/**
+ * A raw StatementResult probe (xAPI result documents parsed straight from the
+ * wire); `statements`/`more` are the spec vocabulary, values unknown until
+ * narrowed at the use site.
+ */
+export type StatementResultLike = { statements?: unknown; more?: unknown; [key: string]: unknown };
+
+/** A template bundle as createFromTemplate returns it: the statement plus query extras. */
+export type TemplateBundleLike = { statementId?: unknown; statement?: unknown; [key: string]: unknown };
+
 type TemplateHelper = {
   createFromTemplate(templates: Array<Record<string, unknown>>): Record<string, unknown>;
 };
@@ -138,9 +148,25 @@ export function createTemplateObject<T extends Record<string, unknown>>(
   return tHelper.createFromTemplate(templates as Array<Record<string, unknown>>) as T;
 }
 
+/**
+ * A fixture attachment as the suites manipulate it: the declared names are the
+ * xAPI attachment vocabulary, mutable because fixtures get reshaped per test;
+ * anything else flows through the index signature.
+ */
+export type AttachmentFixture = {
+  usageType?: unknown;
+  display?: unknown;
+  description?: unknown;
+  contentType?: unknown;
+  length?: unknown;
+  sha2?: unknown;
+  fileUrl?: unknown;
+  [key: string]: unknown;
+};
+
 /** An attachment of a fixture statement by position; fixtures that lack it are test bugs. */
-export function requireAttachment(statement: { attachments?: unknown }, index = 0): Record<string, unknown> {
-  const attachments = statement.attachments as Array<Record<string, unknown>> | undefined;
+export function requireAttachment(statement: { attachments?: unknown }, index = 0): AttachmentFixture {
+  const attachments = statement.attachments as AttachmentFixture[] | undefined;
   const attachment = attachments?.[index];
 
   if (!attachment) {

@@ -20,6 +20,8 @@ import {
   requireV103CategoryActivity,
   requireV103Context,
   requireV103SubStatementObject,
+  type StatementResultLike,
+  type TemplateBundleLike,
 } from "../typing-helpers.ts";
 
 const helper = helperImport as RuntimeHelper;
@@ -1484,7 +1486,7 @@ MUST have a "Content-Type" header
 
     it('should fail when using "statementId" with "agent"', async function () {
       let templates = [{ agent: "{{agents.default}}" }];
-      let data = helper.createFromTemplate(templates);
+      let data = helper.createFromTemplate(templates) as TemplateBundleLike;
       data.statementId = id;
 
       let query = helper.getUrlEncoding(data);
@@ -1711,7 +1713,7 @@ MUST have a "Content-Type" header
 
     it('should fail when using "voidedStatementId" with "agent"', async function () {
       let templates = [{ agent: "{{agents.default}}" }];
-      let data = helper.createFromTemplate(templates);
+      let data = helper.createFromTemplate(templates) as TemplateBundleLike;
       data.statementId = voidedId;
 
       let query = helper.getUrlEncoding(data);
@@ -1914,7 +1916,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       expect(result).toHaveProperty("statements");
       expect(Array.isArray(result.statements)).toBe(true);
       expect(result.statements).toHaveLength(0);
@@ -2790,7 +2792,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ actor?: { mbox?: string } }>;
       expect(statements.every((statementItem) => statementItem.actor?.mbox === statement.actor.mbox)).toBe(true);
     });
@@ -2805,7 +2807,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ verb?: { id?: string } }>;
       expect(statements.every((statementItem) => statementItem.verb?.id === statement.verb.id)).toBe(true);
     });
@@ -2822,7 +2824,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ object?: { id?: string } }>;
       expect(
         statements.every(
@@ -2844,7 +2846,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       const statements = result.statements as Array<{ context?: { registration?: string } }>;
       expect(
         statements.every(
@@ -2985,7 +2987,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      let result = helper.parse(res.body as string, () => undefined) as Record<string, unknown>;
+      let result = helper.parse(res.body as string, () => undefined) as StatementResultLike;
       expect(result).toHaveProperty("statements");
       expect(Array.isArray(result.statements)).toBe(true);
     });
