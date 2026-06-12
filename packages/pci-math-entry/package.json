@@ -9,24 +9,24 @@
   "module": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
     "./checker": {
-      "types": "./src/checker.ts",
+      "types": "./dist/checker.d.ts",
       "import": "./dist/checker.js"
     },
     "./operator": {
-      "types": "./src/operator.ts",
+      "types": "./dist/operator.d.ts",
       "import": "./dist/operator.js"
     },
     "./module": {
-      "types": "./src/module-mathlive.ts",
+      "types": "./dist/module-mathlive.d.ts",
       "import": "./dist/module-mathlive.js"
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts ./src/checker.ts ./src/operator.ts ./src/module-mathlive.ts --outdir dist --format esm --target browser --splitting --external mathlive --external @cortex-js/compute-engine --external @conform-ed/qti-react",
+    "build": "bun build ./src/index.ts ./src/checker.ts ./src/operator.ts ./src/module-mathlive.ts --outdir dist --format esm --target browser --splitting --external mathlive --external @cortex-js/compute-engine --external @conform-ed/qti-react && tsgo -p tsconfig.build.json",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config ../../.oxlintrc.jsonc .",
     "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",

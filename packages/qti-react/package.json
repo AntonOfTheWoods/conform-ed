@@ -9,12 +9,12 @@
   "module": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir dist --format esm --target browser --external react --external react-dom --external zod",
+    "build": "bun build ./src/index.ts --outdir dist --format esm --target browser --external react --external react-dom --external zod && tsgo -p tsconfig.build.json",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config ../../.oxlintrc.jsonc .",
     "format": "oxfmt --config ../../.oxfmtrc.jsonc --check .",
