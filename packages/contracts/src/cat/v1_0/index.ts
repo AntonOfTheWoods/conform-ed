@@ -31,51 +31,51 @@ import {
 } from "./shared";
 import { CatV1P0RestBindingOperations } from "./cat_v1p0_restbinding_operations_schema";
 
-export namespace CatV1_0 {
-  export namespace Schemas {
+export const CatV1_0 = {
+  Schemas: {
     // Request schemas
-    export const CreateSectionRequest = CreateSectionRequestSchema;
-    export const GetSectionRequest = GetSectionRequestSchema;
-    export const CreateSessionRequest = CreateSessionRequestSchema;
-    export const SubmitResultsRequest = SubmitResultsRequestSchema;
-    export const EndSessionRequest = EndSessionRequestSchema;
-    export const EndSectionRequest = EndSectionRequestSchema;
+    CreateSectionRequest: CreateSectionRequestSchema,
+    GetSectionRequest: GetSectionRequestSchema,
+    CreateSessionRequest: CreateSessionRequestSchema,
+    SubmitResultsRequest: SubmitResultsRequestSchema,
+    EndSessionRequest: EndSessionRequestSchema,
+    EndSectionRequest: EndSectionRequestSchema,
 
     // Response schemas
-    export const CreateSectionResponse = CreateSectionResponseSchema;
-    export const GetSectionResponse = GetSectionResponseSchema;
-    export const CreateSessionResponse = CreateSessionResponseSchema;
-    export const SubmitResultsResponse = SubmitResultsResponseSchema;
-    export const EndSessionResponse = EndSessionResponseSchema;
-    export const EndSectionResponse = EndSectionResponseSchema;
+    CreateSectionResponse: CreateSectionResponseSchema,
+    GetSectionResponse: GetSectionResponseSchema,
+    CreateSessionResponse: CreateSessionResponseSchema,
+    SubmitResultsResponse: SubmitResultsResponseSchema,
+    EndSessionResponse: EndSessionResponseSchema,
+    EndSectionResponse: EndSectionResponseSchema,
 
     // Data type schemas
-    export const OutcomeVariable = OutcomeVariableSchema;
-    export const ResponseVariable = ResponseVariableSchema;
-    export const ItemRef = ItemRefSchema;
-    export const CatConstraint = CatConstraintSchema;
-    export const ItemPool = ItemPoolSchema;
-    export const SectionData = SectionDataSchema;
-    export const ItemStage = ItemStageSchema;
-    export const AssessmentResult = AssessmentResultSchema;
-    export const CatEngineResultReport = CatEngineResultReportSchema;
-    export const SessionInfo = SessionInfoSchema;
-    export const ErrorResponse = ErrorResponseSchema;
-  }
+    OutcomeVariable: OutcomeVariableSchema,
+    ResponseVariable: ResponseVariableSchema,
+    ItemRef: ItemRefSchema,
+    CatConstraint: CatConstraintSchema,
+    ItemPool: ItemPoolSchema,
+    SectionData: SectionDataSchema,
+    ItemStage: ItemStageSchema,
+    AssessmentResult: AssessmentResultSchema,
+    CatEngineResultReport: CatEngineResultReportSchema,
+    SessionInfo: SessionInfoSchema,
+    ErrorResponse: ErrorResponseSchema,
+  },
 
-  export namespace Shared {
-    export const Uuid = UuidSchema;
-    export const DateTime = DateTimeSchema;
-    export const ExtensionEnum = ExtensionEnumSchema;
-    export const OutcomeVariableType = OutcomeVariableTypeSchema;
-    export const OutcomeCardinality = OutcomeCardinalitySchema;
-    export const AssessmentResultType = AssessmentResultTypeSchema;
-  }
+  Shared: {
+    Uuid: UuidSchema,
+    DateTime: DateTimeSchema,
+    ExtensionEnum: ExtensionEnumSchema,
+    OutcomeVariableType: OutcomeVariableTypeSchema,
+    OutcomeCardinality: OutcomeCardinalitySchema,
+    AssessmentResultType: AssessmentResultTypeSchema,
+  },
 
-  export namespace RestBinding {
-    export const Operations = CatV1P0RestBindingOperations;
-  }
-}
+  RestBinding: {
+    Operations: CatV1P0RestBindingOperations,
+  },
+} as const;
 
 export type CatV1_0Schemas = typeof CatV1_0.Schemas;
 

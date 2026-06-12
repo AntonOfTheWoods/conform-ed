@@ -90,8 +90,11 @@ export const deterministicExpressionKinds: ReadonlySet<string> = new Set([
 export const randomExpressionKinds: ReadonlySet<string> = new Set(["random", "randomFloat", "randomInteger"]);
 
 export class RpUnsupportedError extends Error {
-  constructor(readonly kindName: string) {
+  readonly kindName: string;
+
+  constructor(kindName: string) {
     super(`Unsupported response-processing construct: ${kindName}`);
+    this.kindName = kindName;
   }
 }
 

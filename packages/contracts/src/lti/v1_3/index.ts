@@ -36,23 +36,23 @@ export const CoreLaunchRequestSchema = strictObject({
 
 export const CoreLaunchClaimsSchema = CoreLaunchRequestSchema;
 
-export namespace LtiV1_3 {
-  export namespace Schemas {
-    export const ResourceLink = ResourceLinkSchema;
-    export const Context = ContextSchema;
-    export const LaunchPresentation = LaunchPresentationSchema;
-    export const Lis = LisSchema;
-    export const CoreLaunchRequest = CoreLaunchRequestSchema;
-    export const CoreLaunchClaims = CoreLaunchClaimsSchema;
-  }
+export const LtiV1_3 = {
+  Schemas: {
+    ResourceLink: ResourceLinkSchema,
+    Context: ContextSchema,
+    LaunchPresentation: LaunchPresentationSchema,
+    Lis: LisSchema,
+    CoreLaunchRequest: CoreLaunchRequestSchema,
+    CoreLaunchClaims: CoreLaunchClaimsSchema,
+  },
 
-  export namespace Shared {
-    export const Version = LtiVersionSchema;
-    export const Url = UrlSchema;
-    export const NonEmptyString = NonEmptyStringSchema;
-    export const Roles = RolesSchema;
-  }
-}
+  Shared: {
+    Version: LtiVersionSchema,
+    Url: UrlSchema,
+    NonEmptyString: NonEmptyStringSchema,
+    Roles: RolesSchema,
+  },
+} as const;
 
 export type LtiV1_3Schemas = typeof LtiV1_3.Schemas;
 

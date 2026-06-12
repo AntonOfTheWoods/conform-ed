@@ -37,15 +37,15 @@ export const MembershipContainerSchema = strictObject({
   members: z.array(MembershipSchema).min(1),
 });
 
-export namespace LtiNrpsV2_0 {
-  export namespace Schemas {
-    export const NamesRoleService = NamesRoleServiceSchema;
-    export const Membership = MembershipSchema;
-    export const MembershipContainer = MembershipContainerSchema;
-    export const MembershipContext = MembershipContextSchema;
-    export const MembershipStatus = MembershipStatusSchema;
-  }
-}
+export const LtiNrpsV2_0 = {
+  Schemas: {
+    NamesRoleService: NamesRoleServiceSchema,
+    Membership: MembershipSchema,
+    MembershipContainer: MembershipContainerSchema,
+    MembershipContext: MembershipContextSchema,
+    MembershipStatus: MembershipStatusSchema,
+  },
+} as const;
 
 export type LtiNrpsV2_0Schemas = typeof LtiNrpsV2_0.Schemas;
 

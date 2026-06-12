@@ -95,17 +95,17 @@ export const AssessmentControlResponseSchema = strictObject({
   extraTime: z.number().int().nonnegative().optional(),
 });
 
-export namespace LtiProctoringV1_0 {
-  export namespace Schemas {
-    export const AssessmentProctoringSettings = AssessmentProctoringSettingsSchema;
-    export const StartProctoringMessage = StartProctoringMessageSchema;
-    export const StartAssessmentMessage = StartAssessmentMessageSchema;
-    export const EndAssessmentMessage = EndAssessmentMessageSchema;
-    export const AssessmentControlRequest = AssessmentControlRequestSchema;
-    export const AssessmentControlResponse = AssessmentControlResponseSchema;
-    export const AssessmentControlSeverity = AssessmentControlSeveritySchema;
-  }
-}
+export const LtiProctoringV1_0 = {
+  Schemas: {
+    AssessmentProctoringSettings: AssessmentProctoringSettingsSchema,
+    StartProctoringMessage: StartProctoringMessageSchema,
+    StartAssessmentMessage: StartAssessmentMessageSchema,
+    EndAssessmentMessage: EndAssessmentMessageSchema,
+    AssessmentControlRequest: AssessmentControlRequestSchema,
+    AssessmentControlResponse: AssessmentControlResponseSchema,
+    AssessmentControlSeverity: AssessmentControlSeveritySchema,
+  },
+} as const;
 
 export type LtiProctoringV1_0Schemas = typeof LtiProctoringV1_0.Schemas;
 

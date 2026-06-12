@@ -30,48 +30,48 @@ import {
 } from "./shared";
 import { CaseV1P1RestBindingOperations } from "./case_v1p1_openapi3_restbinding_schema";
 
-export namespace CaseV1_1 {
-  export namespace JsonSchema {
-    export const AssociationGrouping = CaseV1P1AssociationGrouping;
-    export const Association = CaseV1P1Association;
-    export const AssociationSet = CaseV1P1AssociationSet;
-    export const ConceptSet = CaseV1P1ConceptSet;
-    export const Document = CaseV1P1Document;
-    export const DocumentSet = CaseV1P1DocumentSet;
-    export const Item = CaseV1P1Item;
-    export const ItemTypeSet = CaseV1P1ItemTypeSet;
-    export const License = CaseV1P1License;
-    export const Package = CaseV1P1Package;
-    export const Rubric = CaseV1P1Rubric;
-    export const SubjectSet = CaseV1P1SubjectSet;
-    export const Status = CaseV1P1Status;
-  }
+export const CaseV1_1 = {
+  JsonSchema: {
+    AssociationGrouping: CaseV1P1AssociationGrouping,
+    Association: CaseV1P1Association,
+    AssociationSet: CaseV1P1AssociationSet,
+    ConceptSet: CaseV1P1ConceptSet,
+    Document: CaseV1P1Document,
+    DocumentSet: CaseV1P1DocumentSet,
+    Item: CaseV1P1Item,
+    ItemTypeSet: CaseV1P1ItemTypeSet,
+    License: CaseV1P1License,
+    Package: CaseV1P1Package,
+    Rubric: CaseV1P1Rubric,
+    SubjectSet: CaseV1P1SubjectSet,
+    Status: CaseV1P1Status,
+  },
 
-  export namespace Schemas {
-    export const CFAssociation = CFAssociationSchema;
-    export const CFAssociationSet = CFAssociationSetSchema;
-    export const CFConceptSet = CFConceptSetSchema;
-    export const CFItem = CFItemSchema;
-    export const CFItemTypeSet = CFItemTypeSetSchema;
-    export const CFLicense = CFLicenseSchema;
-    export const CFPackage = CFPackageSchema;
-    export const CFRubric = CFRubricSchema;
-    export const CFSubjectSet = CFSubjectSetSchema;
-    export const ImsxStatusInfo = ImsxStatusInfoSchema;
-  }
+  Schemas: {
+    CFAssociation: CFAssociationSchema,
+    CFAssociationSet: CFAssociationSetSchema,
+    CFConceptSet: CFConceptSetSchema,
+    CFItem: CFItemSchema,
+    CFItemTypeSet: CFItemTypeSetSchema,
+    CFLicense: CFLicenseSchema,
+    CFPackage: CFPackageSchema,
+    CFRubric: CFRubricSchema,
+    CFSubjectSet: CFSubjectSetSchema,
+    ImsxStatusInfo: ImsxStatusInfoSchema,
+  },
 
-  export namespace Shared {
-    export const LinkUri = LinkUriSchema;
-    export const LinkGenUri = LinkGenUriSchema;
-    export const Uuid = UuidSchema;
-    export const DateTime = DateTimeSchema;
-    export const ExtensionEnum = ExtensionEnumSchema;
-  }
+  Shared: {
+    LinkUri: LinkUriSchema,
+    LinkGenUri: LinkGenUriSchema,
+    Uuid: UuidSchema,
+    DateTime: DateTimeSchema,
+    ExtensionEnum: ExtensionEnumSchema,
+  },
 
-  export namespace RestBinding {
-    export const Operations = CaseV1P1RestBindingOperations;
-  }
-}
+  RestBinding: {
+    Operations: CaseV1P1RestBindingOperations,
+  },
+} as const;
 
 export type CaseV1_1Schemas = typeof CaseV1_1.Schemas;
 

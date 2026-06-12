@@ -57,27 +57,27 @@ import {
   H5pChangelogEntrySchema,
 } from "./shared";
 
-export namespace H5pV1 {
-  export namespace Schemas {
-    export const PackageManifest = H5pPackageManifestSchema;
-    export const LibraryManifest = H5pLibraryManifestSchema;
-    export const SemanticsField = H5pSemanticsFieldSchema;
-    export const Semantics = H5pSemanticsSchema;
-    export const Copyright = H5pCopyrightSchema;
-    export const MediaFile = H5pMediaFileSchema;
-    export const LibraryEmbed = H5pLibraryEmbedSchema;
-    export const ContentParams = H5pContentParamsSchema;
-  }
+export const H5pV1 = {
+  Schemas: {
+    PackageManifest: H5pPackageManifestSchema,
+    LibraryManifest: H5pLibraryManifestSchema,
+    SemanticsField: H5pSemanticsFieldSchema,
+    Semantics: H5pSemanticsSchema,
+    Copyright: H5pCopyrightSchema,
+    MediaFile: H5pMediaFileSchema,
+    LibraryEmbed: H5pLibraryEmbedSchema,
+    ContentParams: H5pContentParamsSchema,
+  },
 
-  export namespace Shared {
-    export const MachineName = H5pMachineNameSchema;
-    export const LibraryFolderName = H5pLibraryFolderNameSchema;
-    export const VersionRef = H5pVersionRefSchema;
-    export const License = H5pLicenseSchema;
-    export const Author = H5pAuthorSchema;
-    export const ChangelogEntry = H5pChangelogEntrySchema;
-  }
-}
+  Shared: {
+    MachineName: H5pMachineNameSchema,
+    LibraryFolderName: H5pLibraryFolderNameSchema,
+    VersionRef: H5pVersionRefSchema,
+    License: H5pLicenseSchema,
+    Author: H5pAuthorSchema,
+    ChangelogEntry: H5pChangelogEntrySchema,
+  },
+} as const;
 
 export type H5pV1Schemas = typeof H5pV1.Schemas;
 

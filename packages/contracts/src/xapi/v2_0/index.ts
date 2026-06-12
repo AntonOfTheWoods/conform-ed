@@ -118,63 +118,63 @@ export const XapiMultipartRequestV2Schema = strictObject({
   ]),
 });
 
-export namespace XapiV2_0 {
-  export namespace Schemas {
-    export const AgentAccount = AgentAccountSchema;
-    export const Agent = AgentSchema;
-    export const Group = GroupSchema;
-    export const Person = PersonSchema;
-    export const Verb = VerbSchema;
-    export const InteractionComponent = InteractionComponentSchema;
-    export const Activity = ActivitySchema;
-    export const StatementRef = StatementRefSchema;
-    export const ContextAgent = ContextAgentSchema;
-    export const ContextGroup = ContextGroupSchema;
-    export const SubStatement = SubStatementV2Schema;
-    export const Score = ScoreSchema;
-    export const Result = ResultSchema;
-    export const ContextActivities = ContextActivitiesSchema;
-    export const Context = ContextV2Schema;
-    export const Attachment = AttachmentSchema;
-    export const StatementObject = StatementObjectV2Schema;
-    export const Statement = StatementV2Schema;
-    export const StatementSubmission = StatementSubmissionV2Schema;
-    export const StatementResult = StatementResultV2Schema;
-    export const AboutResource = AboutResourceSchema;
-    export const StatementsQuery = StatementsQuerySchema;
-    export const AgentsResourceQuery = AgentsResourceQuerySchema;
-    export const ActivitiesResourceQuery = ActivitiesResourceQuerySchema;
-    export const StateDocumentQuery = StateDocumentQuerySchema;
-    export const StateDocumentListingQuery = StateDocumentListingQuerySchema;
-    export const AgentProfileDocumentQuery = AgentProfileDocumentQuerySchema;
-    export const AgentProfileDocumentListingQuery = AgentProfileDocumentListingQuerySchema;
-    export const ActivityProfileDocumentQuery = ActivityProfileDocumentQuerySchema;
-    export const ActivityProfileDocumentListingQuery = ActivityProfileDocumentListingQuerySchema;
-    export const XapiDocument = XapiDocumentSchema;
-    export const XapiDocumentIdList = XapiDocumentIdListSchema;
-    export const HttpMethod = XapiHttpMethodSchema;
-    export const Resource = XapiResourceSchema;
-    export const RequestHeader = XapiRequestHeaderSchema;
-    export const ResponseHeader = XapiResponseHeaderSchema;
-    export const ErrorCode = XapiErrorCodeSchema;
-    export const ErrorResponse = XapiErrorResponseSchema;
-    export const Concurrency = XapiConcurrencySchema;
-    export const MultipartAttachmentPart = XapiMultipartAttachmentPartSchema;
-    export const MultipartRequest = XapiMultipartRequestV2Schema;
-  }
+export const XapiV2_0 = {
+  Schemas: {
+    AgentAccount: AgentAccountSchema,
+    Agent: AgentSchema,
+    Group: GroupSchema,
+    Person: PersonSchema,
+    Verb: VerbSchema,
+    InteractionComponent: InteractionComponentSchema,
+    Activity: ActivitySchema,
+    StatementRef: StatementRefSchema,
+    ContextAgent: ContextAgentSchema,
+    ContextGroup: ContextGroupSchema,
+    SubStatement: SubStatementV2Schema,
+    Score: ScoreSchema,
+    Result: ResultSchema,
+    ContextActivities: ContextActivitiesSchema,
+    Context: ContextV2Schema,
+    Attachment: AttachmentSchema,
+    StatementObject: StatementObjectV2Schema,
+    Statement: StatementV2Schema,
+    StatementSubmission: StatementSubmissionV2Schema,
+    StatementResult: StatementResultV2Schema,
+    AboutResource: AboutResourceSchema,
+    StatementsQuery: StatementsQuerySchema,
+    AgentsResourceQuery: AgentsResourceQuerySchema,
+    ActivitiesResourceQuery: ActivitiesResourceQuerySchema,
+    StateDocumentQuery: StateDocumentQuerySchema,
+    StateDocumentListingQuery: StateDocumentListingQuerySchema,
+    AgentProfileDocumentQuery: AgentProfileDocumentQuerySchema,
+    AgentProfileDocumentListingQuery: AgentProfileDocumentListingQuerySchema,
+    ActivityProfileDocumentQuery: ActivityProfileDocumentQuerySchema,
+    ActivityProfileDocumentListingQuery: ActivityProfileDocumentListingQuerySchema,
+    XapiDocument: XapiDocumentSchema,
+    XapiDocumentIdList: XapiDocumentIdListSchema,
+    HttpMethod: XapiHttpMethodSchema,
+    Resource: XapiResourceSchema,
+    RequestHeader: XapiRequestHeaderSchema,
+    ResponseHeader: XapiResponseHeaderSchema,
+    ErrorCode: XapiErrorCodeSchema,
+    ErrorResponse: XapiErrorResponseSchema,
+    Concurrency: XapiConcurrencySchema,
+    MultipartAttachmentPart: XapiMultipartAttachmentPartSchema,
+    MultipartRequest: XapiMultipartRequestV2Schema,
+  },
 
-  export namespace Shared {
-    export const Uuid = UuidSchema;
-    export const Version = XapiVersionSchema;
-    export const Iri = IriSchema;
-    export const LanguageTag = LanguageTagSchema;
-    export const LanguageMap = LanguageMapSchema;
-    export const Timestamp = Iso8601TimestampSchema;
-    export const Duration = Iso8601DurationSchema;
-    export const NonEmptyString = NonEmptyStringSchema;
-    export const InteractionType = InteractionTypeSchema;
-  }
-}
+  Shared: {
+    Uuid: UuidSchema,
+    Version: XapiVersionSchema,
+    Iri: IriSchema,
+    LanguageTag: LanguageTagSchema,
+    LanguageMap: LanguageMapSchema,
+    Timestamp: Iso8601TimestampSchema,
+    Duration: Iso8601DurationSchema,
+    NonEmptyString: NonEmptyStringSchema,
+    InteractionType: InteractionTypeSchema,
+  },
+} as const;
 
 export type XapiV2_0Schemas = typeof XapiV2_0.Schemas;
 

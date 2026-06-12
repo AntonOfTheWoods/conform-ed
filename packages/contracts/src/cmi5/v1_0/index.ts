@@ -93,24 +93,24 @@ export const Cmi5CourseStructureDocumentSchema = strictObject({
   keywords: Cmi5KeywordExtensionSchema.optional(),
 });
 
-export namespace Cmi5V1_0 {
-  export namespace Schemas {
-    export const LanguageString = Cmi5LanguageStringSchema;
-    export const Text = Cmi5TextSchema;
-    export const Objective = Cmi5ObjectiveSchema;
-    export const ObjectiveReference = Cmi5ObjectiveReferenceSchema;
-    export const KeywordReference = Cmi5KeywordReferenceSchema;
-    export const KeywordDefinition = Cmi5KeywordDefinitionSchema;
-    export const KeywordExtension = Cmi5KeywordExtensionSchema;
-    export const Course = Cmi5CourseSchema;
-    export const Au = Cmi5AuSchema;
-    export const Block = Cmi5BlockSchema;
-    export const CourseStructure = Cmi5CourseStructureSchema;
-    export const CourseStructureDocument = Cmi5CourseStructureDocumentSchema;
-    export const MoveOn = Cmi5MoveOnSchema;
-    export const LaunchMethod = Cmi5LaunchMethodSchema;
-  }
-}
+export const Cmi5V1_0 = {
+  Schemas: {
+    LanguageString: Cmi5LanguageStringSchema,
+    Text: Cmi5TextSchema,
+    Objective: Cmi5ObjectiveSchema,
+    ObjectiveReference: Cmi5ObjectiveReferenceSchema,
+    KeywordReference: Cmi5KeywordReferenceSchema,
+    KeywordDefinition: Cmi5KeywordDefinitionSchema,
+    KeywordExtension: Cmi5KeywordExtensionSchema,
+    Course: Cmi5CourseSchema,
+    Au: Cmi5AuSchema,
+    Block: Cmi5BlockSchema,
+    CourseStructure: Cmi5CourseStructureSchema,
+    CourseStructureDocument: Cmi5CourseStructureDocumentSchema,
+    MoveOn: Cmi5MoveOnSchema,
+    LaunchMethod: Cmi5LaunchMethodSchema,
+  },
+} as const;
 
 export const Schemas = Cmi5V1_0.Schemas;
 

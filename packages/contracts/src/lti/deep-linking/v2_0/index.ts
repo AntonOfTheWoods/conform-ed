@@ -68,15 +68,15 @@ export const DeepLinkingResponseSchema = strictObject({
   errorLog: z.string().optional(),
 });
 
-export namespace LtiDeepLinkingV2_0 {
-  export namespace Schemas {
-    export const ContentItemType = ContentItemTypeSchema;
-    export const DeepLinkingSettings = DeepLinkingSettingsSchema;
-    export const DeepLinkingRequest = DeepLinkingRequestSchema;
-    export const ContentItem = ContentItemSchema;
-    export const DeepLinkingResponse = DeepLinkingResponseSchema;
-  }
-}
+export const LtiDeepLinkingV2_0 = {
+  Schemas: {
+    ContentItemType: ContentItemTypeSchema,
+    DeepLinkingSettings: DeepLinkingSettingsSchema,
+    DeepLinkingRequest: DeepLinkingRequestSchema,
+    ContentItem: ContentItemSchema,
+    DeepLinkingResponse: DeepLinkingResponseSchema,
+  },
+} as const;
 
 export type LtiDeepLinkingV2_0Schemas = typeof LtiDeepLinkingV2_0.Schemas;
 

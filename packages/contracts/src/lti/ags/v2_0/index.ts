@@ -59,18 +59,18 @@ export const ResultSchema = strictObject({
   comment: z.string().optional(),
 });
 
-export namespace LtiAgsV2_0 {
-  export namespace Schemas {
-    export const Endpoint = EndpointSchema;
-    export const LineItem = LineItemSchema;
-    export const Score = ScoreSchema;
-    export const ScoreSubmission = ScoreSubmissionSchema;
-    export const Result = ResultSchema;
-    export const AgsScope = AgsScopeSchema;
-    export const ScoreProgress = ScoreProgressSchema;
-    export const GradingProgress = GradingProgressSchema;
-  }
-}
+export const LtiAgsV2_0 = {
+  Schemas: {
+    Endpoint: EndpointSchema,
+    LineItem: LineItemSchema,
+    Score: ScoreSchema,
+    ScoreSubmission: ScoreSubmissionSchema,
+    Result: ResultSchema,
+    AgsScope: AgsScopeSchema,
+    ScoreProgress: ScoreProgressSchema,
+    GradingProgress: GradingProgressSchema,
+  },
+} as const;
 
 export type LtiAgsV2_0Schemas = typeof LtiAgsV2_0.Schemas;
 
