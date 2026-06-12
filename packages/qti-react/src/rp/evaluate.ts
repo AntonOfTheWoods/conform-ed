@@ -34,7 +34,10 @@ export interface EvalEnv {
   readonly random?: (() => number) | undefined;
   /** `testVariables` aggregation; present only in test-level outcome processing. */
   readonly testVariables?: (expression: RpExpressionView) => MaybeRpValue;
-  /** The `number*` item-session aggregates; present only in test-level outcome processing. */
+  /**
+   * The test-level subset aggregates (`number*`, `outcomeMinimum`/`outcomeMaximum`);
+   * present only in test-level outcome processing.
+   */
   readonly testAggregate?: (expression: RpExpressionView) => MaybeRpValue;
   /** Declared default of any item variable, for the `default` expression (§2.11.1.3). */
   readonly variableDefault?: (identifier: string) => MaybeRpValue;
@@ -1010,7 +1013,9 @@ export function evaluateExpression(expression: RpExpressionView, env: EvalEnv): 
     case "numberIncorrect":
     case "numberPresented":
     case "numberResponded":
-    case "numberSelected": {
+    case "numberSelected":
+    case "outcomeMinimum":
+    case "outcomeMaximum": {
       if (!env.testAggregate) {
         throw new RpUnsupportedError(expression.kind);
       }

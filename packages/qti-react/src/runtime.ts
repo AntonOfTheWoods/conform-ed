@@ -749,7 +749,10 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
 
     const customOperatorClasses = new Set(Object.keys(config.customOperators ?? {}));
 
-    for (const issue of collectRpIssues(item.responseProcessing, { customOperatorClasses })) {
+    for (const issue of collectRpIssues(item.responseProcessing, {
+      customOperatorClasses,
+      outcomeDeclarations: item.outcomeDeclarations ?? [],
+    })) {
       report(issue);
     }
 

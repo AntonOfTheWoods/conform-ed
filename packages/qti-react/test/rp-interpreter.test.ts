@@ -585,3 +585,295 @@ describe("record responses and fieldValue (PCI response contracts)", () => {
     expect(collectRpIssues(fieldRules("verdict"))).toEqual([]);
   });
 });
+
+describe("lookupOutcomeValue (matchTable/interpolationTable scoring)", () => {
+  // "The lookupOutcomeValue rule sets the value of an outcome variable to the value
+  // obtained by looking up the value of the associated expression in the lookupTable
+  // associated with the outcome's declaration." (§5.87)
+  const grade: OutcomeDeclarationView = {
+    identifier: "GRADE",
+    cardinality: "single",
+    baseType: "identifier",
+    // "A matchTable transforms a source integer by finding the first
+    // qti-match-table-entry with an exact match to the source." (§5.90)
+    matchTable: {
+      defaultValue: "F",
+      matchTableEntries: [
+        { sourceValue: 1, targetValue: "A" },
+        { sourceValue: 2, targetValue: "B" },
+      ],
+    },
+  };
+  const gradeNoDefault: OutcomeDeclarationView = {
+    identifier: "GRADE",
+    cardinality: "single",
+    baseType: "identifier",
+    matchTable: { matchTableEntries: [{ sourceValue: 1, targetValue: "A" }] },
+  };
+
+  const lookup = (expression: object): ResponseProcessingView => ({
+    rules: [{ kind: "lookupOutcomeValue", identifier: "GRADE", expression: expression as never }],
+  });
+  const intSource = (value: number) => lookup({ kind: "baseValue", baseType: "integer", value });
+
+  test("an exact integer match sets the first matching entry's target", () => {
+    expect(run(intSource(1), {}, [singleChoice], [grade]).outcomes["GRADE"]).toBe("A");
+  });
+
+  test("no matching entry falls back to the table defaultValue", () => {
+    // "The default outcome value to be used when no matching table entry is found." (§5.90.1)
+    expect(run(intSource(7), {}, [singleChoice], [grade]).outcomes["GRADE"]).toBe("F");
+  });
+
+  test("no match and no defaultValue is NULL", () => {
+    // "If omitted, the NULL value is used." (§5.90.1)
+    expect(run(intSource(7), {}, [singleChoice], [gradeNoDefault]).outcomes["GRADE"]).toBeNull();
+  });
+
+  test("a NULL source matches no entry — defaultValue, else NULL (interpretive)", () => {
+    // Spec-silent: a NULL source is read as "no matching table entry is found"
+    // (§5.90.1), so the default applies; this is an interpretive call, not 3.0.1 text.
+    const nullSource = lookup({ kind: "variable", identifier: "RESPONSE" });
+
+    expect(run(nullSource, {}, [singleChoice], [grade]).outcomes["GRADE"]).toBe("F");
+    expect(run(nullSource, {}, [singleChoice], [gradeNoDefault]).outcomes["GRADE"]).toBeNull();
+  });
+
+  test("a non-numeric source takes the default path, never a refusal", () => {
+    // QTI 2.1 (interpretive heritage): the expression "must have single cardinality and
+    // an effective baseType of either integer, float or duration".
+    const stringSource = lookup({ kind: "baseValue", baseType: "string", value: "two" });
+    const result = run(stringSource, {}, [singleChoice], [grade]);
+
+    expect(result.issues).toEqual([]);
+    expect(result.outcomes["GRADE"]).toBe("F");
+  });
+
+  test("a float source equal to an integer entry matches numerically", () => {
+    const floatSource = lookup({ kind: "baseValue", baseType: "float", value: 2 });
+
+    expect(run(floatSource, {}, [singleChoice], [grade]).outcomes["GRADE"]).toBe("B");
+  });
+
+  describe("interpolationTable", () => {
+    // "An interpolationTable transforms a source float (or integer) by finding the
+    // first interpolationTableEntry with a sourceValue that is less than or equal to
+    // (subject to includeBoundary) the source value." (§5.78)
+    const scaled: OutcomeDeclarationView = {
+      identifier: "GRADE",
+      cardinality: "single",
+      baseType: "float",
+      interpolationTable: {
+        defaultValue: "0.1",
+        interpolationTableEntries: [
+          { sourceValue: 80, targetValue: "1.0" },
+          { sourceValue: 50, targetValue: "0.5" },
+        ],
+      },
+    };
+
+    test("the first (document-order) entry at or below the source wins", () => {
+      expect(run(intSource(65), {}, [singleChoice], [scaled]).outcomes["GRADE"]).toBe(0.5);
+      expect(run(intSource(95), {}, [singleChoice], [scaled]).outcomes["GRADE"]).toBe(1);
+    });
+
+    test("below every entry falls to the defaultValue, coerced to the declared baseType", () => {
+      expect(run(intSource(10), {}, [singleChoice], [scaled]).outcomes["GRADE"]).toBe(0.1);
+    });
+
+    test("includeBoundary defaults to true: an exact bound matches its entry", () => {
+      // "If 'true', the default, then an exact match of the value is considered a
+      // match of this entry." (§7.18.2)
+      expect(run(intSource(80), {}, [singleChoice], [scaled]).outcomes["GRADE"]).toBe(1);
+    });
+
+    test("includeBoundary=false excludes the exact bound and falls through", () => {
+      const exclusive: OutcomeDeclarationView = {
+        ...scaled,
+        interpolationTable: {
+          interpolationTableEntries: [
+            { sourceValue: 80, targetValue: "1.0", includeBoundary: false },
+            { sourceValue: 50, targetValue: "0.5" },
+          ],
+        },
+      };
+
+      expect(run(intSource(80), {}, [singleChoice], [exclusive]).outcomes["GRADE"]).toBe(0.5);
+    });
+
+    test("document order decides, not numeric order: an ascending table short-circuits", () => {
+      // The spec selects "the first interpolationTableEntry" in document order (§5.78);
+      // authors are expected to order entries descending.
+      const ascending: OutcomeDeclarationView = {
+        ...scaled,
+        interpolationTable: {
+          interpolationTableEntries: [
+            { sourceValue: 50, targetValue: "0.5" },
+            { sourceValue: 80, targetValue: "1.0" },
+          ],
+        },
+      };
+
+      expect(run(intSource(95), {}, [singleChoice], [ascending]).outcomes["GRADE"]).toBe(0.5);
+    });
+  });
+
+  test("a lookup inside a responseCondition branch executes like any rule", () => {
+    const conditional: ResponseProcessingView = {
+      rules: [
+        {
+          kind: "responseCondition",
+          responseIf: {
+            expression: { kind: "baseValue", baseType: "boolean", value: true },
+            rules: [
+              {
+                kind: "lookupOutcomeValue",
+                identifier: "GRADE",
+                expression: { kind: "baseValue", baseType: "integer", value: 1 },
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    expect(run(conditional, {}, [singleChoice], [grade]).outcomes["GRADE"]).toBe("A");
+  });
+
+  test("a declaration without a lookupTable refuses — never guesses (ADR-0003/0004)", () => {
+    // §5.87 presumes "the lookupTable associated with the outcome's declaration";
+    // with no table there is no spec-defined value to compute.
+    const bare: OutcomeDeclarationView = { identifier: "GRADE", cardinality: "single", baseType: "identifier" };
+    const result = run(intSource(1), {}, [singleChoice], [bare]);
+
+    expect(result.issues[0]?.name).toBe("lookupOutcomeValue");
+    expect(result.outcomes["GRADE"]).toBeNull();
+  });
+
+  test("the capability walk accepts the rule and inspects its expression", () => {
+    expect(collectRpIssues(intSource(1))).toEqual([]);
+    expect(collectRpIssues(lookup({ kind: "frobnicate" }))[0]?.name).toBe("frobnicate");
+  });
+
+  test("the capability walk reports a tableless declaration when declarations are supplied", () => {
+    const bare: OutcomeDeclarationView = { identifier: "GRADE", cardinality: "single", baseType: "identifier" };
+
+    expect(collectRpIssues(intSource(1), { outcomeDeclarations: [bare] })[0]?.name).toBe("lookupOutcomeValue");
+    expect(collectRpIssues(intSource(1), { outcomeDeclarations: [grade] })).toEqual([]);
+  });
+});
+
+describe("test-context expressions stay refused at item level", () => {
+  test("outcomeMinimum/outcomeMaximum can only be used in outcomes processing", () => {
+    // "This expression, which can only be used in outcomes processing, …" (§2.11.2.6-7)
+    const view = (kind: string): ResponseProcessingView => ({
+      rules: [{ kind: "setOutcomeValue", identifier: "SCORE", expression: { kind, outcomeIdentifier: "SCORE" } }],
+    });
+
+    expect(collectRpIssues(view("outcomeMaximum"))[0]?.name).toBe("outcomeMaximum");
+    expect(collectRpIssues(view("outcomeMinimum"))[0]?.name).toBe("outcomeMinimum");
+  });
+});
+
+describe("responseProcessingFragment", () => {
+  // "A responseProcessingFragment is a simple group of responseRules which are grouped
+  // together in order to allow them to be managed as a separate resource." (§5.118)
+  const totalOutcome: OutcomeDeclarationView = { identifier: "TOTAL", cardinality: "single", baseType: "float" };
+
+  test("fragment rules execute inline, in order, over the same outcome state", () => {
+    // Rule ordering (QTI 2.1, interpretive heritage): "Variables updated by a rule
+    // take their new value when evaluated as part of any following rules."
+    const view: ResponseProcessingView = {
+      rules: [
+        {
+          kind: "setOutcomeValue",
+          identifier: "TOTAL",
+          expression: { kind: "baseValue", baseType: "float", value: 1 },
+        },
+        {
+          kind: "responseProcessingFragment",
+          rules: [
+            {
+              kind: "setOutcomeValue",
+              identifier: "TOTAL",
+              expression: {
+                kind: "sum",
+                expressions: [
+                  { kind: "variable", identifier: "TOTAL" },
+                  { kind: "baseValue", baseType: "float", value: 1 },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const result = run(view, {}, [singleChoice], [totalOutcome]);
+
+    expect(result.issues).toEqual([]);
+    expect(result.outcomes["TOTAL"]).toBe(2);
+  });
+
+  test("fragments nest", () => {
+    const view: ResponseProcessingView = {
+      rules: [
+        {
+          kind: "responseProcessingFragment",
+          rules: [
+            {
+              kind: "responseProcessingFragment",
+              rules: [
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "TOTAL",
+                  expression: { kind: "baseValue", baseType: "float", value: 3 },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(run(view, {}, [singleChoice], [totalOutcome]).outcomes["TOTAL"]).toBe(3);
+  });
+
+  test("exitResponse inside a fragment ends the whole run", () => {
+    const view: ResponseProcessingView = {
+      rules: [
+        {
+          kind: "setOutcomeValue",
+          identifier: "TOTAL",
+          expression: { kind: "baseValue", baseType: "float", value: 1 },
+        },
+        { kind: "responseProcessingFragment", rules: [{ kind: "exitResponse" }] },
+        {
+          kind: "setOutcomeValue",
+          identifier: "TOTAL",
+          expression: { kind: "baseValue", baseType: "float", value: 9 },
+        },
+      ],
+    };
+    const result = run(view, {}, [singleChoice], [totalOutcome]);
+
+    expect(result.issues).toEqual([]);
+    expect(result.outcomes["TOTAL"]).toBe(1);
+  });
+
+  test("an empty fragment is a no-op", () => {
+    const view: ResponseProcessingView = { rules: [{ kind: "responseProcessingFragment" }] };
+    const result = run(view, {}, [singleChoice], [totalOutcome]);
+
+    expect(result.issues).toEqual([]);
+  });
+
+  test("the capability walk recurses into fragment rules", () => {
+    const view: ResponseProcessingView = {
+      rules: [{ kind: "responseProcessingFragment", rules: [{ kind: "frobnicateRule" }] }],
+    };
+    const issues = collectRpIssues(view);
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.name).toBe("frobnicateRule");
+  });
+});

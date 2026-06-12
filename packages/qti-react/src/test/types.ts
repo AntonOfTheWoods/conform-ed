@@ -97,11 +97,16 @@ export interface OutcomeConditionBranch {
   readonly rules: readonly OutcomeRuleView[];
 }
 
-/** One outcome rule: outcomeCondition, setOutcomeValue, or exitTest. */
+/**
+ * One outcome rule: outcomeCondition, setOutcomeValue, lookupOutcomeValue,
+ * outcomeProcessingFragment, or exitTest.
+ */
 export interface OutcomeRuleView {
   readonly kind: string;
   readonly identifier?: string;
   readonly expression?: RpExpressionView;
+  /** Nested rules of an `outcomeProcessingFragment` (§5.103). */
+  readonly rules?: readonly OutcomeRuleView[];
   readonly outcomeIf?: OutcomeConditionBranch;
   readonly outcomeElseIfs?: readonly OutcomeConditionBranch[];
   readonly outcomeElse?: { readonly rules: readonly OutcomeRuleView[] };

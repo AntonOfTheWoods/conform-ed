@@ -11,7 +11,8 @@
  * - `gapChoices` split into the runtime's `gapTexts` (gapMatch) / `gapImgs` (graphic)
  * - media/upload/positionObjectStage flatten to the descriptor fields
  * - processing trees: `children` → `expressions`, `actions` → `rules`,
- *   `responseElseIf`/`templateElseIf` pluralize
+ *   `responseElseIf`/`templateElseIf` pluralize; fragment rules keep their
+ *   nested `rules` verbatim
  *
  * Used by the corpus delivery meter (ADR-0002) and by any consumer ingesting
  * normalized XML.
@@ -303,6 +304,11 @@ function convertRpRule(rule: unknown): Record<string, unknown> {
     };
   }
 
+  // Fragments nest their rules under `rules` (not the branches' `actions`).
+  if (kind === "responseProcessingFragment") {
+    return { kind, rules: (Array.isArray(record["rules"]) ? record["rules"] : []).map(convertRpRule) };
+  }
+
   return {
     kind,
     ...(typeof record["identifier"] === "string" ? { identifier: record["identifier"] } : {}),
@@ -440,6 +446,11 @@ function convertOutcomeRule(rule: unknown): Record<string, unknown> {
           }
         : {}),
     };
+  }
+
+  // Fragments nest their rules under `rules` (not the branches' `actions`).
+  if (kind === "outcomeProcessingFragment") {
+    return { kind, rules: (Array.isArray(record["rules"]) ? record["rules"] : []).map(convertOutcomeRule) };
   }
 
   return {

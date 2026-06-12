@@ -187,6 +187,63 @@ describe("assessmentTestViewFromNormalized", () => {
     expect(controller.visibleTestFeedbacks(state).map((feedback) => feedback.identifier)).toEqual(["pass"]);
   });
 
+  test("outcome-processing fragments keep nested rules; test declarations keep lookup tables", () => {
+    const view = assessmentTestViewFromNormalized({
+      assessmentTest: {
+        identifier: "TEST-2",
+        outcomeDeclarations: [
+          {
+            identifier: "GRADE",
+            cardinality: "single",
+            baseType: "identifier",
+            interpolationTable: {
+              defaultValue: "fail",
+              interpolationTableEntries: [{ sourceValue: 1, targetValue: "pass", includeBoundary: true }],
+            },
+          },
+        ],
+        testParts: [
+          {
+            identifier: "PART-1",
+            navigationMode: "linear",
+            submissionMode: "individual",
+            children: [
+              {
+                identifier: "SECTION-1",
+                title: "Main",
+                visible: true,
+                children: [{ identifier: "ITEM-1", href: "items/one.xml" }],
+              },
+            ],
+          },
+        ],
+        outcomeProcessing: {
+          rules: [
+            {
+              kind: "outcomeProcessingFragment",
+              rules: [
+                {
+                  kind: "lookupOutcomeValue",
+                  identifier: "GRADE",
+                  expression: { kind: "baseValue", baseType: "float", value: "1" },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(view).not.toBeNull();
+
+    const fragment = view!.outcomeProcessing?.rules[0];
+    expect(fragment?.kind).toBe("outcomeProcessingFragment");
+    expect(fragment?.rules?.[0]).toMatchObject({ kind: "lookupOutcomeValue", identifier: "GRADE" });
+    expect(view!.outcomeDeclarations?.[0]?.interpolationTable?.interpolationTableEntries).toEqual([
+      { sourceValue: 1, targetValue: "pass", includeBoundary: true },
+    ]);
+  });
+
   test("returns null for non-test documents", () => {
     expect(assessmentTestViewFromNormalized({ assessmentItem: {} })).toBeNull();
   });

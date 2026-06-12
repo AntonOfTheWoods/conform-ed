@@ -13,6 +13,10 @@ export {
 export { resolveTemplate } from "./templates";
 export type {
   CustomOperatorImplementation,
+  InterpolationTableEntryView,
+  InterpolationTableView,
+  MatchTableEntryView,
+  MatchTableView,
   MaybeRpValue,
   OutcomeDeclarationView,
   OutcomeValue,

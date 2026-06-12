@@ -700,6 +700,131 @@ describe("number* aggregates and weights", () => {
 
     expect(state.testOutcomes["TOTAL"]).toBe(3); // 1×2 + 1×1
   });
+
+  describe("outcomeMinimum/outcomeMaximum (declared bounds)", () => {
+    // "…simultaneously looks up the normal-maximum value of an outcome variable in a
+    // sub-set of the items referred to in a test." (§2.11.2.7); weighting is "As per
+    // the 'weight-identifier' characteristic of 'qti-test-variables'" (§7.28.5).
+    const boundsTest = (
+      rules: ReadonlyArray<Record<string, unknown>>,
+      refs = [itemRef("I1", { weights: [{ identifier: "W", value: 2 }] }), itemRef("I2"), itemRef("I3")],
+    ): AssessmentTestView => ({
+      identifier: "T-BOUNDS",
+      outcomeDeclarations: [
+        { identifier: "MAX", cardinality: "single", baseType: "float" },
+        { identifier: "MIN", cardinality: "single", baseType: "float" },
+      ],
+      outcomeProcessing: { rules: rules as never },
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "nonlinear",
+          submissionMode: "individual",
+          assessmentSections: [{ kind: "assessmentSection", identifier: "S1", children: refs }],
+        },
+      ],
+    });
+    const sumOf = (kind: string, extra: Record<string, unknown> = {}) => ({
+      kind: "sum",
+      expressions: [{ kind, outcomeIdentifier: "SCORE", ...extra }],
+    });
+    const score = (bounds: { normalMaximum?: number; normalMinimum?: number }) => [
+      { identifier: "SCORE", cardinality: "single" as const, baseType: "float", ...bounds },
+    ];
+
+    test("outcomeMaximum aggregates declared maxima, weighted like testVariables", () => {
+      const view = boundsTest([
+        { kind: "setOutcomeValue", identifier: "MAX", expression: sumOf("outcomeMaximum", { weightIdentifier: "W" }) },
+      ]);
+      const controller = createTestController(view, {
+        seed: 1,
+        itemOutcomeDeclarations: {
+          I1: score({ normalMaximum: 2 }),
+          I2: score({ normalMaximum: 3 }),
+          I3: score({ normalMaximum: 1 }),
+        },
+      });
+
+      expect(controller.issues).toEqual([]);
+
+      const state = controller.end(controller.start());
+
+      expect(state.testOutcomes["MAX"]).toBe(8); // 2×2 + 3 + 1
+    });
+
+    test("any subset item without a declared maximum makes outcomeMaximum NULL", () => {
+      // "If any of the items within the given subset have no declared maximum the
+      // result is NULL" (§2.11.2.7)
+      const view = boundsTest([{ kind: "setOutcomeValue", identifier: "MAX", expression: sumOf("outcomeMaximum") }]);
+      const controller = createTestController(view, {
+        seed: 1,
+        itemOutcomeDeclarations: { I1: score({ normalMaximum: 2 }), I2: score({ normalMaximum: 3 }), I3: score({}) },
+      });
+      const state = controller.end(controller.start());
+
+      expect(state.testOutcomes["MAX"]).toBeNull();
+    });
+
+    test("outcomeMinimum ignores items without a declared minimum", () => {
+      // "Items with no declared minimum are ignored." (§2.11.2.6)
+      const view = boundsTest([
+        { kind: "setOutcomeValue", identifier: "MIN", expression: sumOf("outcomeMinimum", { weightIdentifier: "W" }) },
+      ]);
+      const controller = createTestController(view, {
+        seed: 1,
+        itemOutcomeDeclarations: {
+          I1: score({ normalMinimum: 1 }),
+          I2: score({ normalMinimum: 0.5 }),
+          I3: score({}),
+        },
+      });
+      const state = controller.end(controller.start());
+
+      expect(state.testOutcomes["MIN"]).toBe(2.5); // 1×2 + 0.5; I3 ignored
+
+      const allMissing = createTestController(view, {
+        seed: 1,
+        itemOutcomeDeclarations: { I1: score({}), I2: score({}), I3: score({}) },
+      });
+
+      expect(allMissing.end(allMissing.start()).testOutcomes["MIN"]).toBeNull();
+    });
+
+    test("the subset machinery applies: an empty subset is NULL", () => {
+      const view = boundsTest([
+        {
+          kind: "setOutcomeValue",
+          identifier: "MAX",
+          expression: sumOf("outcomeMaximum", { sectionIdentifier: "S9" }),
+        },
+      ]);
+      const controller = createTestController(view, {
+        seed: 1,
+        itemOutcomeDeclarations: {
+          I1: score({ normalMaximum: 2 }),
+          I2: score({ normalMaximum: 3 }),
+          I3: score({ normalMaximum: 1 }),
+        },
+      });
+
+      expect(controller.end(controller.start()).testOutcomes["MAX"]).toBeNull();
+    });
+
+    test("no itemOutcomeDeclarations option degrades per spec — NULL, not a refusal", () => {
+      const view = boundsTest([
+        { kind: "setOutcomeValue", identifier: "MAX", expression: sumOf("outcomeMaximum") },
+        { kind: "setOutcomeValue", identifier: "MIN", expression: sumOf("outcomeMinimum") },
+      ]);
+      const controller = createTestController(view, { seed: 1 });
+
+      expect(controller.issues).toEqual([]);
+
+      const state = controller.end(controller.start());
+
+      expect(state.testOutcomes["MAX"]).toBeNull();
+      expect(state.testOutcomes["MIN"]).toBeNull();
+    });
+  });
 });
 
 describe("outcome processing and test feedback", () => {
@@ -781,5 +906,185 @@ describe("outcome processing and test feedback", () => {
 
     state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
     expect(state.testOutcomes["TOTAL"]).toBe(0); // declared numeric default
+  });
+
+  test("lookupOutcomeValue bands the total through the test declaration's matchTable", () => {
+    // "The lookupOutcomeValue rule sets the value of an outcome variable to the value
+    // obtained by looking up the value of the associated expression in the
+    // lookupTable associated with the outcome's declaration." (§5.87)
+    const banded: AssessmentTestView = {
+      ...linearTest,
+      outcomeDeclarations: [
+        { identifier: "TOTAL", cardinality: "single", baseType: "float" },
+        {
+          identifier: "GRADE",
+          cardinality: "single",
+          baseType: "identifier",
+          matchTable: { defaultValue: "fail", matchTableEntries: [{ sourceValue: 2, targetValue: "pass" }] },
+        },
+      ],
+      outcomeProcessing: {
+        rules: [
+          {
+            kind: "setOutcomeValue",
+            identifier: "TOTAL",
+            expression: { kind: "sum", expressions: [{ kind: "testVariables", identifier: "SCORE" }] },
+          },
+          {
+            kind: "lookupOutcomeValue",
+            identifier: "GRADE",
+            expression: { kind: "round", expressions: [{ kind: "variable", identifier: "TOTAL" }] },
+          },
+        ],
+      },
+    };
+    const controller = createTestController(banded, { seed: 1 });
+
+    expect(controller.issues).toEqual([]);
+
+    let state = controller.start();
+    state = controller.submitItem(state, "I1", { outcomes: { SCORE: 1 } });
+    state = controller.next(state);
+    state = controller.submitItem(state, "I2", { outcomes: { SCORE: 1 } });
+    state = controller.end(state);
+
+    expect(state.testOutcomes["GRADE"]).toBe("pass");
+
+    let failing = controller.start();
+    failing = controller.submitItem(failing, "I1", { outcomes: { SCORE: 1 } });
+    failing = controller.end(failing);
+
+    expect(failing.testOutcomes["GRADE"]).toBe("fail");
+  });
+
+  test("an interpolationTable bands a float total; includeBoundary=false falls through", () => {
+    const banded: AssessmentTestView = {
+      ...linearTest,
+      outcomeDeclarations: [
+        { identifier: "TOTAL", cardinality: "single", baseType: "float" },
+        {
+          identifier: "GRADE",
+          cardinality: "single",
+          baseType: "identifier",
+          interpolationTable: {
+            defaultValue: "fail",
+            interpolationTableEntries: [
+              { sourceValue: 2, targetValue: "distinction", includeBoundary: false },
+              { sourceValue: 1, targetValue: "pass" },
+            ],
+          },
+        },
+      ],
+      outcomeProcessing: {
+        rules: [
+          {
+            kind: "setOutcomeValue",
+            identifier: "TOTAL",
+            expression: { kind: "sum", expressions: [{ kind: "testVariables", identifier: "SCORE" }] },
+          },
+          {
+            kind: "lookupOutcomeValue",
+            identifier: "GRADE",
+            expression: { kind: "variable", identifier: "TOTAL" },
+          },
+        ],
+      },
+    };
+    const controller = createTestController(banded, { seed: 1 });
+    const gradeFor = (scores: readonly number[]) => {
+      let state = controller.start();
+
+      for (const [index, value] of scores.entries()) {
+        state = controller.submitItem(state, `I${index + 1}`, { outcomes: { SCORE: value } });
+        state = controller.next(state);
+      }
+
+      return controller.end(state).testOutcomes["GRADE"];
+    };
+
+    expect(gradeFor([2.5])).toBe("distinction");
+    expect(gradeFor([1, 1])).toBe("pass"); // exactly 2: boundary excluded, falls through
+    expect(gradeFor([0.5])).toBe("fail");
+  });
+
+  test("outcomeProcessingFragment executes inline, in order; exitTest inside it ends the run", () => {
+    // "Outcome rules are followed in the order given. Variables updated by a rule take
+    // their new value when evaluated as part of any following rules." (§5.103.1)
+    const fragmented: AssessmentTestView = {
+      ...linearTest,
+      outcomeProcessing: {
+        rules: [
+          {
+            kind: "setOutcomeValue",
+            identifier: "TOTAL",
+            expression: { kind: "baseValue", baseType: "float", value: 1 },
+          },
+          {
+            kind: "outcomeProcessingFragment",
+            rules: [
+              {
+                kind: "setOutcomeValue",
+                identifier: "TOTAL",
+                expression: {
+                  kind: "sum",
+                  expressions: [
+                    { kind: "variable", identifier: "TOTAL" },
+                    { kind: "baseValue", baseType: "float", value: 1 },
+                  ],
+                },
+              },
+              { kind: "exitTest" },
+            ],
+          },
+          {
+            kind: "setOutcomeValue",
+            identifier: "TOTAL",
+            expression: { kind: "baseValue", baseType: "float", value: 9 },
+          },
+        ],
+      },
+    };
+    const controller = createTestController(fragmented, { seed: 1 });
+
+    expect(controller.issues).toEqual([]);
+
+    const state = controller.end(controller.start());
+
+    expect(state.testOutcomes["TOTAL"]).toBe(2);
+  });
+
+  test("a tableless lookup declaration is reported statically; outcomes keep defaults", () => {
+    const tableless: AssessmentTestView = {
+      ...linearTest,
+      outcomeDeclarations: [
+        { identifier: "TOTAL", cardinality: "single", baseType: "float" },
+        { identifier: "GRADE", cardinality: "single", baseType: "identifier" },
+      ],
+      outcomeProcessing: {
+        rules: [
+          {
+            kind: "lookupOutcomeValue",
+            identifier: "GRADE",
+            expression: { kind: "baseValue", baseType: "integer", value: 1 },
+          },
+        ],
+      },
+    };
+    const controller = createTestController(tableless, { seed: 1 });
+
+    expect(controller.issues[0]?.name).toBe("lookupOutcomeValue");
+
+    const state = controller.end(controller.start());
+
+    expect(state.testOutcomes["GRADE"]).toBeNull();
+  });
+
+  test("the static walk recurses into fragments", () => {
+    const broken: AssessmentTestView = {
+      ...linearTest,
+      outcomeProcessing: { rules: [{ kind: "outcomeProcessingFragment", rules: [{ kind: "weirdRule" }] }] },
+    };
+
+    expect(createTestController(broken, { seed: 1 }).issues[0]?.name).toBe("weirdRule");
   });
 });

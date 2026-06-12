@@ -354,6 +354,49 @@ describe("processing reshaping", () => {
     expect(runtime.canDeliver(view).issues).toEqual([]);
   });
 
+  test("fragments keep their nested rules; declarations keep lookup tables and bounds", () => {
+    const view = viewOf({
+      responseDeclarations: [baseDeclaration],
+      outcomeDeclarations: [
+        {
+          identifier: "GRADE",
+          cardinality: "single",
+          baseType: "identifier",
+          matchTable: { defaultValue: "F", matchTableEntries: [{ sourceValue: 1, targetValue: "A" }] },
+          normalMaximum: 5,
+        },
+      ],
+      itemBody: { content: [] },
+      responseProcessing: {
+        rules: [
+          {
+            kind: "responseProcessingFragment",
+            rules: [
+              {
+                kind: "lookupOutcomeValue",
+                identifier: "GRADE",
+                expression: { kind: "baseValue", baseType: "integer", value: "1" },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const fragment = view.responseProcessing?.rules?.[0];
+    expect(fragment?.kind).toBe("responseProcessingFragment");
+    expect(fragment?.rules?.[0]).toEqual({
+      kind: "lookupOutcomeValue",
+      identifier: "GRADE",
+      expression: { kind: "baseValue", baseType: "integer", value: "1" },
+    });
+    expect(view.outcomeDeclarations?.[0]).toMatchObject({
+      matchTable: { defaultValue: "F", matchTableEntries: [{ sourceValue: 1, targetValue: "A" }] },
+      normalMaximum: 5,
+    });
+    expect(runtime.canDeliver(view).issues).toEqual([]);
+  });
+
   test("template processing converts the same way; declarations and modal feedbacks pass through", () => {
     const view = viewOf({
       responseDeclarations: [{ identifier: "RESPONSE", cardinality: "single", baseType: "integer" }],

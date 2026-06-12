@@ -32,11 +32,53 @@ export interface RpValue {
 
 export type MaybeRpValue = RpValue | null;
 
+/** One matchTable row: exact integer source → target (§7.23). */
+export interface MatchTableEntryView {
+  readonly sourceValue: number;
+  readonly targetValue: RpScalar;
+}
+
+/**
+ * "A matchTable transforms a source integer by finding the first
+ * qti-match-table-entry with an exact match to the source." (§5.90)
+ */
+export interface MatchTableView {
+  /** "The default outcome value to be used when no matching table entry is found.
+   * If omitted, the NULL value is used." (§5.90.1) */
+  readonly defaultValue?: RpScalar;
+  readonly matchTableEntries: readonly MatchTableEntryView[];
+}
+
+/** One interpolationTable row; sourceValue is "the lower bound … to match this entry" (§7.18.1). */
+export interface InterpolationTableEntryView {
+  readonly sourceValue: number;
+  readonly targetValue: RpScalar;
+  /** "If 'true', the default, then an exact match of the value is considered a match
+   * of this entry." (§7.18.2) */
+  readonly includeBoundary?: boolean;
+}
+
+/**
+ * "An interpolationTable transforms a source float (or integer) by finding the first
+ * interpolationTableEntry with a sourceValue that is less than or equal to (subject
+ * to includeBoundary) the source value." (§5.78)
+ */
+export interface InterpolationTableView {
+  readonly defaultValue?: RpScalar;
+  readonly interpolationTableEntries: readonly InterpolationTableEntryView[];
+}
+
 export interface OutcomeDeclarationView {
   readonly identifier: string;
   readonly cardinality: Cardinality;
   readonly baseType?: string;
   readonly defaultValue?: { readonly values: ReadonlyArray<{ readonly value: RpScalar }> };
+  /** The declaration's lookupTable (at most one of the two), read by `lookupOutcomeValue` (§5.87). */
+  readonly matchTable?: MatchTableView;
+  readonly interpolationTable?: InterpolationTableView;
+  /** Declared score bounds, aggregated by `outcomeMaximum`/`outcomeMinimum` (§2.11.2.6-7). */
+  readonly normalMaximum?: number;
+  readonly normalMinimum?: number;
 }
 
 /**
@@ -78,8 +120,10 @@ export interface RpExpressionView {
   /** Area for `inside` (QTI shape + coords string). */
   readonly shape?: string;
   readonly coords?: string;
-  /** Test-level subset selection (`testVariables` and the `number*` aggregates). */
+  /** Test-level subset selection (`testVariables`, `outcomeMinimum`/`outcomeMaximum`, `number*`). */
   readonly variableIdentifier?: string;
+  /** Outcome variable whose declared bounds `outcomeMinimum`/`outcomeMaximum` look up (§7.28.4). */
+  readonly outcomeIdentifier?: string;
   readonly weightIdentifier?: string;
   readonly sectionIdentifier?: string;
   readonly includeCategory?: string | readonly string[];
@@ -108,11 +152,16 @@ export interface RpConditionBranch {
   readonly rules: readonly RpRuleView[];
 }
 
-/** One response rule: responseCondition, setOutcomeValue, or exitResponse. */
+/**
+ * One response rule: responseCondition, setOutcomeValue, lookupOutcomeValue,
+ * responseProcessingFragment, or exitResponse.
+ */
 export interface RpRuleView {
   readonly kind: string;
   readonly identifier?: string;
   readonly expression?: RpExpressionView;
+  /** Nested rules of a `responseProcessingFragment` (§5.118). */
+  readonly rules?: readonly RpRuleView[];
   readonly responseIf?: RpConditionBranch;
   readonly responseElseIfs?: readonly RpConditionBranch[];
   readonly responseElse?: { readonly rules: readonly RpRuleView[] };

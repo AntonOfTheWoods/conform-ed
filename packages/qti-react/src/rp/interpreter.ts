@@ -14,6 +14,7 @@ import {
   evaluateExpression,
   type EvalEnv,
 } from "./evaluate";
+import { hasLookupTable, lookupTableValue } from "./lookup-table";
 import { resolveTemplate } from "./templates";
 import type {
   OutcomeDeclarationView,
@@ -35,7 +36,13 @@ import {
   type MaybeRpValue,
 } from "./values";
 
-const supportedRuleKinds = new Set(["responseCondition", "setOutcomeValue", "exitResponse"]);
+const supportedRuleKinds = new Set([
+  "responseCondition",
+  "setOutcomeValue",
+  "lookupOutcomeValue",
+  "responseProcessingFragment",
+  "exitResponse",
+]);
 
 /**
  * RP additionally supports the random operators: the attempt store always provides a
@@ -188,6 +195,28 @@ export function executeResponseProcessing(
         continue;
       }
 
+      // "A simple group of responseRules" (§5.118): executes inline, in order, over
+      // the same outcome state; exitResponse propagates through the recursion.
+      if (rule.kind === "responseProcessingFragment") {
+        executeRules(rule.rules ?? []);
+        continue;
+      }
+
+      if (rule.kind === "lookupOutcomeValue") {
+        if (rule.identifier !== undefined && rule.expression !== undefined) {
+          const declaration = context.outcomeDeclarations.find((entry) => entry.identifier === rule.identifier);
+
+          if (!hasLookupTable(declaration)) {
+            // §5.87 presumes "the lookupTable associated with the outcome's
+            // declaration" — no table, no spec-defined value: refuse, never guess.
+            throw new RpUnsupportedError("lookupOutcomeValue");
+          }
+
+          outcomes.set(rule.identifier, lookupTableValue(declaration, evaluateExpression(rule.expression, env)));
+        }
+        continue;
+      }
+
       // responseCondition
       if (rule.responseIf && branchTaken(rule.responseIf)) {
         continue;
@@ -221,6 +250,12 @@ export function executeResponseProcessing(
 export interface RpIssueOptions {
   /** `customOperator` classes the consumer has registered implementations for. */
   readonly customOperatorClasses?: ReadonlySet<string>;
+  /**
+   * The item's outcome declarations; when supplied, a `lookupOutcomeValue` rule whose
+   * declaration carries no lookupTable is reported statically (gate parity with the
+   * runtime refusal).
+   */
+  readonly outcomeDeclarations?: readonly OutcomeDeclarationView[];
 }
 
 /** Static coverage walk for `canDeliver`: reports constructs the interpreter lacks without executing. */
@@ -249,8 +284,20 @@ export function collectRpIssues(
         continue;
       }
 
+      if (rule.kind === "lookupOutcomeValue" && options?.outcomeDeclarations !== undefined) {
+        const declaration = options.outcomeDeclarations.find((entry) => entry.identifier === rule.identifier);
+
+        if (!hasLookupTable(declaration)) {
+          report("lookupOutcomeValue", "Outcome declaration has no matchTable/interpolationTable.");
+        }
+      }
+
       if (rule.expression) {
         collectExpressionIssues(rule.expression, rpExpressionKinds, report, options?.customOperatorClasses);
+      }
+
+      if (rule.rules) {
+        walkRules(rule.rules); // responseProcessingFragment nesting (§5.118)
       }
 
       for (const branch of [rule.responseIf, ...(rule.responseElseIfs ?? [])]) {

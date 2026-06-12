@@ -13,8 +13,9 @@ import {
   evaluateExpression,
   type EvalEnv,
 } from "../rp/evaluate";
+import { hasLookupTable, lookupTableValue } from "../rp/lookup-table";
 import { mulberry32 } from "../rp/template-processing";
-import type { OutcomeValue, RpExpressionView } from "../rp/types";
+import type { OutcomeDeclarationView, OutcomeValue, RpExpressionView } from "../rp/types";
 import {
   coerceScalar,
   floatValue,
@@ -40,11 +41,19 @@ import type {
   TestSessionState,
 } from "./types";
 
-const supportedOutcomeRuleKinds = new Set(["outcomeCondition", "setOutcomeValue", "exitTest"]);
+const supportedOutcomeRuleKinds = new Set([
+  "outcomeCondition",
+  "setOutcomeValue",
+  "lookupOutcomeValue",
+  "outcomeProcessingFragment",
+  "exitTest",
+]);
 
 const testExpressionKinds = new Set([
   ...deterministicExpressionKinds,
   "testVariables",
+  "outcomeMinimum",
+  "outcomeMaximum",
   "numberCorrect",
   "numberIncorrect",
   "numberPresented",
@@ -204,6 +213,14 @@ function resolvePlan(view: AssessmentTestView, seed: number): TestPlan {
 
 export interface TestControllerOptions {
   readonly seed: number;
+  /**
+   * Each item's outcome declarations, keyed by item-ref identifier (the same key
+   * `testVariables` uses). Feeds `outcomeMaximum`/`outcomeMinimum` with the declared
+   * `normal-maximum`/`normal-minimum`; items absent here degrade per spec — maximum
+   * → NULL (§2.11.2.7), minimum → ignored (§2.11.2.6) — never a refusal. Consumers
+   * can pass `assessmentItemViewFromNormalized(...).outcomeDeclarations` verbatim.
+   */
+  readonly itemOutcomeDeclarations?: Readonly<Record<string, readonly OutcomeDeclarationView[]>> | undefined;
 }
 
 export function createTestController(view: AssessmentTestView, options: TestControllerOptions): TestController {
@@ -243,6 +260,15 @@ export function createTestController(view: AssessmentTestView, options: TestCont
 
       return !(excludeCategory !== undefined && excludeCategory.some((category) => categories.includes(category)));
     });
+  }
+
+  /** The item's named weight; "If no matching definition is found the weight is assumed to be 1.0." */
+  function weightOf(item: TestPlanItem, weightIdentifier: string | undefined): number {
+    if (weightIdentifier === undefined) {
+      return 1;
+    }
+
+    return item.ref.weights?.find((entry) => entry.identifier === weightIdentifier)?.value ?? 1;
   }
 
   function remainingAttempts(state: TestSessionState, itemKey: string): number {
@@ -323,10 +349,8 @@ export function createTestController(view: AssessmentTestView, options: TestCont
           // Weighted numeric values multiply by the item's named weight (missing
           // names weigh 1) and the container becomes float (spec).
           if (weightIdentifier !== undefined && isNumericBaseType(lifted.baseType)) {
-            const weight = item.ref.weights?.find((entry) => entry.identifier === weightIdentifier)?.value ?? 1;
-
             baseType = "float";
-            members.push(...lifted.values.map((entry) => Number(entry) * weight));
+            members.push(...lifted.values.map((entry) => Number(entry) * weightOf(item, weightIdentifier)));
             continue;
           }
 
@@ -360,6 +384,33 @@ export function createTestController(view: AssessmentTestView, options: TestCont
             return integer(countIn(state.correctItems));
           case "numberIncorrect":
             return integer(countIn(state.incorrectItems));
+          case "outcomeMinimum":
+          case "outcomeMaximum": {
+            const bound = expression.kind === "outcomeMaximum" ? "normalMaximum" : "normalMinimum";
+            const members: number[] = [];
+
+            for (const item of subset) {
+              const declared = options.itemOutcomeDeclarations?.[item.key]?.find(
+                (entry) => entry.identifier === expression.outcomeIdentifier,
+              )?.[bound];
+
+              if (declared === undefined) {
+                // "If any of the items within the given subset have no declared
+                // maximum the result is NULL" (§2.11.2.7); for the minimum, "Items
+                // with no declared minimum are ignored." (§2.11.2.6)
+                if (expression.kind === "outcomeMaximum") {
+                  return null;
+                }
+                continue;
+              }
+
+              // Weighting "As per the 'weight-identifier' characteristic of
+              // 'qti-test-variables'" (§7.28.5); result base-type float.
+              members.push(declared * weightOf(item, expression.weightIdentifier));
+            }
+
+            return members.length === 0 ? null : rpValue("multiple", members, "float");
+          }
           default:
             throw new RpUnsupportedError(expression.kind);
         }
@@ -410,6 +461,28 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         if (rule.kind === "setOutcomeValue") {
           if (rule.identifier !== undefined && rule.expression !== undefined) {
             outcomes.set(rule.identifier, evaluateExpression(rule.expression, env));
+          }
+          continue;
+        }
+
+        // "Outcome rules are followed in the order given. Variables updated by a rule
+        // take their new value when evaluated as part of any following rules." (§5.103.1)
+        if (rule.kind === "outcomeProcessingFragment") {
+          executeRules(rule.rules ?? []);
+          continue;
+        }
+
+        if (rule.kind === "lookupOutcomeValue") {
+          if (rule.identifier !== undefined && rule.expression !== undefined) {
+            const declaration = (view.outcomeDeclarations ?? []).find((entry) => entry.identifier === rule.identifier);
+
+            if (!hasLookupTable(declaration)) {
+              // §5.87 presumes "the lookupTable associated with the outcome's
+              // declaration" — no table, no spec-defined value: refuse, never guess.
+              throw new RpUnsupportedError("lookupOutcomeValue");
+            }
+
+            outcomes.set(rule.identifier, lookupTableValue(declaration, evaluateExpression(rule.expression, env)));
           }
           continue;
         }
@@ -648,8 +721,20 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         continue;
       }
 
+      if (rule.kind === "lookupOutcomeValue") {
+        const declaration = (view.outcomeDeclarations ?? []).find((entry) => entry.identifier === rule.identifier);
+
+        if (!hasLookupTable(declaration)) {
+          report("lookupOutcomeValue"); // gate parity with the runtime refusal
+        }
+      }
+
       if (rule.expression) {
         collectExpressionIssues(rule.expression, testExpressionKinds, report);
+      }
+
+      if (rule.rules) {
+        walkOutcomeRules(rule.rules); // outcomeProcessingFragment nesting (§5.103)
       }
 
       for (const branch of [rule.outcomeIf, ...(rule.outcomeElseIfs ?? [])]) {

@@ -29,7 +29,7 @@ published runtime must score spec content correctly out of the box.
   consumers but mis-scores spec content by default; consumers keep the
   behavior via one Response Normalization config instead.
 
-## Status update (2026-06): expression vocabulary complete
+## Status update (2026-06): expression and rule vocabulary complete
 
 The staged growth reached a major milestone, scoped precisely: the
 interpreter implements the full QTI 3 **expression** (operator) vocabulary of
@@ -50,18 +50,19 @@ operator tests. Notes from the final tranche:
   `durationGte`/`durationLt` and adaptive re-attempt logic. Item level only;
   test-level duration aggregation is future controller work.
 
-Expressions are not all of response processing, and this section must not be
-over-read. The **rule** vocabulary is still incomplete: `lookupOutcomeValue`
-(matchTable/interpolationTable scoring) and `responseProcessingFragment` are
-normalized by qti-xml but refused by the interpreter, and the test controller
-likewise refuses `qti-lookup-outcome-value` and
-`qti-outcome-processing-fragment` in outcome processing. Together with the
-controller's `outcomeMinimum`/`outcomeMaximum` (below), these are ordinary
-unfinished coverage — follow-ups with zero corpus demand today, not
-principled refusals. Nor does any of this amount to engine-wide QTI 3
-conformance: rendering coverage, test navigation semantics, feedback, PNP,
-and packaging are separate workstreams, and conformance is ultimately the
-certification suite's verdict, not this corpus's.
+The **rule** vocabulary closed in a follow-up tranche: the interpreter
+executes `lookupOutcomeValue` (matchTable/interpolationTable scoring,
+§5.87/§5.90/§5.78) and `responseProcessingFragment`, the test controller
+executes `qti-lookup-outcome-value` and `qti-outcome-processing-fragment` in
+outcome processing, and `outcomeMinimum`/`outcomeMaximum` evaluate over the
+consumer-supplied `itemOutcomeDeclarations` controller option. A
+`lookupOutcomeValue` rule whose declaration carries no lookupTable refuses —
+statically and at runtime — rather than guessing. The only remaining named
+follow-up is test-level duration aggregation. None of this amounts to
+engine-wide QTI 3 conformance: rendering coverage, test navigation
+semantics, feedback, PNP, and packaging are separate workstreams, and
+conformance is ultimately the certification suite's verdict, not this
+corpus's.
 
 The remaining _operator_ refusals, by contrast, are principled and permanent.
 They are motivated individually below.
@@ -124,12 +125,12 @@ This is the strongest compliance claim of the three: the refusal _is_ the
 spec's own context restriction, applied verbatim. Content using these
 expressions in item RP is itself non-conformant.
 
-One carve-out so this heading does not hide it: `outcomeMinimum` and
-`outcomeMaximum` currently refuse even inside outcome processing. The
-controller implements the other six; these two aggregate the items' declared
-`normal-minimum`/`normal-maximum` (metadata the normalizer already carries)
-and have zero corpus demand. They are an ordinary controller follow-up, not
-a principled permanent refusal.
+All eight evaluate inside outcome processing. `outcomeMinimum` and
+`outcomeMaximum` read the items' declared `normal-minimum`/`normal-maximum`
+from the consumer-supplied `itemOutcomeDeclarations` controller option — the
+controller never sees item internals otherwise. Absent metadata is spec
+behavior, not a refusal: an item with no declared maximum makes the result
+NULL (§2.11.2.7), and one with no declared minimum is ignored (§2.11.2.6).
 
 ### Random operators outside seeded contexts
 

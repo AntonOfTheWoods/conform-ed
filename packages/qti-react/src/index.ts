@@ -30,6 +30,10 @@ export {
 
 export type {
   CustomOperatorImplementation,
+  InterpolationTableEntryView,
+  InterpolationTableView,
+  MatchTableEntryView,
+  MatchTableView,
   MaybeRpValue,
   OutcomeDeclarationView,
   OutcomeValue,
