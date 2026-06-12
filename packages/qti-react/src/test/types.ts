@@ -144,8 +144,17 @@ export interface AssessmentTestView {
 // ---------- The resolved delivery plan (selection + ordering applied) ----------
 
 export interface TestPlanItem {
-  /** The item ref identifier — unique within the test, used as the session key. */
+  /**
+   * The session key: the ref identifier, or `identifier.n` when selection
+   * with-replacement instantiates the ref more than once — the spec's own instance
+   * addressing, where "a number that denotes the instance's place in the sequence of
+   * the item's instantiation is inserted between the item variable identifier and
+   * the item variable" (§2.11.1.2). Identifiers cannot contain periods, so the two
+   * forms never collide.
+   */
   readonly key: string;
+  /** 1-based instantiation number; present only when the ref has multiple instances. */
+  readonly instance?: number;
   readonly ref: AssessmentItemRefView;
   readonly partIdentifier: string;
   readonly sectionPath: readonly string[];

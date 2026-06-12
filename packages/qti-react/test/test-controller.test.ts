@@ -174,6 +174,362 @@ describe("plan resolution (seeded, deterministic)", () => {
   });
 });
 
+describe("selection with replacement (keyed instances)", () => {
+  // "By setting 'with-replacement' to 'true' each element becomes eligible for
+  // selection multiple times. Selecting 3 nodes from {A,B,C,D} can then result in
+  // combinations such as {A,A,A}, {A,A,B} etc." (§5.129.2) — and "The number of
+  // children to select may exceed the number of child elements defined only if
+  // with-replacement is true." (§5.129.1). Instance keys adopt the spec's own
+  // addressing: "a number that denotes the instance's place in the sequence of the
+  // item's instantiation is inserted between the item variable identifier and the
+  // item variable, separated by a period character." (§2.11.1.2)
+  const drill: AssessmentTestView = {
+    identifier: "T-WR",
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode: "linear",
+        submissionMode: "individual",
+        assessmentSections: [
+          {
+            kind: "assessmentSection",
+            identifier: "S1",
+            selection: { select: 3, withReplacement: true },
+            children: [itemRef("Q01")],
+          },
+        ],
+      },
+    ],
+  };
+
+  test("the drill pattern: one ref selected three times yields three keyed instances", () => {
+    const controller = createTestController(drill, { seed: 1 });
+    const items = controller.plan.parts[0]!.items;
+
+    expect(items.map((entry) => entry.key)).toEqual(["Q01.1", "Q01.2", "Q01.3"]);
+    expect(items.map((entry) => entry.instance)).toEqual([1, 2, 3]);
+    expect(items.every((entry) => entry.ref.identifier === "Q01")).toBe(true);
+  });
+
+  test("each instance is its own item session: attempts and outcomes are per key", () => {
+    const controller = createTestController(drill, { seed: 1 });
+    let state = controller.start();
+
+    expect(controller.currentItem(state)?.key).toBe("Q01.1");
+    state = controller.submitItem(state, "Q01.1", { outcomes: { SCORE: 1 } });
+    state = controller.next(state);
+    state = controller.submitItem(state, "Q01.2", { outcomes: { SCORE: 5 } });
+
+    expect(state.attemptCounts).toEqual({ "Q01.1": 1, "Q01.2": 1 });
+    expect(state.itemOutcomes["Q01.1"]).toEqual({ SCORE: 1 });
+    expect(state.itemOutcomes["Q01.2"]).toEqual({ SCORE: 5 });
+  });
+
+  test("single-instance refs keep bare keys; draws keep document order and replay per seed", () => {
+    const pool: AssessmentTestView = {
+      identifier: "T-WR-POOL",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              selection: { select: 6, withReplacement: true },
+              children: [itemRef("A"), itemRef("B"), itemRef("C"), itemRef("D")],
+            },
+          ],
+        },
+      ],
+    };
+    const documentOrder = ["A", "B", "C", "D"];
+
+    for (let seed = 0; seed < 8; seed += 1) {
+      const items = createTestController(pool, { seed }).plan.parts[0]!.items;
+      const ids = items.map((entry) => entry.ref.identifier);
+
+      expect(items).toHaveLength(6); // six draws from four children (pigeonhole: repeats)
+      // Selection keeps document order (repeats adjacent); ordering shuffles separately.
+      expect(ids).toEqual([...ids].sort((a, b) => documentOrder.indexOf(a) - documentOrder.indexOf(b)));
+
+      for (const id of documentOrder) {
+        const instances = items.filter((entry) => entry.ref.identifier === id);
+
+        expect(instances.map((entry) => entry.key)).toEqual(
+          instances.length === 1 ? [id] : instances.map((_, index) => `${id}.${index + 1}`),
+        );
+      }
+
+      // The same seed reproduces the same multiset (replayable sessions).
+      expect(createTestController(pool, { seed }).plan.parts[0]!.items.map((entry) => entry.key)).toEqual(
+        items.map((entry) => entry.key),
+      );
+    }
+  });
+
+  test("required children always appear; extra slots draw from the whole pool", () => {
+    const guarded: AssessmentTestView = {
+      identifier: "T-WR-REQ",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              selection: { select: 3, withReplacement: true },
+              children: [itemRef("A", { required: true }), itemRef("B")],
+            },
+          ],
+        },
+      ],
+    };
+
+    for (let seed = 0; seed < 10; seed += 1) {
+      const ids = createTestController(guarded, { seed }).plan.parts[0]!.items.map((entry) => entry.ref.identifier);
+
+      expect(ids).toHaveLength(3);
+      expect(ids).toContain("A");
+    }
+  });
+
+  test("a section drawn with replacement instantiates its subtree per draw; numbering is global", () => {
+    // "Sub-sections always count as 1, regardless of how many child elements they
+    // have" (§5.129.1) — drawing one twice repeats its whole subtree.
+    const nested: AssessmentTestView = {
+      identifier: "T-WR-NEST",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "OUTER",
+              selection: { select: 2, withReplacement: true },
+              children: [{ kind: "assessmentSection", identifier: "INNER", children: [itemRef("Q01"), itemRef("X")] }],
+            },
+          ],
+        },
+      ],
+    };
+    const items = createTestController(nested, { seed: 1 }).plan.parts[0]!.items;
+
+    expect(items.map((entry) => entry.key)).toEqual(["Q01.1", "X.1", "Q01.2", "X.2"]);
+    expect(items.every((entry) => entry.sectionPath.includes("INNER"))).toBe(true);
+  });
+
+  test("Q01.n.VAR addresses each instantiation; a bare ref is NULL under individual submission", () => {
+    // "to obtain the value of the SCORE variable in the item referred to as Q01 in
+    // its second instantiation you would use … Q01.2.SCORE" (§2.11.1.2); the bare
+    // form over multiple instances "is taken from the last instance submitted if
+    // submission is simultaneous, otherwise it is undefined" — undefined maps to
+    // NULL, like every undefined value in this engine.
+    const addressed: AssessmentTestView = {
+      ...drill,
+      outcomeDeclarations: [
+        { identifier: "FIRST", cardinality: "single", baseType: "float" },
+        { identifier: "SECOND", cardinality: "single", baseType: "float" },
+        { identifier: "BARE", cardinality: "single", baseType: "float" },
+        { identifier: "D2", cardinality: "single", baseType: "duration" },
+      ],
+      outcomeProcessing: {
+        rules: [
+          { kind: "setOutcomeValue", identifier: "FIRST", expression: { kind: "variable", identifier: "Q01.1.SCORE" } },
+          {
+            kind: "setOutcomeValue",
+            identifier: "SECOND",
+            expression: { kind: "variable", identifier: "Q01.2.SCORE" },
+          },
+          { kind: "setOutcomeValue", identifier: "BARE", expression: { kind: "variable", identifier: "Q01.SCORE" } },
+          { kind: "setOutcomeValue", identifier: "D2", expression: { kind: "variable", identifier: "Q01.2.duration" } },
+        ],
+      },
+    };
+    const controller = createTestController(addressed, { seed: 1 });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "Q01.1", { outcomes: { SCORE: 1 } });
+    state = controller.next(state);
+    state = controller.submitItem(state, "Q01.2", { outcomes: { SCORE: 5 }, durationSeconds: 42 });
+    state = controller.end(state);
+
+    expect(state.testOutcomes["FIRST"]).toBe(1);
+    expect(state.testOutcomes["SECOND"]).toBe(5);
+    expect(state.testOutcomes["BARE"]).toBeNull();
+    expect(state.testOutcomes["D2"]).toBe(42);
+  });
+
+  test("a bare ref under simultaneous submission reads the last instance submitted", () => {
+    const bareSimultaneous: AssessmentTestView = {
+      ...drill,
+      outcomeDeclarations: [{ identifier: "BARE", cardinality: "single", baseType: "float" }],
+      outcomeProcessing: {
+        rules: [
+          { kind: "setOutcomeValue", identifier: "BARE", expression: { kind: "variable", identifier: "Q01.SCORE" } },
+        ],
+      },
+      testParts: [{ ...drill.testParts[0]!, submissionMode: "simultaneous" }],
+    };
+    const controller = createTestController(bareSimultaneous, { seed: 1 });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "Q01.1", { outcomes: { SCORE: 1 } });
+    state = controller.next(state);
+    state = controller.submitItem(state, "Q01.2", { outcomes: { SCORE: 5 } });
+    state = controller.next(state);
+    state = controller.next(state); // Q01.3 left unsubmitted; leaving the part flushes
+
+    expect(state.status).toBe("ended");
+    expect(state.testOutcomes["BARE"]).toBe(5); // the last submitted instance, not Q01.3
+  });
+
+  test("numberSelected counts instances; outcomeMaximum reads declarations by ref identifier", () => {
+    const counted: AssessmentTestView = {
+      ...drill,
+      outcomeDeclarations: [
+        { identifier: "N", cardinality: "single", baseType: "integer" },
+        { identifier: "MAX", cardinality: "single", baseType: "float" },
+      ],
+      outcomeProcessing: {
+        rules: [
+          { kind: "setOutcomeValue", identifier: "N", expression: { kind: "numberSelected" } },
+          {
+            kind: "setOutcomeValue",
+            identifier: "MAX",
+            expression: {
+              kind: "sum",
+              expressions: [{ kind: "outcomeMaximum", outcomeIdentifier: "SCORE" }],
+            },
+          },
+        ],
+      },
+    };
+    const controller = createTestController(counted, {
+      seed: 1,
+      itemOutcomeDeclarations: {
+        Q01: [{ identifier: "SCORE", cardinality: "single", baseType: "float", normalMaximum: 2 }],
+      },
+    });
+    const state = controller.end(controller.start());
+
+    expect(state.testOutcomes["N"]).toBe(3);
+    expect(state.testOutcomes["MAX"]).toBe(6); // each instance contributes the ref's declared maximum
+  });
+
+  test("the §2.8.3 repetition pattern: a precondition ends the drill once passed", () => {
+    // "repetition can be achieved by using a section that selects with-replacement up
+    // to a suitable upper bound of repitition [sic] in combination with a
+    // pre-condition or branch-rule that terminates the section early when (or if) a
+    // certain outcome has been achieved." (§2.8.3)
+    const practice: AssessmentTestView = {
+      ...drill,
+      outcomeDeclarations: [
+        {
+          identifier: "PASSED",
+          cardinality: "single",
+          baseType: "boolean",
+          defaultValue: { values: [{ value: false }] },
+        },
+      ],
+      outcomeProcessing: {
+        rules: [
+          {
+            kind: "outcomeCondition",
+            outcomeIf: {
+              expression: {
+                kind: "gte",
+                expressions: [
+                  { kind: "sum", expressions: [{ kind: "testVariables", identifier: "SCORE" }] },
+                  { kind: "baseValue", baseType: "float", value: 1 },
+                ],
+              },
+              rules: [
+                {
+                  kind: "setOutcomeValue",
+                  identifier: "PASSED",
+                  expression: { kind: "baseValue", baseType: "boolean", value: true },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      testParts: [
+        {
+          ...drill.testParts[0]!,
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "S1",
+              selection: { select: 3, withReplacement: true },
+              children: [
+                itemRef("Q01", {
+                  preConditions: [{ kind: "not", expressions: [{ kind: "variable", identifier: "PASSED" }] }],
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const controller = createTestController(practice, { seed: 1 });
+    let state = controller.start();
+
+    state = controller.submitItem(state, "Q01.1", { outcomes: { SCORE: 1 } }); // passed on the first try
+    state = controller.next(state);
+
+    expect(state.status).toBe("ended"); // the remaining instances were skipped
+    expect(state.attemptCounts).toEqual({ "Q01.1": 1 });
+  });
+
+  test("a branch target naming a multi-instance ref jumps to the next instance after the current item", () => {
+    const looping: AssessmentTestView = {
+      identifier: "T-WR-BRANCH",
+      testParts: [
+        {
+          identifier: "P1",
+          navigationMode: "linear",
+          submissionMode: "individual",
+          assessmentSections: [
+            {
+              kind: "assessmentSection",
+              identifier: "OUTER",
+              selection: { select: 2, withReplacement: true },
+              children: [
+                {
+                  kind: "assessmentSection",
+                  identifier: "INNER",
+                  children: [
+                    itemRef("Q01", {
+                      branchRules: [
+                        { target: "Q01", expression: { kind: "baseValue", baseType: "boolean", value: true } },
+                      ],
+                    }),
+                    itemRef("X"),
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const controller = createTestController(looping, { seed: 1 });
+    let state = controller.start(); // plan: Q01.1, X.1, Q01.2, X.2
+
+    state = controller.submitItem(state, "Q01.1", { outcomes: { SCORE: 0 } });
+    state = controller.next(state);
+
+    expect(controller.currentItem(state)?.key).toBe("Q01.2"); // branched over X.1
+  });
+});
+
 describe("linear navigation", () => {
   test("start at the first item, advance with next, end after the last", () => {
     const controller = createTestController(linearTest, { seed: 1 });

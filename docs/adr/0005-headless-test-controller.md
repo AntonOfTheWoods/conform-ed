@@ -76,3 +76,62 @@ ADR-0002). Two non-gaps for the record: test/part minTime stays surfaced but
 unenforced because §7.40.1 restricts minTime applicability to sections and
 items, and a millisecond clock keeps raw fractional seconds within the
 spec's truncation-epsilon requirement without explicit truncation.
+
+## Status update (2026-06): selection with replacement — keyed instances
+
+`qti-selection with-replacement` (§5.129.2) now instantiates: "each element
+becomes eligible for selection multiple times", and the select count "may
+exceed the number of child elements defined only if with-replacement is true"
+(§5.129.1). The motivating evidence was a silent under-delivery in the
+official corpus: feedbackTest's drill sections (`with-replacement="true"
+select="3"` over a single template-randomized ref — the §2.8.3
+drill-and-practice pattern) resolved to one plan item instead of three.
+
+Plan keys adopt the spec's own instance addressing (§2.11.1.2): a ref drawn
+more than once gets keys `Q01.1`, `Q01.2`, … — "a number that denotes the
+instance's place in the sequence of the item's instantiation is inserted
+between the item variable identifier and the item variable". QTI identifiers
+cannot contain periods, so instance keys never collide with bare ones, and
+every session structure already keyed by plan key (attempt counts, outcomes,
+timing, template defaults, rejected submissions, the session store's
+key-derived clone seeds) works per instance unchanged — distinct clone seeds
+per instance are exactly what makes each drill draw roll fresh template
+values.
+
+Designed policies where the spec is silent or leaves room:
+
+- Instance numbers follow plan (delivery) order, assigned after selection and
+  ordering — instantiation happens in delivery sequence, and plan order is
+  the only assignment deterministic across navigation modes. Refs drawn once
+  keep their bare identifier, so plans without replacement are byte-identical
+  to before.
+- A bare ref over multiple instances follows §2.11.1.2 verbatim: "taken from
+  the last instance submitted if submission is simultaneous, otherwise it is
+  undefined" — implemented as the last instance in plan order holding a
+  committed result (simultaneous parts flush in plan order), and NULL under
+  individual submission (undefined maps to NULL engine-wide). The same rule
+  covers `REF.duration`.
+- A branch target naming a multi-instance ref jumps to its next instance
+  after the current item — the §2.8.3 repetition idiom; branch paths only
+  move forward. No instance after the current item means the rule no-ops,
+  like any unknown target.
+- A _section_ drawn with replacement repeats its whole subtree ("Sub-sections
+  always count as 1", §5.129.1); its items join the global instance
+  numbering, but section identity — plan.sections, accrued section seconds,
+  `SECTION.duration` — stays shared per identifier, because the spec defines
+  no instance addressing for sections.
+- Required children appear once each; the remaining draws come uniformly from
+  the whole pool (required children stay eligible for further draws, per the
+  {A,A,A} example). The selected multiset keeps document order — ordering
+  shuffles separately, as without replacement.
+- `select` above the pool size _without_ replacement keeps the existing
+  silent cap (the spec forbids authoring it; capping is the graceful read).
+- `itemOutcomeDeclarations` (the `outcomeMaximum`/`outcomeMinimum` feed)
+  stays keyed by ref identifier: declarations are per item document and
+  shared by every instance.
+
+One ordering fix rode along: `start()` now positions the session _after_ the
+opening outcome-processing run, so start-time preconditions see declared
+outcome defaults — the drill pattern gates every instance on a boolean
+outcome that starts false, which previously read as NULL at the initial
+positioning and skipped the whole section.

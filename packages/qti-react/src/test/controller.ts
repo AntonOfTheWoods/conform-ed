@@ -127,10 +127,32 @@ function seededPick<T>(pool: readonly T[], count: number, random: () => number):
     .map((index) => pool[index]!);
 }
 
-function applySelection(children: readonly SectionChild[], select: number, random: () => number): SectionChild[] {
+function applySelection(
+  children: readonly SectionChild[],
+  selection: NonNullable<AssessmentSectionView["selection"]>,
+  random: () => number,
+): SectionChild[] {
   const required = children.filter((child) => child.required === true);
+  const needed = Math.max(0, selection.select - required.length);
+
+  if (selection.withReplacement === true) {
+    // "each element becomes eligible for selection multiple times. Selecting 3 nodes
+    // from {A,B,C,D} can then result in combinations such as {A,A,A}, {A,A,B} etc."
+    // (§5.129.2) — required children appear once, the remaining draws come from the
+    // whole pool. The multiset keeps document order (repeats adjacent); ordering
+    // shuffles separately.
+    const counts: number[] = children.map((child) => (child.required === true ? 1 : 0));
+
+    for (let draw = 0; draw < needed; draw += 1) {
+      const index = Math.floor(random() * children.length);
+
+      counts[index] = (counts[index] ?? 0) + 1;
+    }
+
+    return children.flatMap((child, index) => Array.from({ length: counts[index] ?? 0 }, () => child));
+  }
+
   const optional = children.filter((child) => child.required !== true);
-  const needed = Math.max(0, select - required.length);
   const picked = new Set<SectionChild>([...required, ...seededPick(optional, needed, random)]);
 
   return children.filter((child) => picked.has(child));
@@ -182,7 +204,7 @@ function mixedUnits(
       ...(child.timeLimits ? { timeLimits: child.timeLimits } : {}),
     };
 
-    const inner = child.selection ? applySelection(child.children, child.selection.select, random) : child.children;
+    const inner = child.selection ? applySelection(child.children, child.selection, random) : child.children;
 
     return mixedUnits(inner, random, sections).map((unit) => ({ child: unit.child, via: [child, ...unit.via] }));
   });
@@ -209,7 +231,7 @@ function resolveSection(
   let children: readonly SectionChild[] = section.children;
 
   if (section.selection) {
-    children = applySelection(children, section.selection.select, random);
+    children = applySelection(children, section.selection, random);
   }
 
   let units: SectionUnit[] = children.map((child) => ({ child, via: [] }));
@@ -250,18 +272,47 @@ function resolveSection(
 function resolvePlan(view: AssessmentTestView, seed: number): TestPlan {
   const random = mulberry32(seed);
   const sections: Record<string, TestPlanSection> = {};
+  const parts = view.testParts.map((part) => ({
+    identifier: part.identifier,
+    navigationMode: part.navigationMode,
+    submissionMode: part.submissionMode,
+    ...(part.timeLimits ? { timeLimits: part.timeLimits } : {}),
+    items: part.assessmentSections.flatMap((section) =>
+      resolveSection(section, part.identifier, [], [], definedControl(part.itemSessionControl), random, sections),
+    ),
+  }));
+
+  // Refs drawn more than once (selection with-replacement) get instance keys
+  // `identifier.n` — n is "the instance's place in the sequence of the item's
+  // instantiation" (§2.11.1.2), i.e. plan (delivery) order. Refs drawn once keep
+  // their bare identifier, so plans without replacement are unchanged.
+  const totals = new Map<string, number>();
+
+  for (const part of parts) {
+    for (const item of part.items) {
+      totals.set(item.ref.identifier, (totals.get(item.ref.identifier) ?? 0) + 1);
+    }
+  }
+
+  const ordinals = new Map<string, number>();
+  const keyedParts = parts.map((part) => ({
+    ...part,
+    items: part.items.map((item): TestPlanItem => {
+      if ((totals.get(item.ref.identifier) ?? 0) < 2) {
+        return item;
+      }
+
+      const instance = (ordinals.get(item.ref.identifier) ?? 0) + 1;
+
+      ordinals.set(item.ref.identifier, instance);
+
+      return { ...item, key: `${item.ref.identifier}.${instance}`, instance };
+    }),
+  }));
 
   return {
     ...(view.timeLimits ? { timeLimits: view.timeLimits } : {}),
-    parts: view.testParts.map((part) => ({
-      identifier: part.identifier,
-      navigationMode: part.navigationMode,
-      submissionMode: part.submissionMode,
-      ...(part.timeLimits ? { timeLimits: part.timeLimits } : {}),
-      items: part.assessmentSections.flatMap((section) =>
-        resolveSection(section, part.identifier, [], [], definedControl(part.itemSessionControl), random, sections),
-      ),
-    })),
+    parts: keyedParts,
     sections,
   };
 }
@@ -271,8 +322,8 @@ function resolvePlan(view: AssessmentTestView, seed: number): TestPlan {
 export interface TestControllerOptions {
   readonly seed: number;
   /**
-   * Each item's outcome declarations, keyed by item-ref identifier (the same key
-   * `testVariables` uses). Feeds `outcomeMaximum`/`outcomeMinimum` with the declared
+   * Each item's outcome declarations, keyed by item-ref identifier (shared by every
+   * selected instance of the ref). Feeds `outcomeMaximum`/`outcomeMinimum` with the declared
    * `normal-maximum`/`normal-minimum`; items absent here degrade per spec — maximum
    * → NULL (§2.11.2.7), minimum → ignored (§2.11.2.6) — never a refusal. Consumers
    * can pass `assessmentItemViewFromNormalized(...).outcomeDeclarations` verbatim.
@@ -291,11 +342,21 @@ export function createTestController(view: AssessmentTestView, options: TestCont
   const allItems: TestPlanItem[] = plan.parts.flatMap((part) => [...part.items]);
   const partIndexByItemKey = new Map<string, number>();
   const itemsByKey = new Map<string, TestPlanItem>();
+  /** Plan items per ref identifier, in plan order — >1 entry under with-replacement. */
+  const instancesByRef = new Map<string, TestPlanItem[]>();
 
   plan.parts.forEach((part, partIndex) => {
     for (const item of part.items) {
       partIndexByItemKey.set(item.key, partIndex);
       itemsByKey.set(item.key, item);
+
+      const siblings = instancesByRef.get(item.ref.identifier);
+
+      if (siblings) {
+        siblings.push(item);
+      } else {
+        instancesByRef.set(item.ref.identifier, [item]);
+      }
     }
   });
 
@@ -505,8 +566,50 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         const dot = identifier.indexOf(".");
 
         if (dot !== -1) {
-          const itemKey = identifier.slice(0, dot);
-          const variableName = identifier.slice(dot + 1);
+          let itemKey = identifier.slice(0, dot);
+          let variableName = identifier.slice(dot + 1);
+
+          // Instance addressing (§2.11.1.2): in `Q01.2.SCORE` "a number that denotes
+          // the instance's place in the sequence of the item's instantiation is
+          // inserted between the item variable identifier and the item variable" —
+          // the session key is `Q01.2`, so try the two-segment key first.
+          const secondDot = identifier.indexOf(".", dot + 1);
+
+          if (secondDot !== -1 && itemsByKey.has(identifier.slice(0, secondDot))) {
+            itemKey = identifier.slice(0, secondDot);
+            variableName = identifier.slice(secondDot + 1);
+          }
+
+          const instances = instancesByRef.get(itemKey);
+
+          if (instances !== undefined && instances.length > 1) {
+            // A bare ref over multiple instances "is taken from the last instance
+            // submitted if submission is simultaneous, otherwise it is undefined"
+            // (§2.11.1.2); undefined maps to NULL like every undefined value here.
+            // Simultaneous parts flush in plan order, so the last submitted instance
+            // is the last one in plan order holding a committed result.
+            const partIndex = partIndexByItemKey.get(instances[0]!.key);
+
+            if (partIndex === undefined || plan.parts[partIndex]!.submissionMode !== "simultaneous") {
+              return null;
+            }
+
+            for (let index = instances.length - 1; index >= 0; index -= 1) {
+              const instanceKey = instances[index]!.key;
+
+              if (variableName === "duration") {
+                const seconds = state.itemDurationSeconds?.[instanceKey];
+
+                if (seconds !== undefined) {
+                  return durationValue(seconds);
+                }
+              } else if (state.itemOutcomes[instanceKey] !== undefined) {
+                return liftFlat(state.itemOutcomes[instanceKey]?.[variableName] ?? null);
+              }
+            }
+
+            return null;
+          }
 
           if (variableName === "duration") {
             if (itemsByKey.has(itemKey)) {
@@ -608,7 +711,8 @@ export function createTestController(view: AssessmentTestView, options: TestCont
             const members: number[] = [];
 
             for (const item of subset) {
-              const declared = options.itemOutcomeDeclarations?.[item.key]?.find(
+              // Declarations are per item document, shared by every instance of a ref.
+              const declared = options.itemOutcomeDeclarations?.[item.ref.identifier]?.find(
                 (entry) => entry.identifier === expression.outcomeIdentifier,
               )?.[bound];
 
@@ -975,7 +1079,17 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         return moveToItem(state, firstNavigable(state, current.partIndex, index));
       }
 
-      const target = positionOf(branchRule.target);
+      // A target naming a multi-instance ref jumps to its next instance after the
+      // current item — the §2.8.3 repetition idiom; branch paths only move forward.
+      const target =
+        positionOf(branchRule.target) ??
+        (instancesByRef.get(branchRule.target) ?? [])
+          .map((instance) => positionOf(instance.key))
+          .find(
+            (position) =>
+              position !== null && position.partIndex === current.partIndex && position.itemIndex > current.itemIndex,
+          ) ??
+        null;
 
       if (target && target.partIndex === current.partIndex) {
         return moveToItem(state, firstNavigable(state, target.partIndex, target.itemIndex));
@@ -1193,7 +1307,12 @@ export function createTestController(view: AssessmentTestView, options: TestCont
         },
       };
 
-      return moveToItem({ ...initial, testOutcomes: runOutcomeProcessing(initial) }, firstNavigable(initial, 0, 0));
+      // Position only after the opening outcome-processing run: start-time
+      // preconditions must see declared outcome defaults (e.g. the §2.8.3 drill
+      // pattern gates every instance on a boolean that starts false).
+      const opened: TestSessionState = { ...initial, testOutcomes: runOutcomeProcessing(initial) };
+
+      return moveToItem(opened, firstNavigable(opened, 0, 0));
     },
 
     currentItem: (state) =>

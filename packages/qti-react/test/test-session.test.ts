@@ -382,3 +382,47 @@ describe("test session store: timing", () => {
     expect(after.timing).toBeDefined();
   });
 });
+
+describe("test session store: selection with replacement", () => {
+  // The §2.8.3 drill-and-practice pattern: each instantiation is an independent item
+  // session, so key-derived clone seeds must differ per instance — the same templated
+  // item rolls fresh values every time it is drawn.
+  const drillView: AssessmentTestView = {
+    identifier: "T-DRILL",
+    testParts: [
+      {
+        identifier: "P1",
+        navigationMode: "linear",
+        submissionMode: "individual",
+        assessmentSections: [
+          {
+            kind: "assessmentSection",
+            identifier: "S1",
+            selection: { select: 2, withReplacement: true },
+            children: [{ kind: "assessmentItemRef", identifier: "ITEM-T" }],
+          },
+        ],
+      },
+    ],
+  };
+
+  test("instances get independent stores with instance-distinct template clones", () => {
+    const make = () =>
+      createTestSessionStore(createTestController(drillView, { seed: 42 }), {
+        seed: 42,
+        resolveItem: (ref) => (ref.identifier === "ITEM-T" ? templatedItem : null),
+      });
+    const session = make();
+    const first = session.itemStore("ITEM-T.1")!;
+    const second = session.itemStore("ITEM-T.2")!;
+
+    expect(first).not.toBe(second);
+    expect(first.getSnapshot().templateValues["X"]).not.toEqual(second.getSnapshot().templateValues["X"]);
+
+    // Replayable: an identical session reproduces both clones from the test seed alone.
+    const replay = make();
+
+    expect(replay.itemStore("ITEM-T.1")!.getSnapshot().templateValues).toEqual(first.getSnapshot().templateValues);
+    expect(replay.itemStore("ITEM-T.2")!.getSnapshot().templateValues).toEqual(second.getSnapshot().templateValues);
+  });
+});
