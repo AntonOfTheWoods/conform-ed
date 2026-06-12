@@ -28,6 +28,7 @@ import {
   v0ContentModel,
   type ContentModel,
 } from "./content-model";
+import type { CatalogView } from "./pnp";
 import { collectInteractionConstraints } from "./response-validity";
 import { collectRpIssues, collectTemplateIssues } from "./rp";
 import type {
@@ -80,6 +81,8 @@ export interface AssessmentStimulusRefView {
 /** The resolved stimulus body, rendered through the same content walk as the item body. */
 export interface StimulusContentView {
   readonly content: readonly BodyNode[];
+  /** The stimulus document's catalogs (dormant alternative content, §5.29). */
+  readonly catalogs?: readonly CatalogView[];
 }
 
 export interface AssessmentItemView {
@@ -92,6 +95,8 @@ export interface AssessmentItemView {
   adaptive?: boolean;
   modalFeedbacks?: readonly FeedbackView[];
   assessmentStimulusRefs?: readonly AssessmentStimulusRefView[];
+  /** Every catalog in the item (item-level and nested), pooled for idref resolution. */
+  catalogs?: readonly CatalogView[];
   itemBody: { content?: BodyNode[] };
 }
 

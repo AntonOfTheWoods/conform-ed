@@ -19,6 +19,7 @@
  */
 
 import { parseCoords } from "./graphic";
+import type { CatalogView } from "./pnp";
 import type {
   OutcomeDeclarationView,
   ResponseProcessingView,
@@ -375,6 +376,47 @@ function convertResponseDeclaration(declaration: Record<string, unknown>): Respo
  * Reshape a normalized QTI document (the `normalizedDocument` from qti-xml validation)
  * into an `AssessmentItemView`, or null when it is not an assessment item.
  */
+// ---------- catalogs (CatalogInfo, §5.29) ----------
+
+/**
+ * Collect every catalog reachable from a converted node tree — catalog ids are
+ * document-unique (xs:ID), so item-level and nested (rubric/feedback block) catalogs
+ * pool into one list for idref resolution.
+ */
+function appendCatalogViews(target: CatalogView[], value: unknown): void {
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      appendCatalogViews(target, entry);
+    }
+    return;
+  }
+
+  if (!isRecord(value)) {
+    return;
+  }
+
+  const catalogInfo = value["catalogInfo"];
+  if (isRecord(catalogInfo) && Array.isArray(catalogInfo["catalogs"])) {
+    target.push(...(catalogInfo["catalogs"] as CatalogView[]));
+  }
+
+  appendCatalogViews(target, value["content"]);
+  appendCatalogViews(target, value["children"]);
+}
+
+/** Item/stimulus-level catalogInfo, converted so card content is renderer-ready. */
+function documentCatalogViews(root: Record<string, unknown>, convertedContent: unknown): CatalogView[] {
+  const catalogs: CatalogView[] = [];
+
+  appendCatalogViews(
+    catalogs,
+    isRecord(root["catalogInfo"]) ? { catalogInfo: convertContentValue(root["catalogInfo"]) } : undefined,
+  );
+  appendCatalogViews(catalogs, convertedContent);
+
+  return catalogs;
+}
+
 export function assessmentItemViewFromNormalized(document: unknown): AssessmentItemView | null {
   if (!isRecord(document) || !isRecord(document["assessmentItem"])) {
     return null;
@@ -384,6 +426,10 @@ export function assessmentItemViewFromNormalized(document: unknown): AssessmentI
   const itemBody = isRecord(item["itemBody"]) ? item["itemBody"] : {};
   const content = Array.isArray(itemBody["content"]) ? itemBody["content"].map(convertContentEntry) : [];
   const templateRules = isRecord(item["templateProcessing"]) ? item["templateProcessing"]["rules"] : undefined;
+  const convertedModalFeedbacks = Array.isArray(item["modalFeedbacks"])
+    ? item["modalFeedbacks"].map(convertContentValue)
+    : undefined;
+  const catalogs = documentCatalogViews(item, [content, convertedModalFeedbacks]);
 
   return {
     responseDeclarations: asRecords(item["responseDeclarations"]).map(convertResponseDeclaration),
@@ -402,9 +448,10 @@ export function assessmentItemViewFromNormalized(document: unknown): AssessmentI
         }
       : {}),
     ...(typeof item["adaptive"] === "boolean" ? { adaptive: item["adaptive"] } : {}),
-    ...(Array.isArray(item["modalFeedbacks"])
-      ? { modalFeedbacks: item["modalFeedbacks"].map(convertContentValue) as unknown as readonly FeedbackView[] }
+    ...(convertedModalFeedbacks
+      ? { modalFeedbacks: convertedModalFeedbacks as unknown as readonly FeedbackView[] }
       : {}),
+    ...(catalogs.length ? { catalogs } : {}),
     ...(Array.isArray(item["assessmentStimulusRefs"])
       ? {
           assessmentStimulusRefs: asRecords(item["assessmentStimulusRefs"]).map((ref) => ({
@@ -427,12 +474,12 @@ export function stimulusContentFromNormalized(document: unknown): StimulusConten
     return null;
   }
 
-  const body = isRecord(document["assessmentStimulus"]["stimulusBody"])
-    ? document["assessmentStimulus"]["stimulusBody"]
-    : {};
+  const stimulus = document["assessmentStimulus"];
+  const body = isRecord(stimulus["stimulusBody"]) ? stimulus["stimulusBody"] : {};
   const content = Array.isArray(body["content"]) ? body["content"].map(convertContentEntry) : [];
+  const catalogs = documentCatalogViews(stimulus, content);
 
-  return { content: content as BodyNode[] };
+  return { content: content as BodyNode[], ...(catalogs.length ? { catalogs } : {}) };
 }
 
 // ---------- assessment tests (ADR-0005) ----------

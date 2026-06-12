@@ -207,3 +207,21 @@ export type {
   ResponseValue,
   ScoreResult,
 } from "./types";
+
+export {
+  resolveCatalogSupports,
+  resolvePnpActivation,
+  type CatalogCardEntryView,
+  type CatalogCardView,
+  type CatalogContentView,
+  type CatalogFileHrefView,
+  type CatalogResolution,
+  type CatalogView,
+  type PnpActivation,
+  type PnpAdditionalTestingTimeView,
+  type PnpFeatureSetView,
+  type PnpLanguageModeView,
+  type PnpReplaceAccessModeView,
+  type PnpView,
+  type ResolvedCatalogSupport,
+} from "./pnp";
