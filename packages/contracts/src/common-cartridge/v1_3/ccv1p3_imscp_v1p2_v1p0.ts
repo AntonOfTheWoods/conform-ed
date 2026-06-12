@@ -43,7 +43,7 @@ export const CommonCartridgeFileSchema = strictObject({
   metadata: CommonCartridgeGenericMetadataSchema.optional(),
 });
 
-export const CommonCartridgeItemSchema: z.ZodTypeAny = z.lazy(() =>
+export const CommonCartridgeItemSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: NonEmptyStringSchema,
     identifierref: NonEmptyStringSchema.optional(),
@@ -53,7 +53,7 @@ export const CommonCartridgeItemSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const CommonCartridgeItemOrgSchema: z.ZodTypeAny = z.lazy(() =>
+export const CommonCartridgeItemOrgSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: NonEmptyStringSchema,
     item: z.array(CommonCartridgeItemSchema).optional(),

@@ -19,7 +19,7 @@ import { ImsxStatusInfoSchema } from "./shared";
 
 const EmptyPayloadSchema = z.undefined();
 
-function gradebookGetOperation(path: string, successResponsePayload: z.ZodTypeAny) {
+function gradebookGetOperation(path: string, successResponsePayload: z.ZodType) {
   return {
     method: "GET",
     path,
@@ -29,7 +29,7 @@ function gradebookGetOperation(path: string, successResponsePayload: z.ZodTypeAn
   } as const;
 }
 
-function gradebookPostOperation(path: string, requestPayload: z.ZodTypeAny, successResponsePayload: z.ZodTypeAny) {
+function gradebookPostOperation(path: string, requestPayload: z.ZodType, successResponsePayload: z.ZodType) {
   return {
     method: "POST",
     path,
@@ -39,7 +39,7 @@ function gradebookPostOperation(path: string, requestPayload: z.ZodTypeAny, succ
   } as const;
 }
 
-function gradebookPutOperation(path: string, requestPayload: z.ZodTypeAny) {
+function gradebookPutOperation(path: string, requestPayload: z.ZodType) {
   return {
     method: "PUT",
     path,

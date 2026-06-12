@@ -39,7 +39,7 @@ export const Cmi5KeywordExtensionSchema = strictObject({
   keywords: z.array(Cmi5KeywordDefinitionSchema).min(1),
 });
 
-let Cmi5BlockSchema: z.ZodTypeAny;
+let Cmi5BlockSchema: z.ZodType;
 
 export const Cmi5MoveOnSchema = z.enum([
   "NotApplicable",

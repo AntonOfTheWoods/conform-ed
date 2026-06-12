@@ -33,7 +33,7 @@ export function looseObject<T extends z.ZodRawShape>(shape: T) {
 
 export function addIssue(context: z.RefinementCtx, path: Array<string | number>, message: string) {
   context.addIssue({
-    code: z.ZodIssueCode.custom,
+    code: "custom",
     path,
     message,
   });

@@ -290,10 +290,10 @@ export const CaliperTypeDefinitionsSchema = z
   .object({
     extensions: CaliperExtensionsSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
-export const RoleSchema = z.object({}).passthrough();
-export const SelectorSchema = z.object({}).passthrough();
+export const RoleSchema = z.looseObject({});
+export const SelectorSchema = z.looseObject({});
 
 export const TextPositionSelectorSchema = z
   .object({
@@ -312,14 +312,14 @@ export const CaliperDataSchema = z
       .union([CaliperContextStringSchema, z.array(z.string()).min(1), z.record(z.string(), z.unknown())])
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export const SystemIdentifierSchema = z
   .object({
     type: z.literal("SystemIdentifier"),
     identifier: z.string(),
     identifierType: z.literal("LtiUserId"),
-    source: z.object({}).passthrough().optional(),
+    source: z.looseObject({}).optional(),
     "@context": CaliperNestedContextSchema.optional(),
     extensions: CaliperExtensionsSchema.optional(),
   })

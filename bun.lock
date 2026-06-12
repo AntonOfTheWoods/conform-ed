@@ -132,6 +132,7 @@
       "dependencies": {
         "@conform-ed/contracts": "workspace:*",
         "fast-xml-parser": "^5.3.1",
+        "fast-xml-validator": "^1.1.1",
       },
     },
     "packages/reporting": {
@@ -390,6 +391,8 @@
 
     "deep-eql": ["deep-eql@4.1.4", "", { "dependencies": { "type-detect": "^4.0.0" } }, "sha512-SUwdGfqdKOwxCPeVYjwSyRpJ7Z+fhpwIAtmCUdZIWZ/YP5R9WAsyuSgpLVDi9bjWoN2LXHNss/dk3urXtdQxGg=="],
 
+    "detailed-xml-validator": ["detailed-xml-validator@2.1.0", "", { "dependencies": { "fast-xml-parser": "^5.7.1" } }, "sha512-BhnTxmkOhDXS5V6yQFxTYItZa9Fk4gKKQNNDNXWLNolnsIdP/7wuyL0vlrfNqjgKbH8hsq+QFlFL6tpHvRNiAw=="],
+
     "detect-indent": ["detect-indent@6.1.0", "", {}, "sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA=="],
 
     "dir-glob": ["dir-glob@3.0.1", "", { "dependencies": { "path-type": "^4.0.0" } }, "sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA=="],
@@ -409,6 +412,8 @@
     "fast-xml-builder": ["fast-xml-builder@1.2.0", "", { "dependencies": { "path-expression-matcher": "^1.5.0", "xml-naming": "^0.1.0" } }, "sha512-00aAWieqff+ZJhsXA4g1g7M8k+7AYoMUUHF+/zFb5U6Uv/P0Vl4QZo84/IcufzYalLuEj9928bXN9PbbFzMF0Q=="],
 
     "fast-xml-parser": ["fast-xml-parser@5.8.0", "", { "dependencies": { "@nodable/entities": "^2.1.0", "fast-xml-builder": "^1.2.0", "path-expression-matcher": "^1.5.0", "strnum": "^2.3.0", "xml-naming": "^0.1.0" }, "bin": { "fxparser": "src/cli/cli.js" } }, "sha512-6bIM7fsJxeo3uXv7OncQYsBAMPJ7V16Slahl/6M98C/i2q+vB1+4a0MtrvYwDFEUrwDSbAmeLDRXsOBwrL7yAg=="],
+
+    "fast-xml-validator": ["fast-xml-validator@1.1.1", "", { "dependencies": { "detailed-xml-validator": "^2.1.0", "xml-naming": "^0.1.0" } }, "sha512-mNDDFp+Fz212Q3ckFewWCfFTaDG0HMkg21RauFXVJUkSjfYzkAof/8YhcPfabp04OHewbFyjQ4yCvxuAAvbCLg=="],
 
     "fastq": ["fastq@1.20.1", "", { "dependencies": { "reusify": "^1.0.4" } }, "sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw=="],
 

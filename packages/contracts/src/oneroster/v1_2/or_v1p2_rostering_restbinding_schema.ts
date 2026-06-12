@@ -20,7 +20,7 @@ import { ImsxStatusInfoSchema } from "./shared";
 
 const EmptyPayloadSchema = z.undefined();
 
-function rosteringGetOperation(path: string, successResponsePayload: z.ZodTypeAny) {
+function rosteringGetOperation(path: string, successResponsePayload: z.ZodType) {
   return {
     method: "GET",
     path,

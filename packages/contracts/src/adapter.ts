@@ -53,7 +53,7 @@ export const AdapterProfileSchema = z
   .superRefine((profile, context) => {
     if (profile.suite === "cmi5" && profile.interoperability.packageUpload !== "inline-base64") {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "interoperability.packageUpload must be inline-base64 for cmi5 profiles",
         path: ["interoperability", "packageUpload"],
       });

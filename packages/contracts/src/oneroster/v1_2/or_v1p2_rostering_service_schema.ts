@@ -51,7 +51,7 @@ export const CredentialSchema = z
     username: z.string(),
     password: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const UserIdSchema = strictObject({
   type: z.string(),

@@ -34,7 +34,7 @@ export const CaliperReferenceObjectSchema = z
     "@context": CaliperNestedContextSchema.optional(),
     extensions: CaliperExtensionsSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 export const CaliperReferenceSchema = z.union([CaliperIriSchema, CaliperReferenceObjectSchema]);
 
@@ -49,7 +49,7 @@ const CaliperEntityObjectBaseSchema = z
     dateModified: CaliperDateTimeSchema.optional(),
     extensions: CaliperExtensionsSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 const CaliperEventObjectBaseSchema = z
   .object({

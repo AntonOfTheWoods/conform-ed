@@ -84,9 +84,9 @@ const interactionKinds = new Set<string>([
   "endAttemptInteraction",
 ]);
 
-export const QtiXmlContentNodeSchema: z.ZodTypeAny = z.lazy(() => createXmlNodeSchema(QtiContentFragmentSchema));
+export const QtiXmlContentNodeSchema: z.ZodType = z.lazy(() => createXmlNodeSchema(QtiContentFragmentSchema));
 
-export const QtiPromptSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiPromptSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("prompt"),
     ...QtiCommonNodeShape,
@@ -94,7 +94,7 @@ export const QtiPromptSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiLabelElementSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiLabelElementSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("labelElement"),
     ...QtiCommonNodeShape,
@@ -133,14 +133,14 @@ export const QtiInteractionModulesSchema = strictObject({
   modules: z.array(QtiInteractionModuleSchema).min(1),
 });
 
-export const QtiInteractionMarkupSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiInteractionMarkupSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("interactionMarkup"),
     content: z.array(QtiContentFragmentSchema).optional(),
   }),
 );
 
-export const QtiFeedbackInlineSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiFeedbackInlineSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("feedbackInline"),
     ...QtiCommonNodeShape,
@@ -151,7 +151,7 @@ export const QtiFeedbackInlineSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiFeedbackBlockSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiFeedbackBlockSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("feedbackBlock"),
     ...QtiCommonNodeShape,
@@ -164,7 +164,7 @@ export const QtiFeedbackBlockSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTemplateInlineSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateInlineSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("templateInline"),
     ...QtiCommonNodeShape,
@@ -175,7 +175,7 @@ export const QtiTemplateInlineSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTemplateBlockFeedbackBlockSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateBlockFeedbackBlockSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("templateBlockFeedbackBlock"),
     ...QtiCommonNodeShape,
@@ -188,7 +188,7 @@ export const QtiTemplateBlockFeedbackBlockSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTemplateBlockSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateBlockSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("templateBlock"),
     ...QtiCommonNodeShape,
@@ -201,7 +201,7 @@ export const QtiTemplateBlockSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiRubricBlockSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiRubricBlockSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("rubricBlock"),
     ...QtiCommonNodeShape,
@@ -213,7 +213,7 @@ export const QtiRubricBlockSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTestRubricBlockSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTestRubricBlockSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("testRubricBlock"),
     ...QtiCommonNodeShape,
@@ -226,7 +226,7 @@ export const QtiTestRubricBlockSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiModalFeedbackSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiModalFeedbackSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("modalFeedback"),
     outcomeIdentifier: QtiIdentifierSchema,
@@ -240,7 +240,7 @@ export const QtiModalFeedbackSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTestFeedbackSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTestFeedbackSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("testFeedback"),
     access: z.enum(["atEnd", "during"]),
@@ -265,7 +265,7 @@ export const QtiGapSchema = strictObject({
   required: z.boolean().optional(),
 });
 
-export const QtiGapTextSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiGapTextSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("gapText"),
     ...QtiCommonNodeShape,
@@ -279,7 +279,7 @@ export const QtiGapTextSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiGapImgSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiGapImgSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("gapImg"),
     ...QtiCommonNodeShape,
@@ -296,7 +296,7 @@ export const QtiGapImgSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiHotTextSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiHotTextSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("hotText"),
     ...QtiCommonNodeShape,
@@ -331,7 +331,7 @@ export const QtiAssociableHotspotSchema = strictObject({
   hotspotLabel: z.string().optional(),
 });
 
-export const QtiSimpleChoiceSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiSimpleChoiceSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("simpleChoice"),
     ...QtiCommonNodeShape,
@@ -343,7 +343,7 @@ export const QtiSimpleChoiceSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiSimpleAssociableChoiceSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiSimpleAssociableChoiceSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("simpleAssociableChoice"),
     ...QtiCommonNodeShape,
@@ -358,7 +358,7 @@ export const QtiSimpleAssociableChoiceSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiInlineChoiceSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiInlineChoiceSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("inlineChoice"),
     ...QtiCommonNodeShape,
@@ -372,7 +372,7 @@ export const QtiInlineChoiceSchema: z.ZodTypeAny = z.lazy(() =>
 
 const QtiRenderableNodeSchema = z.union([QtiXmlContentNodeSchema, QtiIncludeSchema]);
 
-export const QtiChoiceInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiChoiceInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("choiceInteraction"),
     ...QtiCommonNodeShape,
@@ -388,7 +388,7 @@ export const QtiChoiceInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiInlineChoiceInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiInlineChoiceInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("inlineChoiceInteraction"),
     ...QtiCommonNodeShape,
@@ -416,7 +416,7 @@ export const QtiTextEntryInteractionSchema = strictObject({
   dataPatternmaskMessage: z.string().optional(),
 });
 
-export const QtiExtendedTextInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiExtendedTextInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("extendedTextInteraction"),
     ...QtiCommonNodeShape,
@@ -435,7 +435,7 @@ export const QtiExtendedTextInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiSimpleMatchSetSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiSimpleMatchSetSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("simpleMatchSet"),
     id: QtiIdentifierSchema.optional(),
@@ -444,7 +444,7 @@ export const QtiSimpleMatchSetSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiMatchInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiMatchInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("matchInteraction"),
     ...QtiCommonNodeShape,
@@ -462,7 +462,7 @@ export const QtiMatchInteractionSchema: z.ZodTypeAny = z.lazy(() =>
 
 export const QtiGapChoiceSchema = z.union([QtiGapTextSchema, QtiGapImgSchema]);
 
-export const QtiGapMatchInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiGapMatchInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("gapMatchInteraction"),
     ...QtiCommonNodeShape,
@@ -479,7 +479,7 @@ export const QtiGapMatchInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiMediaInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiMediaInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("mediaInteraction"),
     ...QtiCommonNodeShape,
@@ -494,7 +494,7 @@ export const QtiMediaInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiUploadInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiUploadInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("uploadInteraction"),
     ...QtiCommonNodeShape,
@@ -504,7 +504,7 @@ export const QtiUploadInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiOrderInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOrderInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("orderInteraction"),
     ...QtiCommonNodeShape,
@@ -521,7 +521,7 @@ export const QtiOrderInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiHotTextInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiHotTextInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("hotTextInteraction"),
     ...QtiCommonNodeShape,
@@ -535,7 +535,7 @@ export const QtiHotTextInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiHotspotInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiHotspotInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("hotspotInteraction"),
     ...QtiCommonNodeShape,
@@ -550,7 +550,7 @@ export const QtiHotspotInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAssociateInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAssociateInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("associateInteraction"),
     ...QtiCommonNodeShape,
@@ -563,7 +563,7 @@ export const QtiAssociateInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiGraphicAssociateInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiGraphicAssociateInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("graphicAssociateInteraction"),
     ...QtiCommonNodeShape,
@@ -576,7 +576,7 @@ export const QtiGraphicAssociateInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiGraphicGapMatchInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiGraphicGapMatchInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("graphicGapMatchInteraction"),
     ...QtiCommonNodeShape,
@@ -593,7 +593,7 @@ export const QtiGraphicGapMatchInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiGraphicOrderInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiGraphicOrderInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("graphicOrderInteraction"),
     ...QtiCommonNodeShape,
@@ -606,7 +606,7 @@ export const QtiGraphicOrderInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiSelectPointInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiSelectPointInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("selectPointInteraction"),
     ...QtiCommonNodeShape,
@@ -618,7 +618,7 @@ export const QtiSelectPointInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiSliderInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiSliderInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("sliderInteraction"),
     ...QtiCommonNodeShape,
@@ -633,7 +633,7 @@ export const QtiSliderInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiPositionObjectInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiPositionObjectInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("positionObjectInteraction"),
     ...QtiCommonNodeShape,
@@ -645,7 +645,7 @@ export const QtiPositionObjectInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiPortableCustomInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiPortableCustomInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("portableCustomInteraction"),
     ...QtiCommonNodeShape,
@@ -664,7 +664,7 @@ export const QtiPortableCustomInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiCustomInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiCustomInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("customInteraction"),
     ...QtiCommonNodeShape,
@@ -674,7 +674,7 @@ export const QtiCustomInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiDrawingInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiDrawingInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("drawingInteraction"),
     ...QtiCommonNodeShape,
@@ -685,7 +685,7 @@ export const QtiDrawingInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiEndAttemptInteractionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiEndAttemptInteractionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("endAttemptInteraction"),
     ...QtiCommonNodeShape,
@@ -697,7 +697,7 @@ export const QtiEndAttemptInteractionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiPositionObjectStageSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiPositionObjectStageSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("positionObjectStage"),
     id: QtiIdentifierSchema.optional(),
@@ -707,7 +707,7 @@ export const QtiPositionObjectStageSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiContentFragmentSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiContentFragmentSchema: z.ZodType = z.lazy(() =>
   z.union([
     z.string(),
     QtiXmlContentNodeSchema,
@@ -753,13 +753,13 @@ export const QtiContentFragmentSchema: z.ZodTypeAny = z.lazy(() =>
   ]),
 );
 
-export const QtiItemBodySchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiItemBodySchema: z.ZodType = z.lazy(() =>
   strictObject({
     content: z.array(QtiContentFragmentSchema).min(1),
   }),
 );
 
-export const QtiStimulusBodySchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiStimulusBodySchema: z.ZodType = z.lazy(() =>
   strictObject({
     ...QtiCommonNodeShape,
     content: z.array(QtiContentFragmentSchema).min(1),
@@ -1249,7 +1249,7 @@ function validateTemplateAndResponseReferences(
   }
 }
 
-export const QtiAssessmentSectionRawSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAssessmentSectionRawSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: QtiIdentifierSchema,
     required: z.boolean().optional(),
@@ -1280,7 +1280,7 @@ export const QtiAssessmentSectionRawSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAssessmentSectionSchema: z.ZodTypeAny = QtiAssessmentSectionRawSchema.superRefine(
+export const QtiAssessmentSectionSchema: z.ZodType = QtiAssessmentSectionRawSchema.superRefine(
   (value: unknown, context) => {
     const section = value as QtiSectionValidationValue;
 
@@ -1309,7 +1309,7 @@ export const QtiAssessmentSectionSchema: z.ZodTypeAny = QtiAssessmentSectionRawS
   },
 );
 
-export const QtiTestPartSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTestPartSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: QtiIdentifierSchema,
     title: z.string().optional(),
@@ -1327,7 +1327,7 @@ export const QtiTestPartSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAssessmentStimulusSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAssessmentStimulusSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: QtiIdentifierSchema,
     title: z.string(),
@@ -1341,7 +1341,7 @@ export const QtiAssessmentStimulusSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAssessmentItemRawSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAssessmentItemRawSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: QtiIdentifierSchema,
     title: z.string(),
@@ -1367,92 +1367,86 @@ export const QtiAssessmentItemRawSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAssessmentItemSchema: z.ZodTypeAny = QtiAssessmentItemRawSchema.superRefine(
-  (value: unknown, context) => {
-    const item = value as QtiItemValidationValue;
-    const contextDeclarations = asArray(item.contextDeclarations);
-    const responseDeclarationsList = asArray(item.responseDeclarations);
-    const outcomeDeclarationsList = asArray(item.outcomeDeclarations);
-    const templateDeclarationsList = asArray(item.templateDeclarations);
-    const modalFeedbacks = asArray(item.modalFeedbacks);
+export const QtiAssessmentItemSchema: z.ZodType = QtiAssessmentItemRawSchema.superRefine((value: unknown, context) => {
+  const item = value as QtiItemValidationValue;
+  const contextDeclarations = asArray(item.contextDeclarations);
+  const responseDeclarationsList = asArray(item.responseDeclarations);
+  const outcomeDeclarationsList = asArray(item.outcomeDeclarations);
+  const templateDeclarationsList = asArray(item.templateDeclarations);
+  const modalFeedbacks = asArray(item.modalFeedbacks);
 
-    const variableDeclarations = [
-      ...contextDeclarations,
-      ...responseDeclarationsList,
-      ...outcomeDeclarationsList,
-      ...templateDeclarationsList,
-    ];
+  const variableDeclarations = [
+    ...contextDeclarations,
+    ...responseDeclarationsList,
+    ...outcomeDeclarationsList,
+    ...templateDeclarationsList,
+  ];
 
-    addDuplicateSummaryIssue(
-      context,
-      [],
-      "assessment item variable declaration identifiers",
-      variableDeclarations.map((declaration) => declaration.identifier),
-    );
+  addDuplicateSummaryIssue(
+    context,
+    [],
+    "assessment item variable declaration identifiers",
+    variableDeclarations.map((declaration) => declaration.identifier),
+  );
 
-    validateOutcomeDeclarationConventions(outcomeDeclarationsList, context, ["outcomeDeclarations"]);
+  validateOutcomeDeclarationConventions(outcomeDeclarationsList, context, ["outcomeDeclarations"]);
 
-    const responseDeclarations = new Map(
-      responseDeclarationsList.map((declaration) => [declaration.identifier, declaration]),
-    );
-    const outcomeDeclarations = new Map(
-      outcomeDeclarationsList.map((declaration) => [declaration.identifier, declaration]),
-    );
-    const templateDeclarations = new Map(
-      templateDeclarationsList.map((declaration) => [declaration.identifier, declaration]),
-    );
+  const responseDeclarations = new Map(
+    responseDeclarationsList.map((declaration) => [declaration.identifier, declaration]),
+  );
+  const outcomeDeclarations = new Map(
+    outcomeDeclarationsList.map((declaration) => [declaration.identifier, declaration]),
+  );
+  const templateDeclarations = new Map(
+    templateDeclarationsList.map((declaration) => [declaration.identifier, declaration]),
+  );
 
-    const interactions = collectInteractionNodes(item.itemBody?.content);
-    const responseBindings = new Map<string, string[]>();
+  const interactions = collectInteractionNodes(item.itemBody?.content);
+  const responseBindings = new Map<string, string[]>();
 
-    for (const interaction of interactions) {
-      const responseIdentifier =
-        typeof interaction.responseIdentifier === "string" ? interaction.responseIdentifier : undefined;
-      if (responseIdentifier) {
-        const boundKinds = responseBindings.get(responseIdentifier) ?? [];
-        boundKinds.push(String(interaction.kind));
-        responseBindings.set(responseIdentifier, boundKinds);
-      }
-
-      validateResponseBinding(interaction, responseDeclarations, context, ["itemBody"]);
+  for (const interaction of interactions) {
+    const responseIdentifier =
+      typeof interaction.responseIdentifier === "string" ? interaction.responseIdentifier : undefined;
+    if (responseIdentifier) {
+      const boundKinds = responseBindings.get(responseIdentifier) ?? [];
+      boundKinds.push(String(interaction.kind));
+      responseBindings.set(responseIdentifier, boundKinds);
     }
 
-    for (const [identifier, kinds] of responseBindings) {
-      if (kinds.length > 1) {
-        addIssue(
-          context,
-          ["itemBody"],
-          `Response identifier '${identifier}' is bound by multiple interactions: ${kinds.join(", ")}.`,
-        );
-      }
+    validateResponseBinding(interaction, responseDeclarations, context, ["itemBody"]);
+  }
+
+  for (const [identifier, kinds] of responseBindings) {
+    if (kinds.length > 1) {
+      addIssue(
+        context,
+        ["itemBody"],
+        `Response identifier '${identifier}' is bound by multiple interactions: ${kinds.join(", ")}.`,
+      );
+    }
+  }
+
+  for (const [index, feedback] of modalFeedbacks.entries()) {
+    if (!outcomeDeclarations.has(feedback.outcomeIdentifier)) {
+      addIssue(
+        context,
+        ["modalFeedbacks", index, "outcomeIdentifier"],
+        `modalFeedback references undeclared outcome identifier '${feedback.outcomeIdentifier}'.`,
+      );
     }
 
-    for (const [index, feedback] of modalFeedbacks.entries()) {
-      if (!outcomeDeclarations.has(feedback.outcomeIdentifier)) {
-        addIssue(
-          context,
-          ["modalFeedbacks", index, "outcomeIdentifier"],
-          `modalFeedback references undeclared outcome identifier '${feedback.outcomeIdentifier}'.`,
-        );
-      }
-
-      if (containsInteraction(feedback.content)) {
-        addIssue(context, ["modalFeedbacks", index, "content"], "modalFeedback content must not contain interactions.");
-      }
+    if (containsInteraction(feedback.content)) {
+      addIssue(context, ["modalFeedbacks", index, "content"], "modalFeedback content must not contain interactions.");
     }
+  }
 
-    validateOutcomeReferences(item.responseProcessing, outcomeDeclarations, context, ["responseProcessing"]);
-    validateTemplateAndResponseReferences(
-      item.templateProcessing,
-      templateDeclarations,
-      responseDeclarations,
-      context,
-      ["templateProcessing"],
-    );
-  },
-);
+  validateOutcomeReferences(item.responseProcessing, outcomeDeclarations, context, ["responseProcessing"]);
+  validateTemplateAndResponseReferences(item.templateProcessing, templateDeclarations, responseDeclarations, context, [
+    "templateProcessing",
+  ]);
+});
 
-export const QtiAssessmentTestRawSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAssessmentTestRawSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: QtiIdentifierSchema,
     title: z.string(),
@@ -1471,47 +1465,45 @@ export const QtiAssessmentTestRawSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAssessmentTestSchema: z.ZodTypeAny = QtiAssessmentTestRawSchema.superRefine(
-  (value: unknown, context) => {
-    const testValue = value as QtiTestValidationValue;
-    const contextDeclarations = asArray(testValue.contextDeclarations);
-    const outcomeDeclarationsList = asArray(testValue.outcomeDeclarations);
-    const testParts = asArray(testValue.testParts);
-    const testFeedbacks = asArray(testValue.testFeedbacks);
+export const QtiAssessmentTestSchema: z.ZodType = QtiAssessmentTestRawSchema.superRefine((value: unknown, context) => {
+  const testValue = value as QtiTestValidationValue;
+  const contextDeclarations = asArray(testValue.contextDeclarations);
+  const outcomeDeclarationsList = asArray(testValue.outcomeDeclarations);
+  const testParts = asArray(testValue.testParts);
+  const testFeedbacks = asArray(testValue.testFeedbacks);
 
-    addDuplicateSummaryIssue(context, [], "assessment test variable declaration identifiers", [
-      ...contextDeclarations.map((declaration) => declaration.identifier),
-      ...outcomeDeclarationsList.map((declaration) => declaration.identifier),
-    ]);
+  addDuplicateSummaryIssue(context, [], "assessment test variable declaration identifiers", [
+    ...contextDeclarations.map((declaration) => declaration.identifier),
+    ...outcomeDeclarationsList.map((declaration) => declaration.identifier),
+  ]);
 
-    addDuplicateSummaryIssue(
-      context,
-      ["testParts"],
-      "test part identifiers",
-      testParts.map((testPart) => testPart.identifier),
-    );
+  addDuplicateSummaryIssue(
+    context,
+    ["testParts"],
+    "test part identifiers",
+    testParts.map((testPart) => testPart.identifier),
+  );
 
-    validateOutcomeDeclarationConventions(outcomeDeclarationsList, context, ["outcomeDeclarations"]);
+  validateOutcomeDeclarationConventions(outcomeDeclarationsList, context, ["outcomeDeclarations"]);
 
-    const outcomes = new Map(outcomeDeclarationsList.map((declaration) => [declaration.identifier, declaration]));
+  const outcomes = new Map(outcomeDeclarationsList.map((declaration) => [declaration.identifier, declaration]));
 
-    for (const [index, feedback] of testFeedbacks.entries()) {
-      if (!outcomes.has(feedback.outcomeIdentifier)) {
-        addIssue(
-          context,
-          ["testFeedbacks", index, "outcomeIdentifier"],
-          `testFeedback references undeclared outcome identifier '${feedback.outcomeIdentifier}'.`,
-        );
-      }
-
-      if (containsInteraction(feedback.content)) {
-        addIssue(context, ["testFeedbacks", index, "content"], "testFeedback content must not contain interactions.");
-      }
+  for (const [index, feedback] of testFeedbacks.entries()) {
+    if (!outcomes.has(feedback.outcomeIdentifier)) {
+      addIssue(
+        context,
+        ["testFeedbacks", index, "outcomeIdentifier"],
+        `testFeedback references undeclared outcome identifier '${feedback.outcomeIdentifier}'.`,
+      );
     }
 
-    validateOutcomeReferences(testValue.outcomeProcessing, outcomes, context, ["outcomeProcessing"]);
-  },
-);
+    if (containsInteraction(feedback.content)) {
+      addIssue(context, ["testFeedbacks", index, "content"], "testFeedback content must not contain interactions.");
+    }
+  }
+
+  validateOutcomeReferences(testValue.outcomeProcessing, outcomes, context, ["outcomeProcessing"]);
+});
 // Inferred types from exported Zod validators.
 export type QtiPrintedVariable = z.infer<typeof QtiPrintedVariableSchema>;
 export type QtiInteractionModule = z.infer<typeof QtiInteractionModuleSchema>;

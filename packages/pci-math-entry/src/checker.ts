@@ -11,7 +11,7 @@
  */
 
 import { ComputeEngine } from "@cortex-js/compute-engine";
-import type { BoxedExpression } from "@cortex-js/compute-engine";
+import type { Expression } from "@cortex-js/compute-engine";
 
 export type MathCheckMode = "equivalent" | "literal";
 
@@ -86,7 +86,7 @@ function sameJson(a: unknown, b: unknown): boolean {
   return a === b;
 }
 
-function parseLatex(latex: string, form: "canonical" | "structural"): BoxedExpression | null {
+function parseLatex(latex: string, form: "canonical" | "structural"): Expression | null {
   if (latex.trim() === "") {
     return null;
   }
@@ -97,7 +97,7 @@ function parseLatex(latex: string, form: "canonical" | "structural"): BoxedExpre
 }
 
 /** Finite real value of an expression, or null when it is not plainly numeric. */
-function realValue(expression: BoxedExpression): number | null {
+function realValue(expression: Expression): number | null {
   const numeric = expression.N();
   const real = numeric.re;
   const imaginary = numeric.im;

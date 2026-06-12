@@ -25,7 +25,7 @@ export const H5pPackageManifestSchema = strictObject({
   description: z.string().optional(),
   author: z.string().optional(),
   authors: z.array(H5pAuthorSchema).optional(),
-  source: z.string().url().optional(),
+  source: z.url().optional(),
   license: H5pLicenseSchema.optional(),
   licenseVersion: z.string().max(10).optional(),
   licenseExtras: z.string().max(5000).optional(),
@@ -47,7 +47,7 @@ export const H5pPackageManifestSchema = strictObject({
   for (const et of data.embedTypes) {
     if (seen.has(et)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["embedTypes"],
         message: `Duplicate embed type: "${et}"`,
       });
@@ -57,7 +57,7 @@ export const H5pPackageManifestSchema = strictObject({
   // yearTo must be >= yearFrom when both are present
   if (data.yearFrom !== undefined && data.yearTo !== undefined && data.yearTo < data.yearFrom) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       path: ["yearTo"],
       message: "yearTo must be >= yearFrom",
     });

@@ -86,24 +86,24 @@ const LomStructureValueSchema = z.enum(["atomic", "collection", "networked", "hi
 const LomTypeValueSchema = z.enum(["operating system", "browser"]);
 
 type LomVocabularySchemaConfig = {
-  aggregationLevel: z.ZodTypeAny;
-  context: z.ZodTypeAny;
-  copyrightAndOtherRestrictions: z.ZodTypeAny;
-  cost: z.ZodTypeAny;
-  difficulty: z.ZodTypeAny;
-  intendedEndUserRole: z.ZodTypeAny;
-  interactivityLevel: z.ZodTypeAny;
-  interactivityType: z.ZodTypeAny;
-  kind: z.ZodTypeAny;
-  learningResourceType: z.ZodTypeAny;
-  name: z.ZodTypeAny;
-  purpose: z.ZodTypeAny;
-  roleLifeCycle: z.ZodTypeAny;
-  roleMetaMetadata: z.ZodTypeAny;
-  semanticDensity: z.ZodTypeAny;
-  status: z.ZodTypeAny;
-  structure: z.ZodTypeAny;
-  type: z.ZodTypeAny;
+  aggregationLevel: z.ZodType;
+  context: z.ZodType;
+  copyrightAndOtherRestrictions: z.ZodType;
+  cost: z.ZodType;
+  difficulty: z.ZodType;
+  intendedEndUserRole: z.ZodType;
+  interactivityLevel: z.ZodType;
+  interactivityType: z.ZodType;
+  kind: z.ZodType;
+  learningResourceType: z.ZodType;
+  name: z.ZodType;
+  purpose: z.ZodType;
+  roleLifeCycle: z.ZodType;
+  roleMetaMetadata: z.ZodType;
+  semanticDensity: z.ZodType;
+  status: z.ZodType;
+  structure: z.ZodType;
+  type: z.ZodType;
 };
 
 function createLomProfileSchemas(config: {
@@ -132,7 +132,7 @@ function createLomProfileSchemas(config: {
     string: z.array(LanguageStringSchema),
   });
 
-  const vocabulary = (valueSchema: z.ZodTypeAny) =>
+  const vocabulary = (valueSchema: z.ZodType) =>
     object({
       source: z.string().optional(),
       value: valueSchema.optional(),

@@ -7,18 +7,15 @@ export function strictObject<T extends z.ZodRawShape>(shape: T) {
 const UriSchema = z.string().regex(/^[a-zA-Z][a-zA-Z0-9+.-]*:.+$/u);
 
 export const NonEmptyStringSchema = z.string().min(1);
-export const UuidSchema = z.string().uuid();
+export const UuidSchema = z.uuid();
 export const UriSchemaStrict = UriSchema;
 export const IriSchema = UriSchema;
 export const MediaTypeSchema = z.string().min(1);
 export const LanguageTagSchema = z.string().regex(/^[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*$/u);
 export const XapiVersionSchema = z.string().regex(/^\d+\.\d+(?:\.\d+)?$/u);
-export const Iso8601TimestampSchema = z
-  .string()
-  .datetime({ offset: true })
-  .refine((v) => !v.endsWith("-00:00"), {
-    message: "Negative zero offset (-00:00) is not a valid xAPI timestamp",
-  });
+export const Iso8601TimestampSchema = z.iso.datetime({ offset: true }).refine((v) => !v.endsWith("-00:00"), {
+  message: "Negative zero offset (-00:00) is not a valid xAPI timestamp",
+});
 export const Iso8601DurationSchema = z
   .string()
   .regex(/^P(?=.)(?:(\d+W)|(?:(\d+Y)?(\d+M)?(\d+D)?(?:T(?=\d)(\d+H)?(\d+M)?(\d+(?:\.\d+)?S)?)?))$/u);
@@ -57,7 +54,7 @@ export const AgentSchema = strictObject({
   const ifiCount = [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter(hasDefined).length;
   if (ifiCount !== 1) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       message:
         "An xAPI Agent requires exactly one Inverse Functional Identifier (mbox, mbox_sha1sum, openid, or account)",
     });
@@ -82,13 +79,13 @@ export const GroupSchema = strictObject({
   const ifiCount = [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter(hasDefined).length;
   if (ifiCount > 1) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       message: "An identified xAPI Group MUST have exactly one Inverse Functional Identifier",
     });
   }
   if (ifiCount === 0 && !hasDefined(value.member)) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       message: "An anonymous xAPI Group requires a member list",
     });
   }
@@ -162,7 +159,7 @@ export const ActivityDefinitionSchema = strictObject({
   for (const prop of interactionSubProperties) {
     if (value[prop] !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: `Activity definition property '${prop}' requires interactionType to be set`,
         path: [prop],
       });
@@ -190,21 +187,21 @@ export const ScoreSchema = strictObject({
   const { min, max, raw } = value;
   if (min !== undefined && max !== undefined && min >= max) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       message: "Score max must be greater than min",
       path: ["max"],
     });
   }
   if (raw !== undefined && min !== undefined && raw < min) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       message: "Score raw must be greater than or equal to min",
       path: ["raw"],
     });
   }
   if (raw !== undefined && max !== undefined && raw > max) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       message: "Score raw must be less than or equal to max",
       path: ["raw"],
     });

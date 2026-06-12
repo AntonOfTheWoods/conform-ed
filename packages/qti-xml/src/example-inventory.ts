@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { XMLValidator } from "fast-xml-parser";
+import { SyntaxValidator } from "fast-xml-validator";
 
 import { detectQtiRoot } from "./root-detection";
 import { isNormalizationImplemented, selectQtiSchema } from "./schema-selection";
@@ -70,7 +70,7 @@ function xmlStatusForContent(fileKind: QtiFileKind, content: string): QtiXmlStat
     return "not-xml";
   }
 
-  return XMLValidator.validate(content) === true ? "well-formed" : "malformed";
+  return SyntaxValidator.validate(content) === true ? "well-formed" : "malformed";
 }
 
 function supportStatusForEntry(entry: {

@@ -55,7 +55,7 @@ export const QtiMaterialSchema = strictObject({
   altmaterial: z.array(QtiAltMaterialSchema).optional(),
 });
 
-export const QtiFlowMatSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiFlowMatSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("flow_mat"),
     class: z.string().optional(),
@@ -73,7 +73,7 @@ export const QtiResponseLabelSchema = strictObject({
   children: z.array(z.union([QtiMaterialSchema, QtiMaterialRefSchema, QtiFlowMatSchema])).optional(),
 });
 
-export const QtiFlowLabelSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiFlowLabelSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("flow_label"),
     class: z.string().optional(),
@@ -130,7 +130,7 @@ export const QtiResponseStrSchema = strictObject({
   trailing: QtiLeadingOrTrailingMaterialSchema.optional(),
 });
 
-export const QtiFlowSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiFlowSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("flow"),
     class: z.string().optional(),
@@ -259,28 +259,28 @@ export const QtiOtherConditionSchema = strictObject({
   kind: z.literal("other"),
 });
 
-export const QtiNotSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiNotSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("not"),
     tests: z.array(z.union([QtiAndSchema, QtiOrSchema, QtiVarEqualSchema])).min(1),
   }),
 );
 
-export const QtiAndSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAndSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("and"),
     tests: z.array(z.union([QtiNotSchema, QtiVarEqualSchema])).min(1),
   }),
 );
 
-export const QtiOrSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOrSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("or"),
     tests: z.array(z.union([QtiNotSchema, QtiVarEqualSchema])).min(1),
   }),
 );
 
-export const QtiConditionNodeSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiConditionNodeSchema: z.ZodType = z.lazy(() =>
   z.union([QtiAndSchema, QtiOrSchema, QtiNotSchema, QtiOtherConditionSchema, QtiVarEqualSchema, QtiVarSubstringSchema]),
 );
 
@@ -347,7 +347,7 @@ export const QtiQuestestinteropRawSchema = z.union([
   }),
 ]);
 
-const qtiAssessmentFieldRules: Record<string, z.ZodTypeAny> = {
+const qtiAssessmentFieldRules: Record<string, z.ZodType> = {
   cc_profile: z.literal("cc.exam.v0p1"),
   qmd_assessmenttype: z.literal("Examination"),
   qmd_scoretype: z.literal("Percentage"),
@@ -359,7 +359,7 @@ const qtiAssessmentFieldRules: Record<string, z.ZodTypeAny> = {
   cc_maxattempts: z.enum(["Examination", "1", "2", "3", "4", "5", "unlimited"]),
 };
 
-const qtiItemFieldRules: Record<string, z.ZodTypeAny> = {
+const qtiItemFieldRules: Record<string, z.ZodType> = {
   cc_profile: z.enum([
     "cc.multiple_choice.v0p1",
     "cc.multiple_response.v0p1",
@@ -458,7 +458,7 @@ function getQtiMetadataValues(fields: Array<{ fieldlabel: string; fieldentry: st
 
 function validateControlledMetadata(
   fields: Array<{ fieldlabel: string; fieldentry: string }>,
-  rules: Record<string, z.ZodTypeAny>,
+  rules: Record<string, z.ZodType>,
   requiredExactlyOnceLabels: string[],
   context: z.RefinementCtx,
   path: Array<string | number>,

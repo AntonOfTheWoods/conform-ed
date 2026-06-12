@@ -5,7 +5,7 @@ import { ImsxStatusInfoSchema } from "./shared";
 
 const EmptyPayloadSchema = z.undefined();
 
-function resourceGetOperation(path: string, successResponsePayload: z.ZodTypeAny) {
+function resourceGetOperation(path: string, successResponsePayload: z.ZodType) {
   return {
     method: "GET",
     path,

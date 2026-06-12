@@ -51,7 +51,7 @@ export const VdexTermRefSchema = looseObject({
   vocabularyIdentifier: UriReferenceSchema.optional(),
 });
 
-export const VdexTermSchema: z.ZodTypeAny = z.lazy(() =>
+export const VdexTermSchema: z.ZodType = z.lazy(() =>
   looseObject({
     termIdentifier: VdexIdentifierSchema,
     caption: VdexLangStringBagSchema.optional(),

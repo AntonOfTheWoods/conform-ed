@@ -22,7 +22,7 @@ export const ThinCommonCartridgeFileSchema = strictObject({
   href: UriReferenceSchema,
 });
 
-export const ThinCommonCartridgeItemSchema: z.ZodTypeAny = z.lazy(() =>
+export const ThinCommonCartridgeItemSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: NonEmptyStringSchema,
     identifierref: NonEmptyStringSchema.optional(),
@@ -31,7 +31,7 @@ export const ThinCommonCartridgeItemSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const ThinCommonCartridgeItemOrgSchema: z.ZodTypeAny = z.lazy(() =>
+export const ThinCommonCartridgeItemOrgSchema: z.ZodType = z.lazy(() =>
   strictObject({
     identifier: NonEmptyStringSchema,
     item: z.array(ThinCommonCartridgeItemSchema).optional(),

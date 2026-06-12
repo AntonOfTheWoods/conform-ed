@@ -53,7 +53,7 @@ export const QtiMetadataSchema = strictObject({
 
   if (value.portableCustomInteractionContext && !hasPortableCustomInteraction) {
     context.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",
       path: ["portableCustomInteractionContext"],
       message:
         "portableCustomInteractionContext is only valid when interactionType includes portableCustomInteraction.",

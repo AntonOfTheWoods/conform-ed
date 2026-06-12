@@ -1,4 +1,5 @@
-import { XMLParser, XMLValidator } from "fast-xml-parser";
+import { XMLParser } from "fast-xml-parser";
+import { SyntaxValidator } from "fast-xml-validator";
 
 export interface QtiXmlTextNode {
   type: "text";
@@ -130,7 +131,7 @@ function buildXmlNodes(entries: unknown, parentScope: Record<string, string>): Q
 }
 
 export function parseXmlDocument(xml: string): QtiXmlElementNode {
-  const validationResult = XMLValidator.validate(xml);
+  const validationResult = SyntaxValidator.validate(xml);
   if (validationResult !== true) {
     throw new Error(parseValidationError(validationResult));
   }

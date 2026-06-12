@@ -13,7 +13,7 @@ export const UuidSchema = z
   .string()
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[8-9a-b][0-9a-f]{3}-[0-9a-f]{12}$/u);
 const UriSchema = z.string().regex(/^[a-zA-Z][a-zA-Z0-9+.-]*:.+$/u);
-export const DateTimeSchema = z.string().datetime({ offset: true });
+export const DateTimeSchema = z.iso.datetime({ offset: true });
 
 const ExtensibleVocabularyValueSchema = z.string().regex(/^(ext:)[a-zA-Z0-9.\-_]+$/u);
 

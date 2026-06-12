@@ -57,7 +57,7 @@ const AdapterSchema = z
     }
     if (adapter.auth.mode === "bearer" && !adapter.auth.tokenFromEnv) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "adapter.auth.tokenFromEnv is required when adapter.auth.mode is bearer",
         path: ["auth", "tokenFromEnv"],
       });
@@ -100,14 +100,14 @@ export const RunnerConfigSchema = z
     if (config.suite.name === "cmi5") {
       if (!["runtime", "package", "all"].includes(config.suite.target)) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "suite.target must be runtime, package, or all when suite.name is cmi5",
           path: ["suite", "target"],
         });
       }
       if (!config.adapter) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "adapter is required when suite.name is cmi5",
           path: ["adapter"],
         });

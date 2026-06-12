@@ -76,7 +76,7 @@ export function looseObject<T extends z.ZodRawShape>(shape: T) {
   });
 }
 
-export function createXmlNodeSchema(childSchema: z.ZodTypeAny): z.ZodTypeAny {
+export function createXmlNodeSchema(childSchema: z.ZodType): z.ZodType {
   return z.lazy(() =>
     strictObject({
       kind: z.literal("xml"),
@@ -91,7 +91,7 @@ export function createXmlNodeSchema(childSchema: z.ZodTypeAny): z.ZodTypeAny {
 
 export function addIssue(context: z.RefinementCtx, path: Array<string | number>, message: string) {
   context.addIssue({
-    code: z.ZodIssueCode.custom,
+    code: "custom",
     path,
     message,
   });

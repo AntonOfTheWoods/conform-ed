@@ -70,7 +70,7 @@ export function looseObject<T extends z.ZodRawShape>(shape: T) {
 
 export function addIssue(context: z.RefinementCtx, path: Array<string | number>, message: string) {
   context.addIssue({
-    code: z.ZodIssueCode.custom,
+    code: "custom",
     path,
     message,
   });
@@ -148,7 +148,7 @@ export function createQti2Schemas(config: Qti2Config) {
     value: z.string(),
   });
 
-  const QtiContentNodeSchema: z.ZodTypeAny = z.lazy(() =>
+  const QtiContentNodeSchema: z.ZodType = z.lazy(() =>
     z.union([
       QtiTextNodeSchema,
       looseObject({
@@ -815,7 +815,7 @@ export function createQti2Schemas(config: Qti2Config) {
   ] as const;
   const manyKinds = ["and", "or", "sum", "product", "multiple", "ordered", "gcd", "lcm", "max", "min"] as const;
 
-  const QtiExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+  const QtiExpressionSchema: z.ZodType = z.lazy(() =>
     z
       .union([
         QtiBaseValueExpressionSchema,
@@ -997,7 +997,7 @@ export function createQti2Schemas(config: Qti2Config) {
     }),
   ]);
 
-  const QtiResponseProcessingRuleSchema: z.ZodTypeAny = z.lazy(() =>
+  const QtiResponseProcessingRuleSchema: z.ZodType = z.lazy(() =>
     z.union([
       QtiSetOutcomeValueSchema,
       QtiLookupOutcomeValueRuleSchema,
@@ -1027,7 +1027,7 @@ export function createQti2Schemas(config: Qti2Config) {
     ]),
   );
 
-  const QtiOutcomeProcessingRuleSchema: z.ZodTypeAny = z.lazy(() =>
+  const QtiOutcomeProcessingRuleSchema: z.ZodType = z.lazy(() =>
     z.union([
       QtiSetOutcomeValueSchema,
       QtiLookupOutcomeValueRuleSchema,
@@ -1057,7 +1057,7 @@ export function createQti2Schemas(config: Qti2Config) {
     ]),
   );
 
-  const QtiTemplateProcessingRuleSchema: z.ZodTypeAny = z.lazy(() =>
+  const QtiTemplateProcessingRuleSchema: z.ZodType = z.lazy(() =>
     z.union([
       QtiSetTemplateValueSchema,
       QtiSetDefaultValueRuleSchema,
@@ -1193,7 +1193,7 @@ export function createQti2Schemas(config: Qti2Config) {
     category: z.array(NonEmptyStringSchema).optional(),
   });
 
-  const QtiAssessmentSectionRawSchema: z.ZodTypeAny = z.lazy(() =>
+  const QtiAssessmentSectionRawSchema: z.ZodType = z.lazy(() =>
     strictObject({
       identifier: QtiIdentifierSchema,
       title: z.string().optional(),
@@ -1221,7 +1221,7 @@ export function createQti2Schemas(config: Qti2Config) {
     }),
   );
 
-  const QtiAssessmentSectionSchema: z.ZodTypeAny = QtiAssessmentSectionRawSchema.superRefine((input, context) => {
+  const QtiAssessmentSectionSchema: z.ZodType = QtiAssessmentSectionRawSchema.superRefine((input, context) => {
     const value = input as { children?: unknown[] };
     const identifierValues = asArray(value.children).flatMap((child) => {
       if (!child || typeof child !== "object" || !("identifier" in child)) {
@@ -1277,7 +1277,7 @@ export function createQti2Schemas(config: Qti2Config) {
     uniqueIdentifiersRefinement(value.templateDeclarations, ["templateDeclarations"], "template declaration", context);
   });
 
-  const QtiAssessmentStimulusSchema: z.ZodTypeAny = config.includeAssessmentStimulus
+  const QtiAssessmentStimulusSchema: z.ZodType = config.includeAssessmentStimulus
     ? strictObject({
         identifier: QtiIdentifierSchema,
         title: z.string().optional(),
@@ -1548,7 +1548,7 @@ export function createQti2Schemas(config: Qti2Config) {
     assessmentSection: QtiAssessmentSectionSchema,
   });
 
-  const QtiAssessmentStimulusDocumentSchema: z.ZodTypeAny = config.includeAssessmentStimulus
+  const QtiAssessmentStimulusDocumentSchema: z.ZodType = config.includeAssessmentStimulus
     ? strictObject({
         assessmentStimulus: QtiAssessmentStimulusSchema,
       })

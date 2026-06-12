@@ -23,16 +23,16 @@ export function strictObject<T extends z.ZodRawShape>(shape: T) {
 }
 
 export function passthroughObject<T extends z.ZodRawShape>(shape: T) {
-  return z.object(shape).passthrough();
+  return z.looseObject(shape);
 }
 
-export function oneOrMany<T extends z.ZodTypeAny>(schema: T) {
+export function oneOrMany<T extends z.ZodType>(schema: T) {
   return z.union([schema, z.array(schema).min(1)]);
 }
 
 export function addIssue(context: z.RefinementCtx, path: Array<string | number>, message: string) {
   context.addIssue({
-    code: z.ZodIssueCode.custom,
+    code: "custom",
     path,
     message,
   });
@@ -98,7 +98,7 @@ export function credentialTypeSchema<T extends readonly [string, ...string[]]>(d
     });
 }
 
-export function contextArraySchema(label: string, requiredEntries: readonly z.ZodTypeAny[]) {
+export function contextArraySchema(label: string, requiredEntries: readonly z.ZodType[]) {
   return z
     .array(JsonLdContextEntrySchema)
     .min(requiredEntries.length)

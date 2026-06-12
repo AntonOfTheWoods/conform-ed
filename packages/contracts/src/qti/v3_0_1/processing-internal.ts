@@ -177,35 +177,35 @@ export const QtiMathConstantExpressionSchema = strictObject({
   name: z.enum(["pi", "e"]),
 });
 
-export const QtiUnaryExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiUnaryExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.enum(unaryExpressionKinds),
     children: z.tuple([QtiExpressionSchema]),
   }),
 );
 
-export const QtiBinaryExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiBinaryExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.enum(binaryExpressionKinds),
     children: z.tuple([QtiExpressionSchema, QtiExpressionSchema]),
   }),
 );
 
-export const QtiOneToManyExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOneToManyExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.enum(oneToManyExpressionKinds),
     children: z.array(QtiExpressionSchema).min(1),
   }),
 );
 
-export const QtiContainerExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiContainerExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.enum(containerExpressionKinds),
     children: z.array(QtiExpressionSchema),
   }),
 );
 
-export const QtiCustomOperatorExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiCustomOperatorExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("customOperator"),
     children: z.array(QtiExpressionSchema).optional(),
@@ -215,7 +215,7 @@ export const QtiCustomOperatorExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiAnyNExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiAnyNExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("anyN"),
     children: z.array(QtiExpressionSchema).min(1),
@@ -236,7 +236,7 @@ export const QtiAnyNExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiEqualExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiEqualExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("equal"),
     children: z.tuple([QtiExpressionSchema, QtiExpressionSchema]),
@@ -247,7 +247,7 @@ export const QtiEqualExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiEqualRoundedExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiEqualRoundedExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("equalRounded"),
     children: z.tuple([QtiExpressionSchema, QtiExpressionSchema]),
@@ -258,7 +258,7 @@ export const QtiEqualRoundedExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiFieldValueExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiFieldValueExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("fieldValue"),
     children: z.tuple([QtiExpressionSchema]),
@@ -266,7 +266,7 @@ export const QtiFieldValueExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiIndexExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiIndexExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("index"),
     children: z.tuple([QtiExpressionSchema]),
@@ -276,7 +276,7 @@ export const QtiIndexExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiInsideExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiInsideExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("inside"),
     children: z.tuple([QtiExpressionSchema]),
@@ -285,7 +285,7 @@ export const QtiInsideExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiMathOperatorExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiMathOperatorExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("mathOperator"),
     children: z.array(QtiExpressionSchema).min(1),
@@ -303,7 +303,7 @@ export const QtiMathOperatorExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiPatternMatchExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiPatternMatchExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("patternMatch"),
     children: z.tuple([QtiExpressionSchema]),
@@ -311,7 +311,7 @@ export const QtiPatternMatchExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiRepeatExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiRepeatExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("repeat"),
     children: z.array(QtiExpressionSchema).min(1),
@@ -321,7 +321,7 @@ export const QtiRepeatExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiRoundToExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiRoundToExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("roundTo"),
     children: z.tuple([QtiExpressionSchema]),
@@ -332,7 +332,7 @@ export const QtiRoundToExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiStatsOperatorExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiStatsOperatorExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("statsOperator"),
     children: z.tuple([QtiExpressionSchema]),
@@ -340,7 +340,7 @@ export const QtiStatsOperatorExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiStringMatchExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiStringMatchExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("stringMatch"),
     children: z.tuple([QtiExpressionSchema, QtiExpressionSchema]),
@@ -349,7 +349,7 @@ export const QtiStringMatchExpressionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiSubstringExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiSubstringExpressionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("substring"),
     children: z.tuple([QtiExpressionSchema, QtiExpressionSchema]),
@@ -404,7 +404,7 @@ export const QtiTestVariablesExpressionSchema = strictObject({
   baseType: QtiBaseTypeSchema.optional(),
 });
 
-export const QtiExpressionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiExpressionSchema: z.ZodType = z.lazy(() =>
   z.union([
     QtiNullExpressionSchema,
     QtiBaseValueExpressionSchema,
@@ -509,14 +509,14 @@ export const QtiExitTestSchema = strictObject({
   kind: z.literal("exitTest"),
 });
 
-export const QtiResponseElseSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiResponseElseSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("responseElse"),
     actions: z.array(QtiResponseRuleSchema).optional(),
   }),
 );
 
-export const QtiResponseIfSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiResponseIfSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("responseIf"),
     expression: QtiExpressionSchema,
@@ -524,7 +524,7 @@ export const QtiResponseIfSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiResponseConditionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiResponseConditionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("responseCondition"),
     responseIf: QtiResponseIfSchema,
@@ -533,14 +533,14 @@ export const QtiResponseConditionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiResponseProcessingFragmentSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiResponseProcessingFragmentSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("responseProcessingFragment"),
     rules: z.array(QtiResponseRuleSchema).optional(),
   }),
 );
 
-export const QtiResponseRuleSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiResponseRuleSchema: z.ZodType = z.lazy(() =>
   z.union([
     QtiIncludeSchema,
     QtiResponseConditionSchema,
@@ -557,14 +557,14 @@ export const QtiResponseProcessingSchema = strictObject({
   templateLocation: z.string().optional(),
 });
 
-export const QtiOutcomeElseSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOutcomeElseSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("outcomeElse"),
     actions: z.array(QtiOutcomeRuleSchema).optional(),
   }),
 );
 
-export const QtiOutcomeIfSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOutcomeIfSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("outcomeIf"),
     expression: QtiExpressionSchema,
@@ -572,7 +572,7 @@ export const QtiOutcomeIfSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiOutcomeConditionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOutcomeConditionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("outcomeCondition"),
     outcomeIf: QtiOutcomeIfSchema,
@@ -581,14 +581,14 @@ export const QtiOutcomeConditionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiOutcomeProcessingFragmentSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOutcomeProcessingFragmentSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("outcomeProcessingFragment"),
     rules: z.array(QtiOutcomeRuleSchema).optional(),
   }),
 );
 
-export const QtiOutcomeRuleSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiOutcomeRuleSchema: z.ZodType = z.lazy(() =>
   z.union([
     QtiIncludeSchema,
     QtiOutcomeConditionSchema,
@@ -603,14 +603,14 @@ export const QtiOutcomeProcessingSchema = strictObject({
   rules: z.array(QtiOutcomeRuleSchema).optional(),
 });
 
-export const QtiTemplateElseSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateElseSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("templateElse"),
     actions: z.array(QtiTemplateRuleSchema).optional(),
   }),
 );
 
-export const QtiTemplateIfSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateIfSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("templateIf"),
     expression: QtiExpressionSchema,
@@ -618,7 +618,7 @@ export const QtiTemplateIfSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTemplateConditionSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateConditionSchema: z.ZodType = z.lazy(() =>
   strictObject({
     kind: z.literal("templateCondition"),
     templateIf: QtiTemplateIfSchema,
@@ -627,7 +627,7 @@ export const QtiTemplateConditionSchema: z.ZodTypeAny = z.lazy(() =>
   }),
 );
 
-export const QtiTemplateRuleSchema: z.ZodTypeAny = z.lazy(() =>
+export const QtiTemplateRuleSchema: z.ZodType = z.lazy(() =>
   z.union([
     QtiTemplateConditionSchema,
     QtiSetTemplateValueSchema,

@@ -59,7 +59,7 @@ export const H5pLibraryManifestSchema = strictObject({
   if (data.runnable === 1 && data.embedTypes?.includes("iframe")) {
     if (data.w === undefined || data.h === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["w"],
         message: 'Runnable libraries with embedType "iframe" should declare w and h dimensions',
       });

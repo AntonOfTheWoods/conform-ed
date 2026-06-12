@@ -30,7 +30,7 @@ export const CoreLaunchRequestSchema = strictObject({
   name: NonEmptyStringSchema.optional(),
   givenName: NonEmptyStringSchema.optional(),
   familyName: NonEmptyStringSchema.optional(),
-  email: z.string().email().optional(),
+  email: z.email().optional(),
   locale: NonEmptyStringSchema.optional(),
 });
 

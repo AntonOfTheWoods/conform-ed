@@ -24,7 +24,7 @@ export const MembershipSchema = strictObject({
   givenName: z.string().optional(),
   familyName: z.string().optional(),
   middleName: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.email().optional(),
   userId: NonEmptyStringSchema,
   lisPersonSourcedId: NonEmptyStringSchema.optional(),
   roles: z.array(UriReferenceSchema).min(1),
