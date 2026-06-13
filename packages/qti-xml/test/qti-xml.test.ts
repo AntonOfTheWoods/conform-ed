@@ -160,7 +160,7 @@ test("validateQtiXmlFile validates the initial supported QTI example roots", asy
   }
 });
 
-test("validateQtiXmlFile reports unsupported roots with existing schemas but no normalizer", async () => {
+test("validateQtiXmlFile normalizes standalone section roots (every registered root normalizes)", async () => {
   const directory = await createTempFixtureDir();
   const sectionPath = path.join(directory, "section-v3.xml");
   await writeFile(
@@ -173,9 +173,11 @@ test("validateQtiXmlFile reports unsupported roots with existing schemas but no 
 
   const result = await validateQtiXmlFile(sectionPath);
 
-  expect(result.status).toBe("unsupported");
+  expect(result.status).toBe("valid");
   expect(result.schemaSelectionKey).toBe("qtiAssessmentSectionDocument");
-  expect(result.issues[0]?.message).toContain("not implemented");
+  expect(result.normalizedDocument).toEqual({
+    assessmentSection: { identifier: "SECTION-1", title: "Main", visible: true },
+  });
 });
 
 test("buildQtiExampleInventory classifies supported, broken, and packaged examples", async () => {

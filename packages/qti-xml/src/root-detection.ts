@@ -10,6 +10,7 @@ const qtiV30ResultsNamespace = "http://www.imsglobal.org/xsd/imsqti_result_v3p0"
 const qtiV30MetadataNamespace = "http://www.imsglobal.org/xsd/imsqti_metadata_v3p0";
 const qtiV30ManifestNamespace = "http://www.imsglobal.org/xsd/qti/qtiv3p0/imscp_v1p1";
 const qtiV30AfaPnpNamespace = "http://www.imsglobal.org/xsd/qti/qtiv3p0/imsafa3p0pnp_v1p0";
+const qtiV30UsageDataNamespace = "http://www.imsglobal.org/xsd/imsqti_usagedata_v3p0";
 
 const attributePattern = /([A-Za-z_][A-Za-z0-9:._-]*)\s*=\s*("([^"]*)"|'([^']*)')/gu;
 
@@ -77,7 +78,8 @@ function inferVersion(namespaceUri: string | undefined, localName: string, xml: 
     namespaceUri === qtiV30AsiNamespace ||
     namespaceUri === qtiV30ResultsNamespace ||
     namespaceUri === qtiV30MetadataNamespace ||
-    namespaceUri === qtiV30AfaPnpNamespace
+    namespaceUri === qtiV30AfaPnpNamespace ||
+    namespaceUri === qtiV30UsageDataNamespace
   ) {
     return "3.0.1";
   }
@@ -127,6 +129,10 @@ function inferSchemaSelectionKey(
     if (namespaceUri === qtiV22ManifestNamespace && localName === "manifest") {
       return "qtiManifestDocument";
     }
+
+    if (namespaceUri === qtiV22UsageDataNamespace && localName === "usageData") {
+      return "qtiUsageDataDocument";
+    }
   }
 
   if (version === "3.0.1") {
@@ -140,6 +146,12 @@ function inferSchemaSelectionKey(
           return "qtiAssessmentStimulusDocument";
         case "qti-assessment-test":
           return "qtiAssessmentTestDocument";
+        case "qti-outcome-declaration":
+          return "qtiOutcomeDeclarationDocument";
+        case "qti-outcome-processing":
+          return "qtiOutcomeProcessingDocument";
+        case "qti-response-processing":
+          return "qtiResponseProcessingDocument";
       }
     }
 
@@ -149,6 +161,10 @@ function inferSchemaSelectionKey(
 
     if (namespaceUri === qtiV30ResultsNamespace && localName === "assessmentResult") {
       return "qtiAssessmentResultDocument";
+    }
+
+    if (namespaceUri === qtiV30UsageDataNamespace && localName === "usageData") {
+      return "qtiUsageDataDocument";
     }
 
     if (namespaceUri === qtiV30AfaPnpNamespace) {

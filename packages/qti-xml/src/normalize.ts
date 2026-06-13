@@ -2140,6 +2140,131 @@ function normalizeQti301AssessmentResult(root: QtiXmlElementNode) {
   };
 }
 
+// ---------- Standalone ASI fragment roots (§3 Root Attribute Descriptions) ----------
+
+/** "qti-response-processing … enables the exchange of best-practice response processing templates." */
+function normalizeQti301ResponseProcessingDocument(root: QtiXmlElementNode) {
+  return { responseProcessing: mapV3ResponseProcessing(root) };
+}
+
+function normalizeQti301OutcomeDeclarationDocument(root: QtiXmlElementNode) {
+  return { outcomeDeclaration: mapV3OutcomeDeclaration(root) };
+}
+
+function normalizeQti301OutcomeProcessingDocument(root: QtiXmlElementNode) {
+  return {
+    outcomeProcessing: { rules: childElements(root).map((rule) => mapV3OutcomeRule(rule)) },
+  };
+}
+
+/** "The exchange of a single root qti-assessment-section instance is permitted." */
+function normalizeQti301AssessmentSectionDocument(root: QtiXmlElementNode) {
+  return { assessmentSection: mapV3AssessmentSection(root) };
+}
+
+// ---------- QTI metadata (imsqti_metadatav3p0) ----------
+
+function normalizeQti301Metadata(root: QtiXmlElementNode) {
+  const interactionTypes = childElements(root, "interactionType")
+    .map((element) => textContent(element))
+    .filter((value): value is string => value !== undefined && value !== "");
+  const scoringModes = childElements(root, "scoringMode")
+    .map((element) => textContent(element))
+    .filter((value): value is string => value !== undefined && value !== "");
+  const pciContext = firstChildElement(root, "portableCustomInteractionContext");
+
+  return {
+    qtiMetadata: {
+      ...pnpChildBoolean(root, "itemTemplate", "itemTemplate"),
+      ...pnpChildBoolean(root, "timeDependent", "timeDependent"),
+      ...pnpChildBoolean(root, "composite", "composite"),
+      ...(interactionTypes.length ? { interactionType: interactionTypes } : {}),
+      ...(pciContext
+        ? {
+            portableCustomInteractionContext: {
+              ...pnpChildText(pciContext, "customTypeIdentifier", "customTypeIdentifier"),
+              ...pnpChildText(pciContext, "interactionKind", "interactionKind"),
+            },
+          }
+        : {}),
+      ...pnpChildText(root, "feedbackType", "feedbackType"),
+      ...pnpChildBoolean(root, "solutionAvailable", "solutionAvailable"),
+      ...(scoringModes.length ? { scoringMode: scoringModes } : {}),
+      ...pnpChildText(root, "toolName", "toolName"),
+      ...pnpChildText(root, "toolVersion", "toolVersion"),
+      ...pnpChildText(root, "toolVendor", "toolVendor"),
+    },
+  };
+}
+
+// ---------- Usage Data & Item Statistics (imsqti_usagedata_v3p0) ----------
+
+function mapV3UsageTargetObject(element: QtiXmlElementNode) {
+  return {
+    identifier: requireAttribute(element, "identifier"),
+    ...optionalString(element.attributes, "partIdentifier", "partIdentifier"),
+    ...optionalString(element.attributes, "objectType", "objectType"),
+  };
+}
+
+function mapV3UsageStatisticBase(element: QtiXmlElementNode) {
+  return {
+    name: requireAttribute(element, "name"),
+    ...optionalString(element.attributes, "glossary", "glossary"),
+    context: requireAttribute(element, "context"),
+    ...optionalNumber(element.attributes, "caseCount", "caseCount"),
+    ...optionalNumber(element.attributes, "stdError", "stdError"),
+    ...optionalNumber(element.attributes, "stdDeviation", "stdDeviation"),
+    ...optionalString(element.attributes, "lastUpdated", "lastUpdated"),
+    targetObjects: childElements(element, "targetObject").map((target) => mapV3UsageTargetObject(target)),
+  };
+}
+
+function mapV3UsageStatistic(element: QtiXmlElementNode): unknown {
+  if (element.localName === "ordinaryStatistic") {
+    const value = firstChildElement(element, "value");
+
+    return {
+      kind: "ordinaryStatistic",
+      ...mapV3UsageStatisticBase(element),
+      value: { value: (value ? textContent(value) : undefined) ?? "" },
+    };
+  }
+
+  if (element.localName === "categorizedStatistic") {
+    const mapping = firstChildElement(element, "mapping");
+    if (!mapping) {
+      throw new Error("<categorizedStatistic> must contain a <mapping>.");
+    }
+
+    return {
+      kind: "categorizedStatistic",
+      ...mapV3UsageStatisticBase(element),
+      mapping: {
+        ...optionalNumber(mapping.attributes, "lowerBound", "lowerBound"),
+        ...optionalNumber(mapping.attributes, "upperBound", "upperBound"),
+        ...optionalNumber(mapping.attributes, "defaultValue", "defaultValue"),
+        mapEntries: childElements(mapping, "mapEntry").map((entry) => ({
+          mapKey: requireAttribute(entry, "mapKey"),
+          mappedValue: requireNumberAttribute(entry, "mappedValue"),
+          ...optionalBoolean(entry.attributes, "caseSensitive", "caseSensitive"),
+        })),
+      },
+    };
+  }
+
+  throw new Error(`Unsupported usage data statistic <${element.localName}> in normalization.`);
+}
+
+function normalizeQti301UsageData(root: QtiXmlElementNode) {
+  return {
+    usageData: {
+      ...optionalString(root.attributes, "glossary", "glossary"),
+      statistics: childElements(root).map((statistic) => mapV3UsageStatistic(statistic)),
+    },
+  };
+}
+
 // ---------- AfA PNP (the QTI 3.0 profile of AfA PNP 3.0, imsqtiv3p0_afa3p0pnp_v1p0) ----------
 
 const pnpReplaceAccessModePrefix = "replace-access-mode-";
@@ -2451,6 +2576,9 @@ export function normalizeQtiDocument(
       return normalizeQti22AssessmentItem(root);
     case "2.2:qtiManifestDocument":
       return normalizeQti22Manifest(root);
+    // The v2.2 usage data binding is structurally identical to the v3 one.
+    case "2.2:qtiUsageDataDocument":
+      return normalizeQti301UsageData(root);
     case "3.0.1:qtiAssessmentItemDocument":
       return normalizeQti301AssessmentItem(root);
     case "3.0.1:qtiAssessmentStimulusDocument":
@@ -2463,6 +2591,18 @@ export function normalizeQtiDocument(
       return normalizeQti301AccessForAllPnp(root);
     case "3.0.1:qtiAccessForAllPnpRecordsDocument":
       return normalizeQti301AccessForAllPnpRecords(root);
+    case "3.0.1:qtiAssessmentSectionDocument":
+      return normalizeQti301AssessmentSectionDocument(root);
+    case "3.0.1:qtiMetadataDocument":
+      return normalizeQti301Metadata(root);
+    case "3.0.1:qtiOutcomeDeclarationDocument":
+      return normalizeQti301OutcomeDeclarationDocument(root);
+    case "3.0.1:qtiOutcomeProcessingDocument":
+      return normalizeQti301OutcomeProcessingDocument(root);
+    case "3.0.1:qtiResponseProcessingDocument":
+      return normalizeQti301ResponseProcessingDocument(root);
+    case "3.0.1:qtiUsageDataDocument":
+      return normalizeQti301UsageData(root);
     default:
       throw new Error(`Normalization is not implemented for ${version} ${schemaSelectionKey}.`);
   }
