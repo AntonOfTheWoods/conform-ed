@@ -13,6 +13,7 @@ export * from "./imsqti_sectionv3p0p1_v1p0";
 export * from "./imsqti_stimulusv3p0p1_v1p0";
 export * from "./imsqti_testv3p0p1_v1p0";
 export * from "./imsqti_usagedatav3p0_v1p0";
+export * from "./imsqtiv3p0_imscpv1p2_v1p0";
 export * from "./imsqtiv3p0_afa3p0pnp_v1p0";
 
 import { QtiAsiProfileDocumentSchema } from "./imsqti_asiv3p0p1_v1p0";
@@ -30,6 +31,7 @@ import {
 } from "./imsqti_testv3p0p1_v1p0";
 import { QtiUsageDataDocumentSchema } from "./imsqti_usagedatav3p0_v1p0";
 import { QtiAccessForAllPnpDocumentSchema, QtiAccessForAllPnpRecordsDocumentSchema } from "./imsqtiv3p0_afa3p0pnp_v1p0";
+import { QtiManifestDocumentSchema } from "./imsqtiv3p0_imscpv1p2_v1p0";
 
 export const Qti301DerivedZodTemplates = {
   qtiAsiProfileDocument: QtiAsiProfileDocumentSchema,
@@ -45,6 +47,7 @@ export const Qti301DerivedZodTemplates = {
   qtiMetadataDocument: QtiMetadataDocumentSchema,
   qtiAssessmentResultDocument: QtiAssessmentResultDocumentSchema,
   qtiUsageDataDocument: QtiUsageDataDocumentSchema,
+  qtiManifestDocument: QtiManifestDocumentSchema,
   qtiAccessForAllPnpDocument: QtiAccessForAllPnpDocumentSchema,
   qtiAccessForAllPnpRecordsDocument: QtiAccessForAllPnpRecordsDocumentSchema,
 } as const;

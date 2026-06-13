@@ -167,6 +167,10 @@ function inferSchemaSelectionKey(
       return "qtiUsageDataDocument";
     }
 
+    if (namespaceUri === qtiV30ManifestNamespace && localName === "manifest") {
+      return "qtiManifestDocument";
+    }
+
     if (namespaceUri === qtiV30AfaPnpNamespace) {
       switch (localName) {
         case "access-for-all-pnp":

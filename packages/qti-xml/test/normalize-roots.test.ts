@@ -168,3 +168,75 @@ test("usage data statistics map their target objects, values, and mappings", asy
   expect(first["targetObjects"]).toEqual([{ identifier: "Item_VB123456" }]);
   expect(first["value"]).toEqual({ value: "0.87" });
 });
+
+test("every corpus QTI 3 manifest normalizes (packaging)", async () => {
+  const { readdir } = await import("node:fs/promises");
+  const manifests: string[] = [];
+
+  async function walk(directory: string): Promise<void> {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        await walk(full);
+      } else if (entry.name === "imsmanifest.xml") {
+        manifests.push(full);
+      }
+    }
+  }
+
+  await walk(path.join(corpusRoot, "qtiv3-examples"));
+  expect(manifests.length).toBeGreaterThanOrEqual(24);
+
+  for (const manifest of manifests) {
+    const result = await validateQtiXmlFile(manifest);
+
+    expect([manifest.slice(corpusRoot.length), result.issues.slice(0, 1), result.status]).toEqual([
+      manifest.slice(corpusRoot.length),
+      [],
+      "valid",
+    ]);
+  }
+});
+
+test("manifest resources map type, href, files, dependencies, and inline qtiMetadata", async () => {
+  const result = await validateQtiXmlFile(path.join(corpusRoot, "qtiv3-examples/packaging/metaData/imsmanifest.xml"));
+
+  expect(result.status).toBe("valid");
+
+  const document = result.normalizedDocument as {
+    manifest: {
+      identifier: string;
+      metadata: { schema: string; schemaVersion: string };
+      resources: Array<Record<string, unknown>>;
+    };
+  };
+
+  expect(document.manifest.metadata.schema).toBe("QTI Package");
+  expect(document.manifest.metadata.schemaVersion).toBe("3.0.0");
+
+  const choice = document.manifest.resources.find((resource) => resource["identifier"] === "choice")!;
+
+  expect(choice["type"]).toBe("imsqti_item_xmlv3p0");
+  expect(choice["href"]).toBe("choice.xml");
+  expect((choice["metadata"] as { qtiMetadata?: Record<string, unknown> }).qtiMetadata).toEqual({
+    timeDependent: false,
+    interactionType: ["choiceInteraction"],
+    feedbackType: "nonadaptive",
+    solutionAvailable: true,
+    toolName: "XMLSPY",
+    toolVersion: "5.4",
+    toolVendor: "ALTOVA",
+  });
+});
+
+test("shared-stimulus manifest dependencies survive normalization", async () => {
+  const result = await validateQtiXmlFile(
+    path.join(corpusRoot, "qtiv3-examples/packaging/sharedStimulus/imsmanifest.xml"),
+  );
+
+  const document = result.normalizedDocument as { manifest: { resources: Array<Record<string, unknown>> } };
+  const item = document.manifest.resources.find((resource) => resource["identifier"] === "Item1")!;
+
+  expect(item["dependencies"]).toEqual([{ identifierRef: "Stimulus1" }]);
+  expect((item["files"] as unknown[]).length).toBe(1);
+});

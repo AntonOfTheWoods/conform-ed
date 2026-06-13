@@ -2164,35 +2164,94 @@ function normalizeQti301AssessmentSectionDocument(root: QtiXmlElementNode) {
 
 // ---------- QTI metadata (imsqti_metadatav3p0) ----------
 
-function normalizeQti301Metadata(root: QtiXmlElementNode) {
-  const interactionTypes = childElements(root, "interactionType")
-    .map((element) => textContent(element))
+/** The qtiMetadata camelCase binding — standalone documents and inline manifest metadata. */
+function mapV3QtiMetadata(element: QtiXmlElementNode) {
+  const interactionTypes = childElements(element, "interactionType")
+    .map((child) => textContent(child))
     .filter((value): value is string => value !== undefined && value !== "");
-  const scoringModes = childElements(root, "scoringMode")
-    .map((element) => textContent(element))
+  const scoringModes = childElements(element, "scoringMode")
+    .map((child) => textContent(child))
     .filter((value): value is string => value !== undefined && value !== "");
-  const pciContext = firstChildElement(root, "portableCustomInteractionContext");
+  const pciContext = firstChildElement(element, "portableCustomInteractionContext");
 
   return {
-    qtiMetadata: {
-      ...pnpChildBoolean(root, "itemTemplate", "itemTemplate"),
-      ...pnpChildBoolean(root, "timeDependent", "timeDependent"),
-      ...pnpChildBoolean(root, "composite", "composite"),
-      ...(interactionTypes.length ? { interactionType: interactionTypes } : {}),
-      ...(pciContext
-        ? {
-            portableCustomInteractionContext: {
-              ...pnpChildText(pciContext, "customTypeIdentifier", "customTypeIdentifier"),
-              ...pnpChildText(pciContext, "interactionKind", "interactionKind"),
-            },
-          }
-        : {}),
-      ...pnpChildText(root, "feedbackType", "feedbackType"),
-      ...pnpChildBoolean(root, "solutionAvailable", "solutionAvailable"),
-      ...(scoringModes.length ? { scoringMode: scoringModes } : {}),
-      ...pnpChildText(root, "toolName", "toolName"),
-      ...pnpChildText(root, "toolVersion", "toolVersion"),
-      ...pnpChildText(root, "toolVendor", "toolVendor"),
+    ...pnpChildBoolean(element, "itemTemplate", "itemTemplate"),
+    ...pnpChildBoolean(element, "timeDependent", "timeDependent"),
+    ...pnpChildBoolean(element, "composite", "composite"),
+    ...(interactionTypes.length ? { interactionType: interactionTypes } : {}),
+    ...(pciContext
+      ? {
+          portableCustomInteractionContext: {
+            ...pnpChildText(pciContext, "customTypeIdentifier", "customTypeIdentifier"),
+            ...pnpChildText(pciContext, "interactionKind", "interactionKind"),
+          },
+        }
+      : {}),
+    ...pnpChildText(element, "feedbackType", "feedbackType"),
+    ...pnpChildBoolean(element, "solutionAvailable", "solutionAvailable"),
+    ...(scoringModes.length ? { scoringMode: scoringModes } : {}),
+    ...pnpChildText(element, "toolName", "toolName"),
+    ...pnpChildText(element, "toolVersion", "toolVersion"),
+    ...pnpChildText(element, "toolVendor", "toolVendor"),
+  };
+}
+
+function normalizeQti301Metadata(root: QtiXmlElementNode) {
+  return { qtiMetadata: mapV3QtiMetadata(root) };
+}
+
+// ---------- QTI 3 content-package manifest (imsqtiv3p0_imscpv1p2_v1p0) ----------
+
+/** Resource/manifest metadata: inline qtiMetadata plus a structurally preserved LOM. */
+function mapV3ManifestResourceMetadata(element: QtiXmlElementNode) {
+  const qtiMetadata = firstChildElement(element, "qtiMetadata");
+  const lom = firstChildElement(element, "lom");
+
+  return {
+    ...(qtiMetadata ? { qtiMetadata: mapV3QtiMetadata(qtiMetadata) } : {}),
+    ...(lom ? { lom: mapV3XmlNode(lom) } : {}),
+  };
+}
+
+function normalizeQti301Manifest(root: QtiXmlElementNode) {
+  const metadataElement = firstChildElement(root, "metadata");
+  if (!metadataElement) {
+    throw new Error("<manifest> must contain <metadata>.");
+  }
+
+  return {
+    manifest: {
+      identifier: requireAttribute(root, "identifier"),
+      metadata: {
+        schema: textContent(firstChildElement(metadataElement, "schema") ?? metadataElement) ?? "",
+        schemaVersion: textContent(firstChildElement(metadataElement, "schemaversion") ?? metadataElement) ?? "",
+        ...mapV3ManifestResourceMetadata(metadataElement),
+      },
+      organizations: {},
+      resources: childElements(firstChildElement(root, "resources") ?? root, "resource").map((resourceElement) => {
+        const resourceMetadata = firstChildElement(resourceElement, "metadata");
+
+        return {
+          identifier: requireAttribute(resourceElement, "identifier"),
+          type: requireAttribute(resourceElement, "type"),
+          ...optionalString(resourceElement.attributes, "href", "href"),
+          ...(resourceMetadata ? { metadata: mapV3ManifestResourceMetadata(resourceMetadata) } : {}),
+          ...(childElements(resourceElement, "file").length
+            ? {
+                files: childElements(resourceElement, "file").map((fileElement) => ({
+                  href: requireAttribute(fileElement, "href"),
+                })),
+              }
+            : {}),
+          ...(childElements(resourceElement, "dependency").length
+            ? {
+                dependencies: childElements(resourceElement, "dependency").map((dependencyElement) => ({
+                  identifierRef: requireAttribute(dependencyElement, "identifierref"),
+                })),
+              }
+            : {}),
+        };
+      }),
     },
   };
 }
@@ -2593,6 +2652,8 @@ export function normalizeQtiDocument(
       return normalizeQti301AccessForAllPnpRecords(root);
     case "3.0.1:qtiAssessmentSectionDocument":
       return normalizeQti301AssessmentSectionDocument(root);
+    case "3.0.1:qtiManifestDocument":
+      return normalizeQti301Manifest(root);
     case "3.0.1:qtiMetadataDocument":
       return normalizeQti301Metadata(root);
     case "3.0.1:qtiOutcomeDeclarationDocument":
