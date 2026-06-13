@@ -29,6 +29,39 @@ export function hasQtiSchemas(): boolean {
   return existsSync(asiSchemaPath) && existsSync(asiSchemaDepsDir);
 }
 
+const fetchSchemasScript = path.resolve(import.meta.dir, "../../../../scripts/fetch-qti-schemas.ts");
+
+let ensureSchemasPromise: Promise<boolean> | undefined;
+
+/**
+ * Make the official QTI 3 schema set available under tmp/qti, fetching it from the
+ * 1EdTech purl distribution via scripts/fetch-qti-schemas.ts when absent — so the XSD
+ * lane runs in CI (already a container) without a manual fetch step. Idempotent and
+ * memoised; resolves to whether the schemas are present. Fetch failures (e.g. offline)
+ * are swallowed so the lane skips gracefully rather than erroring.
+ */
+export function ensureSchemas(): Promise<boolean> {
+  ensureSchemasPromise ??= (async () => {
+    if (hasQtiSchemas()) {
+      return true;
+    }
+
+    try {
+      const proc = Bun.spawnSync(["bun", fetchSchemasScript], { stdout: "inherit", stderr: "inherit" });
+      if (proc.exitCode !== 0) {
+        console.warn(`[qti-xml] schema fetch exited ${proc.exitCode}; XSD lane will skip.`);
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(`[qti-xml] schema fetch failed (${reason}); XSD lane will skip.`);
+    }
+
+    return hasQtiSchemas();
+  })();
+
+  return ensureSchemasPromise;
+}
+
 /** Rewrite any URL-form schemaLocation to its bare basename (relative ones are kept). */
 function rewriteSchemaLocations(xsd: string): string {
   return xsd.replace(/schemaLocation="[^"]*\/([^"/]+\.xsd)"/gu, 'schemaLocation="$1"');
