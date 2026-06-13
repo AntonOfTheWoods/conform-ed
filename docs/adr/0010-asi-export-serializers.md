@@ -75,9 +75,12 @@ conform-ed owns the XML producers; emergent calls them with packaging decisions.
   external-item-bank round-tripping once emergent wires the packaging layer.
 - A follow-up audit closed two smaller in-scope items: the universal `serializeQtiDocument`
   dispatch was missing AfA PNP (now exhaustive — a future binding is a compile error in
-  its default), and PIF (Package Interchange Format) ingestion landed — `validateQtiPackageArchive`
-  validates a content-package ZIP entirely in-memory (no extraction to disk), sharing the
-  manifest + referenced-document checks with the exploded-directory path.
-- Reliability/validation hardening (XSD validation of emitted instances among it; and
-  resolving xi:include across archive entries) is the next phase and is now the only
-  conform-ed work outstanding.
+  its default), and PIF (Package Interchange Format) ingestion landed. `validateQtiPackagePath`
+  streams a ZIP file from disk, materializing only its XML entries into a temporary
+  directory (media is never inflated, so memory stays bounded for hundred-MB packages),
+  then validates the exploded tree — which also resolves xi:include across entries — and
+  cleans up. `validateQtiPackageArchive(bytes)` remains as an in-memory (XML-only) path
+  for modest packages and callers that already hold the bytes. Both share one
+  `PackageSource`-driven validation core.
+- Reliability/validation hardening (chiefly XSD validation of emitted instances against
+  the official schemas) is the next phase and is now the only conform-ed work outstanding.

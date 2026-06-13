@@ -11,8 +11,12 @@ Always use **bun** for all package operations. Never use `npm`, `yarn`, or `pnpm
 
 ## Temporary Files
 
-Temporary files, scratch scripts, logs, and one-off artifacts must go under `tmp/` (repo root).
-Never create temporary files in source directories or at repo root.
+This rule is about the **assistant's development-time scratch**, not application runtime
+behavior. Shipped code may write runtime temp files (e.g. a server extracting an uploaded
+package to the OS temp dir) — that is normal and allowed; never avoid it for this rule.
+
+For assistant scratch (scripts, logs, one-off artifacts): must go under `tmp/` (repo root).
+Never create such files in source directories or at repo root.
 
 ## Publishing Packages
 

@@ -1,7 +1,9 @@
-import { access, readFile, stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { access, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { unzipSync } from "fflate";
+import { Unzip, UnzipInflate, unzipSync } from "fflate";
 
 import type { QtiValidationIssue, QtiValidationResult } from "./types";
 import { validateQtiXmlContent } from "./validate";
@@ -167,7 +169,7 @@ function directorySource(directoryPath: string): PackageSource {
   };
 }
 
-/** The first four bytes of every ZIP local-file/empty/spanned record ("PK"). */
+/** The first two bytes of every ZIP local-file/empty/spanned record ("PK"). */
 function isZipArchive(bytes: Uint8Array): boolean {
   return bytes[0] === 0x50 && bytes[1] === 0x4b;
 }
@@ -177,14 +179,145 @@ function zipEntryKey(href: string): string {
   return href.replace(/\\/gu, "/").replace(/^\.\//u, "");
 }
 
+/** Validation only ever needs the XML; media (the bulk of a package) is never inflated. */
+function isXmlEntry(name: string): boolean {
+  return name.toLowerCase().endsWith(".xml");
+}
+
+function concatChunks(chunks: readonly Uint8Array[]): Uint8Array {
+  if (chunks.length === 1) {
+    return chunks[0]!;
+  }
+  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return out;
+}
+
 /**
- * Validate a QTI 3 content package supplied as PIF (Package Interchange Format) ZIP
- * bytes — the on-the-wire form of a package. Extraction is entirely in-memory; no
- * files are written to disk.
+ * Stream a ZIP from disk and write only its `.xml` entries to `destDir`, preserving
+ * relative structure. Memory stays bounded to roughly one entry plus stream buffers
+ * regardless of total package size — media entries are skipped without inflation.
+ * Guards against zip-slip (entry names escaping destDir).
+ */
+async function extractXmlEntriesToDir(zipPath: string, destDir: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const unzip = new Unzip();
+    unzip.register(UnzipInflate);
+
+    const writes: Array<Promise<void>> = [];
+    let failed = false;
+    const fail = (error: unknown): void => {
+      if (!failed) {
+        failed = true;
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
+    };
+
+    unzip.onfile = (file) => {
+      if (!isXmlEntry(file.name)) {
+        return; // not started → never decompressed
+      }
+      const chunks: Uint8Array[] = [];
+      file.ondata = (error, chunk, final) => {
+        if (error) {
+          fail(error);
+          return;
+        }
+        if (chunk.length) {
+          chunks.push(chunk);
+        }
+        if (final) {
+          const target = path.join(destDir, file.name);
+          if (path.relative(destDir, target).startsWith("..")) {
+            fail(new Error(`Unsafe archive entry path: ${file.name}`));
+            return;
+          }
+          writes.push(
+            mkdir(path.dirname(target), { recursive: true }).then(() => writeFile(target, concatChunks(chunks))),
+          );
+        }
+      };
+      file.start();
+    };
+
+    const stream = createReadStream(zipPath);
+    stream.on("data", (chunk) => {
+      if (failed) {
+        return;
+      }
+      try {
+        unzip.push(chunk as Uint8Array, false);
+      } catch (error) {
+        fail(error);
+      }
+    });
+    stream.on("error", fail);
+    stream.on("end", () => {
+      if (failed) {
+        return;
+      }
+      try {
+        unzip.push(new Uint8Array(0), true);
+      } catch (error) {
+        fail(error);
+        return;
+      }
+      Promise.all(writes)
+        .then(() => resolve())
+        .catch(fail);
+    });
+  });
+}
+
+function rebasePath(filePath: string | undefined, fromRoot: string, toRoot: string): string | undefined {
+  if (filePath === undefined) {
+    return undefined;
+  }
+  const relative = path.relative(fromRoot, filePath);
+  return relative.startsWith("..") ? filePath : path.join(toRoot, relative);
+}
+
+/** Re-anchor reported paths from the ephemeral temp tree to the package's real path. */
+function rebaseResult(
+  result: QtiPackageValidationResult,
+  fromRoot: string,
+  toRoot: string,
+): QtiPackageValidationResult {
+  const manifestPath = rebasePath(result.manifestPath, fromRoot, toRoot);
+  return {
+    ...result,
+    packagePath: toRoot,
+    ...(manifestPath !== undefined ? { manifestPath } : {}),
+    ...(result.manifestValidation
+      ? {
+          manifestValidation: {
+            ...result.manifestValidation,
+            filePath:
+              rebasePath(result.manifestValidation.filePath, fromRoot, toRoot) ?? result.manifestValidation.filePath,
+          },
+        }
+      : {}),
+    referencedDocumentResults: result.referencedDocumentResults.map((document) => ({
+      ...document,
+      filePath: rebasePath(document.filePath, fromRoot, toRoot) ?? document.filePath,
+    })),
+  };
+}
+
+/**
+ * Validate a QTI 3 content package held entirely in memory as PIF (Package Interchange
+ * Format) ZIP bytes. Only `.xml` entries are decompressed (media is skipped), but the
+ * caller's full byte buffer is still resident — suitable for modest packages and
+ * callers that already hold the bytes (tests, small authored packages). For
+ * potentially large packages prefer `validateQtiPackagePath`, which streams from disk.
  *
- * xi:include across archive entries is not resolved here (the resolver reads from the
- * filesystem) — no PIF in the corpus relies on it; archive-internal includes would
- * surface as a loud failure on the including document, which is the honest read.
+ * xi:include across archive entries is not resolved on this in-memory path (the
+ * resolver reads from the filesystem); `validateQtiPackagePath` resolves them.
  */
 export async function validateQtiPackageArchive(
   zipBytes: Uint8Array,
@@ -203,7 +336,7 @@ export async function validateQtiPackageArchive(
 
   let entries: Record<string, Uint8Array>;
   try {
-    entries = unzipSync(zipBytes);
+    entries = unzipSync(zipBytes, { filter: (file) => isXmlEntry(file.name) });
   } catch (error) {
     return {
       packagePath: reportPath,
@@ -235,8 +368,11 @@ export async function validateQtiPackageArchive(
 }
 
 /**
- * Validate a QTI 3 content package at a filesystem path: an exploded directory (with
- * full xi:include resolution from disk) or a PIF ZIP file (validated in-memory).
+ * Validate a QTI 3 content package at a filesystem path: an exploded directory, or a
+ * PIF ZIP file. The ZIP route streams from disk, materializing only the package's XML
+ * into a temporary directory (media is never inflated, so memory stays bounded for
+ * large packages), then validates the exploded tree — which also resolves xi:include
+ * across entries — and cleans the temp directory up afterwards.
  */
 export async function validateQtiPackagePath(packagePath: string): Promise<QtiPackageValidationResult> {
   const absolutePackagePath = path.resolve(packagePath);
@@ -246,6 +382,27 @@ export async function validateQtiPackagePath(packagePath: string): Promise<QtiPa
     return validatePackage(directorySource(absolutePackagePath));
   }
 
-  const zipBytes = new Uint8Array(await readFile(absolutePackagePath));
-  return validateQtiPackageArchive(zipBytes, { reportPath: absolutePackagePath });
+  const tempRoot = await mkdtemp(path.join(tmpdir(), "qti-pif-"));
+  try {
+    try {
+      await extractXmlEntriesToDir(absolutePackagePath, tempRoot);
+    } catch (error) {
+      return {
+        packagePath: absolutePackagePath,
+        status: "unsupported",
+        issues: [
+          {
+            path: "$",
+            message: `Could not read the package archive: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
+        referencedDocumentResults: [],
+      };
+    }
+
+    const result = await validatePackage(directorySource(tempRoot));
+    return rebaseResult(result, tempRoot, absolutePackagePath);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 }
