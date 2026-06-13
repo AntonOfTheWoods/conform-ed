@@ -73,5 +73,11 @@ conform-ed owns the XML producers; emergent calls them with packaging decisions.
   and never falls, mirroring the delivery meter.
 - Authored content can leave as spec-valid QTI 3, unblocking interoperability export and
   external-item-bank round-tripping once emergent wires the packaging layer.
-- Reliability/validation hardening (XSD validation of emitted instances among it) is the
-  next phase and is now the only conform-ed work outstanding.
+- A follow-up audit closed two smaller in-scope items: the universal `serializeQtiDocument`
+  dispatch was missing AfA PNP (now exhaustive — a future binding is a compile error in
+  its default), and PIF (Package Interchange Format) ingestion landed — `validateQtiPackageArchive`
+  validates a content-package ZIP entirely in-memory (no extraction to disk), sharing the
+  manifest + referenced-document checks with the exploded-directory path.
+- Reliability/validation hardening (XSD validation of emitted instances among it; and
+  resolving xi:include across archive entries) is the next phase and is now the only
+  conform-ed work outstanding.
