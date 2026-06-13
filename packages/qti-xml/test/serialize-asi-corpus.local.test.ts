@@ -11,15 +11,13 @@
  */
 
 import { expect, test } from "bun:test";
-import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { serializeQtiDocument, validateQtiXmlContent, validateQtiXmlFile } from "../src";
+import { corpusRoot, hasCorpus } from "./support/corpus";
 
-const corpusRoot = fileURLToPath(new URL("../../../tmp/qti-examples", import.meta.url));
-const corpusTest = existsSync(corpusRoot) ? test : test.skip;
+const corpusTest = hasCorpus() ? test : test.skip;
 
 // The roots whose export direction this serializer owns. Result/usage-data/PNP each
 // have their own dedicated round-trip tests; the manifest and ASI roots are new here.

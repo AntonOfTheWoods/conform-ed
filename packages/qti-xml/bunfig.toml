@@ -1,0 +1,5 @@
+# Ensure the official qti-examples corpus is present (cloning the pinned revision when a
+# QTI_CORPUS_DIR / tmp/qti-examples is empty) before any test file loads. See
+# test/support/corpus.ts.
+[test]
+preload = ["./test/support/corpus-preload.ts"]

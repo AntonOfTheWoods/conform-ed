@@ -10,8 +10,9 @@ import path from "node:path";
 import type { QtiUsageDataDocument } from "@conform-ed/contracts/qti/v3_0_1";
 
 import { serializeQtiUsageData, validateQtiXmlContent, validateQtiXmlFile } from "../src";
+import { corpusRoot, hasCorpus } from "./support/corpus";
 
-const corpusRoot = path.resolve(import.meta.dir, "../../../tmp/qti-examples");
+const corpusTest = hasCorpus() ? test : test.skip;
 
 const document: QtiUsageDataDocument = {
   usageData: {
@@ -56,7 +57,7 @@ test("a usage data document round-trips through the serializer and parser", asyn
   expect(verdict.normalizedDocument).toEqual(document);
 });
 
-test("the corpus usage data instance survives import → export → import unchanged", async () => {
+corpusTest("the corpus usage data instance survives import → export → import unchanged", async () => {
   const imported = await validateQtiXmlFile(path.join(corpusRoot, "qtiv3-examples/usageData/example.xml"));
 
   expect(imported.status).toBe("valid");

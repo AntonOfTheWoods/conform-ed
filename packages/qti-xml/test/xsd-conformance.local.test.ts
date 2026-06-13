@@ -13,16 +13,14 @@
  */
 
 import { expect, test } from "bun:test";
-import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { serializeQtiDocument, validateQtiXmlFile } from "../src";
+import { corpusRoot, hasCorpus } from "./support/corpus";
 import { hasQtiSchemas, validateAsiDocuments, type XsdDocument } from "./support/qti-xsd";
 
-const corpusRoot = fileURLToPath(new URL("../../../tmp/qti-examples", import.meta.url));
-const ready = hasQtiSchemas() && existsSync(corpusRoot);
+const ready = hasQtiSchemas() && hasCorpus();
 const lane = ready ? test : test.skip;
 
 // Roots the ASI XSD declares as global elements (so a document of that root validates

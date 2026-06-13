@@ -7,7 +7,7 @@
  * tests assert exact counts over this exact corpus revision.
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -17,7 +17,10 @@ const corpusCommit = "49814742f47031d3c03d27667993d980e9896b31";
 const repoRoot = resolve(import.meta.dir, "..");
 const args = process.argv.slice(2);
 const flagIndex = args.indexOf("--root");
-const targetPath = resolve(flagIndex === -1 ? resolve(repoRoot, "tmp/qti-examples") : (args[flagIndex + 1] ?? ""));
+const defaultRoot = process.env["QTI_CORPUS_DIR"]
+  ? resolve(process.env["QTI_CORPUS_DIR"])
+  : resolve(repoRoot, "tmp/qti-examples");
+const targetPath = resolve(flagIndex === -1 ? defaultRoot : (args[flagIndex + 1] ?? ""));
 
 function run(command: string[]): void {
   const proc = Bun.spawnSync(command, { stdout: "inherit", stderr: "inherit" });
@@ -47,8 +50,10 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  if (existsSync(targetPath)) {
-    console.error(`Refusing to touch ${targetPath}: it exists but is not a git checkout. Remove it and re-run.`);
+  if (existsSync(targetPath) && readdirSync(targetPath).length > 0) {
+    console.error(
+      `Refusing to touch ${targetPath}: it exists, is non-empty, and is not a git checkout. Remove it and re-run.`,
+    );
     return 1;
   }
 

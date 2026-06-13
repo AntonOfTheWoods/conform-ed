@@ -11,6 +11,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { validateQtiXmlFile } from "../src";
+import { corpusRoot, hasCorpus } from "./support/corpus";
+
+const corpusTest = hasCorpus() ? test : test.skip;
 
 const createdDirectories: string[] = [];
 
@@ -982,12 +985,8 @@ test("companion materials normalize: calculator, rule, protractor, digital and p
   });
 });
 
-test("the corpus companion-materials item normalizes", async () => {
-  const { validateQtiXmlFile } = await import("../src");
-  const path = await import("node:path");
-  const result = await validateQtiXmlFile(
-    path.resolve(import.meta.dir, "../../../tmp/qti-examples/qtiv3-examples/packaging/testWithLti/elements.xml"),
-  );
+corpusTest("the corpus companion-materials item normalizes", async () => {
+  const result = await validateQtiXmlFile(path.join(corpusRoot, "qtiv3-examples/packaging/testWithLti/elements.xml"));
 
   expect(result.issues).toEqual([]);
   expect(result.status).toBe("valid");

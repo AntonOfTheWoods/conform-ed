@@ -1,13 +1,10 @@
 import { expect, test } from "bun:test";
-import { existsSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { validateQtiXmlFile } from "../src";
+import { corpusRoot as officialExamplesRoot, hasCorpus } from "./support/corpus";
 
-const officialExamplesRoot = fileURLToPath(new URL("../../../tmp/qti-examples", import.meta.url));
-const hasOfficialExamples = existsSync(officialExamplesRoot);
-const corpusTest = hasOfficialExamples ? test : test.skip;
+const corpusTest = hasCorpus() ? test : test.skip;
 
 corpusTest("curated official examples validate with the current normalization slice", async () => {
   const files = [

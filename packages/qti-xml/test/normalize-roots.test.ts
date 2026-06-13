@@ -12,10 +12,13 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 
 import { validateQtiXmlContent, validateQtiXmlFile } from "../src";
+import { corpusRoot, hasCorpus } from "./support/corpus";
 
-const corpusRoot = path.resolve(import.meta.dir, "../../../tmp/qti-examples");
+// Corpus-backed tests run when the corpus is available (cloned by the test preload when
+// absent — see test/support/corpus.ts) and skip gracefully otherwise.
+const corpusTest = hasCorpus() ? test : test.skip;
 
-test("a corpus response-processing template normalizes standalone", async () => {
+corpusTest("a corpus response-processing template normalizes standalone", async () => {
   const result = await validateQtiXmlFile(
     path.join(corpusRoot, "qtiv3-examples/packaging/maxfiles/rptemplates/match_correct.xml"),
   );
@@ -28,7 +31,7 @@ test("a corpus response-processing template normalizes standalone", async () => 
   expect(document.responseProcessing.rules.length).toBeGreaterThan(0);
 });
 
-test("all corpus response-processing templates normalize", async () => {
+corpusTest("all corpus response-processing templates normalize", async () => {
   const templates = [
     "qtiv3-examples/packaging/maxfiles/rptemplates/match_correct.xml",
     "qtiv3-examples/packaging/maxfiles/rptemplates/map_response.xml",
@@ -44,7 +47,7 @@ test("all corpus response-processing templates normalize", async () => {
   }
 });
 
-test("the corpus standalone qti-outcome-declaration normalizes", async () => {
+corpusTest("the corpus standalone qti-outcome-declaration normalizes", async () => {
   const result = await validateQtiXmlFile(
     path.join(corpusRoot, "qtiv3-examples/packaging/CASEWithOutcome/testoutcome01.xml"),
   );
@@ -136,7 +139,7 @@ test("a qtiMetadata document normalizes its camelCase binding", async () => {
   });
 });
 
-test("all corpus usage data instances normalize (Usage Data & Item Statistics)", async () => {
+corpusTest("all corpus usage data instances normalize (Usage Data & Item Statistics)", async () => {
   const instances = [
     "qtiv3-examples/usageData/example.xml",
     "qtiv3-examples/packaging/usageData/USAGE-MALE-TEST-106391.xml",
@@ -151,7 +154,7 @@ test("all corpus usage data instances normalize (Usage Data & Item Statistics)",
   }
 });
 
-test("usage data statistics map their target objects, values, and mappings", async () => {
+corpusTest("usage data statistics map their target objects, values, and mappings", async () => {
   const result = await validateQtiXmlFile(path.join(corpusRoot, "qtiv3-examples/usageData/example.xml"));
   const document = result.normalizedDocument as {
     usageData: { statistics: Array<Record<string, unknown>> };
@@ -169,7 +172,7 @@ test("usage data statistics map their target objects, values, and mappings", asy
   expect(first["value"]).toEqual({ value: "0.87" });
 });
 
-test("every corpus QTI 3 manifest normalizes (packaging)", async () => {
+corpusTest("every corpus QTI 3 manifest normalizes (packaging)", async () => {
   const { readdir } = await import("node:fs/promises");
   const manifests: string[] = [];
 
@@ -198,7 +201,7 @@ test("every corpus QTI 3 manifest normalizes (packaging)", async () => {
   }
 });
 
-test("manifest resources map type, href, files, dependencies, and inline qtiMetadata", async () => {
+corpusTest("manifest resources map type, href, files, dependencies, and inline qtiMetadata", async () => {
   const result = await validateQtiXmlFile(path.join(corpusRoot, "qtiv3-examples/packaging/metaData/imsmanifest.xml"));
 
   expect(result.status).toBe("valid");
@@ -229,7 +232,7 @@ test("manifest resources map type, href, files, dependencies, and inline qtiMeta
   });
 });
 
-test("shared-stimulus manifest dependencies survive normalization", async () => {
+corpusTest("shared-stimulus manifest dependencies survive normalization", async () => {
   const result = await validateQtiXmlFile(
     path.join(corpusRoot, "qtiv3-examples/packaging/sharedStimulus/imsmanifest.xml"),
   );
