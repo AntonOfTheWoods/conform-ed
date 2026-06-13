@@ -213,6 +213,15 @@ test("a standalone qtiMetadata document round-trips", async () => {
   await roundTrip(xml, "qtiMetadataDocument");
 });
 
+test("the universal dispatch covers AfA PNP (read/write parity at the entry point)", async () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<access-for-all-pnp xmlns="http://www.imsglobal.org/xsd/qti/qtiv3p0/imsafa3p0pnp_v1p0">
+  <glossary-on-screen/>
+  <additional-testing-time><time-multiplier>1.5</time-multiplier></additional-testing-time>
+</access-for-all-pnp>`;
+  await roundTrip(xml, "qtiAccessForAllPnpDocument");
+});
+
 test("serializeQtiDocument refuses a 2.2 ASI item (import-only legacy lane)", () => {
   expect(() => serializeQtiDocument("2.2", "qtiAssessmentItemDocument", {})).toThrow(
     "Serialization is not implemented for 2.2 qtiAssessmentItemDocument.",

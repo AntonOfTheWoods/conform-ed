@@ -15,6 +15,7 @@ import {
   serializeQtiResponseProcessingDocument,
 } from "./serialize-asi";
 import { serializeQtiManifest, serializeQtiMetadata } from "./serialize-manifest";
+import { serializeQtiAccessForAllPnp, serializeQtiAccessForAllPnpRecords } from "./serialize-pnp";
 import { serializeQtiAssessmentResult } from "./serialize-result";
 import { serializeQtiUsageData } from "./serialize-usage-data";
 import type { QtiSchemaSelectionKey, QtiVersion } from "./types";
@@ -37,6 +38,8 @@ export function isSerializationImplemented(version: QtiVersion, key: QtiSchemaSe
     case "qtiManifestDocument":
     case "qtiAssessmentResultDocument":
     case "qtiUsageDataDocument":
+    case "qtiAccessForAllPnpDocument":
+    case "qtiAccessForAllPnpRecordsDocument":
       return true;
     default:
       return false;
@@ -74,7 +77,13 @@ export function serializeQtiDocument(version: QtiVersion, key: QtiSchemaSelectio
       return serializeQtiAssessmentResult(document as never);
     case "qtiUsageDataDocument":
       return serializeQtiUsageData(document as never);
+    case "qtiAccessForAllPnpDocument":
+      return serializeQtiAccessForAllPnp(document as never);
+    case "qtiAccessForAllPnpRecordsDocument":
+      return serializeQtiAccessForAllPnpRecords(document as never);
     default:
-      throw new Error(`Serialization is not implemented for ${version} ${key}.`);
+      // Exhaustive for v3: `key` is `never` here, so every binding the normalizer
+      // reads has a writer. A future key lands as a compile error on this line.
+      throw new Error(`Serialization is not implemented for ${version} ${String(key)}.`);
   }
 }
