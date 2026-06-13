@@ -9,3 +9,6 @@ export * from "./validate-package";
 export * from "./serialize-result";
 export * from "./serialize-pnp";
 export * from "./serialize-usage-data";
+export * from "./serialize-asi";
+export * from "./serialize-manifest";
+export * from "./serialize-document";

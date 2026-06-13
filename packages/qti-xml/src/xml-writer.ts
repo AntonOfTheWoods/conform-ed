@@ -35,6 +35,11 @@ export class XmlWriter {
     this.lines.push(`${"    ".repeat(this.depth)}${text}`);
   }
 
+  /** Emit an escaped text fragment of mixed content on its own indented line. */
+  text(value: string): void {
+    this.line(escapeText(value));
+  }
+
   element(
     name: string,
     attributes: ReadonlyArray<readonly [string, AttributeValue]>,
