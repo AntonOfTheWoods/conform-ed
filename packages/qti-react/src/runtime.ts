@@ -78,6 +78,20 @@ export interface AssessmentStimulusRefView {
   readonly title?: string;
 }
 
+/** Companion materials, structurally as normalized (calculators, rules, protractors, materials). */
+export interface CompanionMaterialsView {
+  readonly calculators?: readonly Record<string, unknown>[];
+  readonly rules?: readonly Record<string, unknown>[];
+  readonly protractors?: readonly Record<string, unknown>[];
+  readonly digitalMaterials?: readonly {
+    readonly fileHref: string;
+    readonly label?: string;
+    readonly mimeType?: string;
+    readonly resourceIcon?: string;
+  }[];
+  readonly physicalMaterials?: readonly string[];
+}
+
 /** The resolved stimulus body, rendered through the same content walk as the item body. */
 export interface StimulusContentView {
   readonly content: readonly BodyNode[];
@@ -97,6 +111,12 @@ export interface AssessmentItemView {
   assessmentStimulusRefs?: readonly AssessmentStimulusRefView[];
   /** Every catalog in the item (item-level and nested), pooled for idref resolution. */
   catalogs?: readonly CatalogView[];
+  /**
+   * Companion materials (§2.13.1): "content props that provide key information to be
+   * used when answering an Item, e.g. a calculator, protractor, lookup chart". The
+   * runtime exposes them; the delivery platform owns the tools themselves.
+   */
+  companionMaterials?: CompanionMaterialsView;
   itemBody: { content?: BodyNode[] };
 }
 

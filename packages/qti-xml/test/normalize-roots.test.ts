@@ -240,3 +240,54 @@ test("shared-stimulus manifest dependencies survive normalization", async () => 
   expect(item["dependencies"]).toEqual([{ identifierRef: "Stimulus1" }]);
   expect((item["files"] as unknown[]).length).toBe(1);
 });
+
+test("CAT adaptive selection on a section normalizes (§2.8.4)", async () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-section xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
+  identifier="S-CAT" title="Adaptive" visible="true">
+  <qti-adaptive-selection>
+    <qti-adaptive-engine-ref identifier="engine" href="https://cat.example.org/engine"/>
+    <qti-adaptive-settings-ref identifier="settings" href="settings.json"/>
+    <qti-usagedata-ref identifier="usage" href="usage.xml"/>
+  </qti-adaptive-selection>
+  <qti-assessment-item-ref identifier="I1" href="items/i1.xml"/>
+</qti-assessment-section>
+`;
+
+  const result = await validateQtiXmlContent(xml);
+
+  expect(result.issues).toEqual([]);
+  expect(result.status).toBe("valid");
+
+  const document = result.normalizedDocument as { assessmentSection: Record<string, unknown> };
+
+  expect(document.assessmentSection["adaptiveSelection"]).toEqual({
+    adaptiveEngineRef: { identifier: "engine", href: "https://cat.example.org/engine" },
+    adaptiveSettingsRef: { identifier: "settings", href: "settings.json" },
+    usagedataRef: { identifier: "usage", href: "usage.xml" },
+  });
+});
+
+test("test-level rubric blocks normalize (qti-assessment-test children)", async () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-test xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="T1" title="Test">
+  <qti-rubric-block view="candidate" use="instructions">
+    <qti-content-body><p>Whole-test instructions.</p></qti-content-body>
+  </qti-rubric-block>
+  <qti-test-part identifier="P1" navigation-mode="linear" submission-mode="individual">
+    <qti-assessment-section identifier="S1" title="One" visible="true">
+      <qti-assessment-item-ref identifier="I1" href="i1.xml"/>
+    </qti-assessment-section>
+  </qti-test-part>
+</qti-assessment-test>
+`;
+
+  const result = await validateQtiXmlContent(xml);
+
+  expect(result.issues).toEqual([]);
+  expect(result.status).toBe("valid");
+
+  const document = result.normalizedDocument as { assessmentTest: { rubricBlocks?: unknown[] } };
+
+  expect(document.assessmentTest.rubricBlocks).toHaveLength(1);
+});

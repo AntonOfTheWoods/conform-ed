@@ -901,3 +901,107 @@ test("qti-catalog-info inside an unwrapped block never leaks into its content", 
     },
   ]);
 });
+
+// ---------- Companion materials, CAT adaptive selection, test rubric blocks ----------
+
+test("companion materials normalize: calculator, rule, protractor, digital and physical", async () => {
+  const item = await normalizeItem(
+    wrapItem(`
+  <qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="identifier"/>
+  <qti-companion-materials-info>
+    <qti-calculator>
+      <qti-calculator-type>scientific</qti-calculator-type>
+      <qti-description>A scientific calculator.</qti-description>
+      <qti-calculator-info mime-type="text/html" label="Calculator help">
+        <qti-file-href>materials/calc.html</qti-file-href>
+        <qti-resource-icon>materials/calc.svg</qti-resource-icon>
+      </qti-calculator-info>
+    </qti-calculator>
+    <qti-rule>
+      <qti-description>A 30cm ruler.</qti-description>
+      <qti-rule-system-si>
+        <qti-minimum-length>300</qti-minimum-length>
+        <qti-minor-increment unit="Millimeter">1</qti-minor-increment>
+        <qti-major-increment unit="Centimeter">1</qti-major-increment>
+      </qti-rule-system-si>
+    </qti-rule>
+    <qti-protractor>
+      <qti-description>A half-circle protractor.</qti-description>
+      <qti-increment-us>
+        <qti-major-increment unit="Degree">10</qti-major-increment>
+      </qti-increment-us>
+    </qti-protractor>
+    <qti-digital-material label="The Periodic Table" mime-type="text/html">
+      <qti-file-href>links/periodicTable.xml</qti-file-href>
+      <qti-resource-icon>links/table.svg</qti-resource-icon>
+    </qti-digital-material>
+    <qti-physical-material>Graph paper</qti-physical-material>
+  </qti-companion-materials-info>
+  <qti-item-body><p>Use your materials.</p></qti-item-body>
+`),
+  );
+
+  expect(item["companionMaterialsInfo"]).toEqual({
+    calculators: [
+      {
+        calculatorType: "scientific",
+        description: "A scientific calculator.",
+        calculatorInfo: {
+          mimeType: "text/html",
+          label: "Calculator help",
+          fileHref: "materials/calc.html",
+          resourceIcon: "materials/calc.svg",
+        },
+      },
+    ],
+    rules: [
+      {
+        description: "A 30cm ruler.",
+        ruleSystemSi: {
+          minimumLength: 300,
+          minorIncrement: { value: 1, unit: "Millimeter" },
+          majorIncrement: { value: 1, unit: "Centimeter" },
+        },
+      },
+    ],
+    protractors: [
+      {
+        description: "A half-circle protractor.",
+        incrementUs: { majorIncrement: { value: 10, unit: "Degree" } },
+      },
+    ],
+    digitalMaterials: [
+      {
+        label: "The Periodic Table",
+        mimeType: "text/html",
+        fileHref: "links/periodicTable.xml",
+        resourceIcon: "links/table.svg",
+      },
+    ],
+    physicalMaterials: ["Graph paper"],
+  });
+});
+
+test("the corpus companion-materials item normalizes", async () => {
+  const { validateQtiXmlFile } = await import("../src");
+  const path = await import("node:path");
+  const result = await validateQtiXmlFile(
+    path.resolve(import.meta.dir, "../../../tmp/qti-examples/qtiv3-examples/packaging/testWithLti/elements.xml"),
+  );
+
+  expect(result.issues).toEqual([]);
+  expect(result.status).toBe("valid");
+
+  const item = (result.normalizedDocument as { assessmentItem: Record<string, unknown> }).assessmentItem;
+
+  expect(item["companionMaterialsInfo"]).toEqual({
+    digitalMaterials: [
+      {
+        label: "The Periodic Table",
+        mimeType: "text/html",
+        fileHref: "links/periodicTable.xml",
+        resourceIcon: "links/table.svg",
+      },
+    ],
+  });
+});

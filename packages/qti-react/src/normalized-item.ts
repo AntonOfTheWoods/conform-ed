@@ -29,7 +29,13 @@ import type {
   TemplateProcessingView,
   TemplateRuleView,
 } from "./rp";
-import type { AssessmentItemView, BodyNode, FeedbackView, StimulusContentView } from "./runtime";
+import type {
+  AssessmentItemView,
+  BodyNode,
+  CompanionMaterialsView,
+  FeedbackView,
+  StimulusContentView,
+} from "./runtime";
 import type {
   AssessmentItemRefView,
   AssessmentSectionView,
@@ -452,6 +458,9 @@ export function assessmentItemViewFromNormalized(document: unknown): AssessmentI
       ? { modalFeedbacks: convertedModalFeedbacks as unknown as readonly FeedbackView[] }
       : {}),
     ...(catalogs.length ? { catalogs } : {}),
+    ...(isRecord(item["companionMaterialsInfo"])
+      ? { companionMaterials: item["companionMaterialsInfo"] as CompanionMaterialsView }
+      : {}),
     ...(Array.isArray(item["assessmentStimulusRefs"])
       ? {
           assessmentStimulusRefs: asRecords(item["assessmentStimulusRefs"]).map((ref) => ({

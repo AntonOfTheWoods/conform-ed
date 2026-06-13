@@ -250,3 +250,26 @@ describe("catalog collection in the adapters", () => {
     expect(view?.catalogs?.map((catalog) => catalog.id)).toEqual(["s_cat"]);
   });
 });
+
+describe("companion materials exposure", () => {
+  test("item views surface companionMaterialsInfo for the delivery platform", () => {
+    const view = assessmentItemViewFromNormalized({
+      assessmentItem: {
+        identifier: "item-1",
+        title: "Materials",
+        timeDependent: false,
+        responseDeclarations: [],
+        itemBody: { content: [] },
+        companionMaterialsInfo: {
+          digitalMaterials: [{ label: "The Periodic Table", mimeType: "text/html", fileHref: "links/pt.xml" }],
+          physicalMaterials: ["Graph paper"],
+        },
+      },
+    });
+
+    expect(view?.companionMaterials).toEqual({
+      digitalMaterials: [{ label: "The Periodic Table", mimeType: "text/html", fileHref: "links/pt.xml" }],
+      physicalMaterials: ["Graph paper"],
+    });
+  });
+});

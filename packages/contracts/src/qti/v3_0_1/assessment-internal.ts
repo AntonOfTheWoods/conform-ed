@@ -18,6 +18,7 @@ import {
   QtiShapeSchema,
   QtiShowHideSchema,
   QtiStringListSchema,
+  QtiMimeTypeSchema,
   QtiSuppressTtsSchema,
   QtiSubmissionModeSchema,
   QtiViewSchema,
@@ -766,11 +767,69 @@ export const QtiStimulusBodySchema: z.ZodType = z.lazy(() =>
   }),
 );
 
+// ---------- Companion materials (§2.13.1: "content props that provide key information") ----------
+
+/** ItemFileInfo: a content-file reference with its optional icon (digital materials, calculator info). */
+export const QtiItemFileInfoSchema = strictObject({
+  mimeType: QtiMimeTypeSchema.optional(),
+  label: z.string().optional(),
+  fileHref: z.string().min(1),
+  resourceIcon: z.string().optional(),
+});
+
+/** A measured increment: decimal value plus its required unit (linear or radial). */
+export const QtiMeasurementValueSchema = strictObject({
+  value: z.number(),
+  unit: z.enum([
+    "Millimeter",
+    "Centimeter",
+    "Meter",
+    "Kilometer",
+    "Inch",
+    "Foot",
+    "Yard",
+    "Mile",
+    "Radian",
+    "Degree",
+    "Minute",
+    "Second",
+  ]),
+});
+
+export const QtiCompanionCalculatorSchema = strictObject({
+  calculatorType: z.enum(["basic", "standard", "scientific", "graphing"]),
+  description: z.string(),
+  calculatorInfo: QtiItemFileInfoSchema.optional(),
+});
+
+export const QtiCompanionRuleSystemSchema = strictObject({
+  minimumLength: z.number().int(),
+  minorIncrement: QtiMeasurementValueSchema.optional(),
+  majorIncrement: QtiMeasurementValueSchema,
+});
+
+export const QtiCompanionRuleSchema = strictObject({
+  description: z.string(),
+  ruleSystemSi: QtiCompanionRuleSystemSchema.optional(),
+  ruleSystemUs: QtiCompanionRuleSystemSchema.optional(),
+});
+
+export const QtiCompanionProtractorIncrementSchema = strictObject({
+  minorIncrement: QtiMeasurementValueSchema.optional(),
+  majorIncrement: QtiMeasurementValueSchema,
+});
+
+export const QtiCompanionProtractorSchema = strictObject({
+  description: z.string(),
+  incrementSi: QtiCompanionProtractorIncrementSchema.optional(),
+  incrementUs: QtiCompanionProtractorIncrementSchema.optional(),
+});
+
 export const QtiCompanionMaterialsInfoSchema = strictObject({
-  calculators: z.array(z.unknown()).optional(),
-  rules: z.array(z.unknown()).optional(),
-  protractors: z.array(z.unknown()).optional(),
-  digitalMaterials: z.array(z.unknown()).optional(),
+  calculators: z.array(QtiCompanionCalculatorSchema).optional(),
+  rules: z.array(QtiCompanionRuleSchema).optional(),
+  protractors: z.array(QtiCompanionProtractorSchema).optional(),
+  digitalMaterials: z.array(QtiItemFileInfoSchema).optional(),
   physicalMaterials: z.array(z.string()).optional(),
   extensions: z.array(z.unknown()).optional(),
 });
@@ -1544,6 +1603,13 @@ export type QtiGapChoice = z.infer<typeof QtiGapChoiceSchema>;
 export type QtiCompanionMaterialsInfo = z.infer<typeof QtiCompanionMaterialsInfoSchema>;
 export type QtiAdaptiveHref = z.infer<typeof QtiAdaptiveHrefSchema>;
 export type QtiAdaptiveSelection = z.infer<typeof QtiAdaptiveSelectionSchema>;
+export type QtiItemFileInfo = z.infer<typeof QtiItemFileInfoSchema>;
+export type QtiMeasurementValue = z.infer<typeof QtiMeasurementValueSchema>;
+export type QtiCompanionCalculator = z.infer<typeof QtiCompanionCalculatorSchema>;
+export type QtiCompanionRuleSystem = z.infer<typeof QtiCompanionRuleSystemSchema>;
+export type QtiCompanionRule = z.infer<typeof QtiCompanionRuleSchema>;
+export type QtiCompanionProtractorIncrement = z.infer<typeof QtiCompanionProtractorIncrementSchema>;
+export type QtiCompanionProtractor = z.infer<typeof QtiCompanionProtractorSchema>;
 export type QtiSelection = z.infer<typeof QtiSelectionSchema>;
 export type QtiOrdering = z.infer<typeof QtiOrderingSchema>;
 export type QtiAssessmentItemRef = z.infer<typeof QtiAssessmentItemRefSchema>;

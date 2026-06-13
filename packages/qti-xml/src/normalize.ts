@@ -519,6 +519,119 @@ function contentOf(node: QtiXmlElementNode): { content?: unknown[] } {
   return content.length ? { content } : {};
 }
 
+// ---------- Companion materials (§2.13.1 "content props") ----------
+
+function mapV3ItemFileInfo(element: QtiXmlElementNode) {
+  const fileHref = firstChildElement(element, "qti-file-href");
+  const resourceIcon = firstChildElement(element, "qti-resource-icon");
+
+  return {
+    ...optionalString(element.attributes, "mime-type", "mimeType"),
+    ...optionalString(element.attributes, "label", "label"),
+    fileHref: (fileHref ? textContent(fileHref) : undefined) ?? "",
+    ...(resourceIcon ? { resourceIcon: textContent(resourceIcon) ?? "" } : {}),
+  };
+}
+
+/** A measured increment: decimal text content plus its required unit attribute. */
+function mapV3MeasurementValue(element: QtiXmlElementNode) {
+  return {
+    value: Number(textContent(element) ?? "0"),
+    unit: requireAttribute(element, "unit"),
+  };
+}
+
+function mapV3CompanionRuleSystem(element: QtiXmlElementNode) {
+  const minimumLength = firstChildElement(element, "qti-minimum-length");
+  const minorIncrement = firstChildElement(element, "qti-minor-increment");
+  const majorIncrement = firstChildElement(element, "qti-major-increment");
+  if (!majorIncrement) {
+    throw new Error(`<${element.localName}> must contain <qti-major-increment>.`);
+  }
+
+  return {
+    minimumLength: Number((minimumLength ? textContent(minimumLength) : undefined) ?? "0"),
+    ...(minorIncrement ? { minorIncrement: mapV3MeasurementValue(minorIncrement) } : {}),
+    majorIncrement: mapV3MeasurementValue(majorIncrement),
+  };
+}
+
+function mapV3ProtractorIncrement(element: QtiXmlElementNode) {
+  const minorIncrement = firstChildElement(element, "qti-minor-increment");
+  const majorIncrement = firstChildElement(element, "qti-major-increment");
+  if (!majorIncrement) {
+    throw new Error(`<${element.localName}> must contain <qti-major-increment>.`);
+  }
+
+  return {
+    ...(minorIncrement ? { minorIncrement: mapV3MeasurementValue(minorIncrement) } : {}),
+    majorIncrement: mapV3MeasurementValue(majorIncrement),
+  };
+}
+
+function mapV3CompanionMaterialsInfo(element: QtiXmlElementNode) {
+  const calculators = childElements(element, "qti-calculator").map((calculator) => {
+    const calculatorInfo = firstChildElement(calculator, "qti-calculator-info");
+
+    return {
+      calculatorType:
+        (firstChildElement(calculator, "qti-calculator-type")
+          ? textContent(firstChildElement(calculator, "qti-calculator-type")!)
+          : undefined) ?? "",
+      description:
+        (firstChildElement(calculator, "qti-description")
+          ? textContent(firstChildElement(calculator, "qti-description")!)
+          : undefined) ?? "",
+      ...(calculatorInfo ? { calculatorInfo: mapV3ItemFileInfo(calculatorInfo) } : {}),
+    };
+  });
+  const rules = childElements(element, "qti-rule").map((rule) => {
+    const si = firstChildElement(rule, "qti-rule-system-si");
+    const us = firstChildElement(rule, "qti-rule-system-us");
+
+    return {
+      description:
+        (firstChildElement(rule, "qti-description")
+          ? textContent(firstChildElement(rule, "qti-description")!)
+          : undefined) ?? "",
+      ...(si ? { ruleSystemSi: mapV3CompanionRuleSystem(si) } : {}),
+      ...(us ? { ruleSystemUs: mapV3CompanionRuleSystem(us) } : {}),
+    };
+  });
+  const protractors = childElements(element, "qti-protractor").map((protractor) => {
+    const si = firstChildElement(protractor, "qti-increment-si");
+    const us = firstChildElement(protractor, "qti-increment-us");
+
+    return {
+      description:
+        (firstChildElement(protractor, "qti-description")
+          ? textContent(firstChildElement(protractor, "qti-description")!)
+          : undefined) ?? "",
+      ...(si ? { incrementSi: mapV3ProtractorIncrement(si) } : {}),
+      ...(us ? { incrementUs: mapV3ProtractorIncrement(us) } : {}),
+    };
+  });
+  const digitalMaterials = childElements(element, "qti-digital-material").map((material) =>
+    mapV3ItemFileInfo(material),
+  );
+  const physicalMaterials = childElements(element, "qti-physical-material")
+    .map((material) => textContent(material))
+    .filter((value): value is string => value !== undefined && value !== "");
+
+  return {
+    ...(calculators.length ? { calculators } : {}),
+    ...(rules.length ? { rules } : {}),
+    ...(protractors.length ? { protractors } : {}),
+    ...(digitalMaterials.length ? { digitalMaterials } : {}),
+    ...(physicalMaterials.length ? { physicalMaterials } : {}),
+  };
+}
+
+function companionMaterialsOf(node: QtiXmlElementNode): { companionMaterialsInfo?: unknown } {
+  const info = firstChildElement(node, "qti-companion-materials-info");
+  return info ? { companionMaterialsInfo: mapV3CompanionMaterialsInfo(info) } : {};
+}
+
 // ---------- Catalogs (CatalogInfo/Catalog/Card/CardEntry, §5.26–5.29) ----------
 
 /** data-* extension characteristics minus the prefix — the card-entry discriminators (§5.27.3). */
@@ -1598,6 +1711,29 @@ function mapV3TestRubricBlock(element: QtiXmlElementNode) {
   };
 }
 
+/** CAT (§2.8.4): the section delegates selection to an external adaptive engine. */
+function mapV3AdaptiveSelection(element: QtiXmlElementNode) {
+  const engineRef = firstChildElement(element, "qti-adaptive-engine-ref");
+  if (!engineRef) {
+    throw new Error("<qti-adaptive-selection> must contain <qti-adaptive-engine-ref>.");
+  }
+
+  const adaptiveHref = (refElement: QtiXmlElementNode) => ({
+    identifier: requireAttribute(refElement, "identifier"),
+    href: requireAttribute(refElement, "href"),
+  });
+  const settingsRef = firstChildElement(element, "qti-adaptive-settings-ref");
+  const usagedataRef = firstChildElement(element, "qti-usagedata-ref");
+  const metadataRef = firstChildElement(element, "qti-metadata-ref");
+
+  return {
+    adaptiveEngineRef: adaptiveHref(engineRef),
+    ...(settingsRef ? { adaptiveSettingsRef: adaptiveHref(settingsRef) } : {}),
+    ...(usagedataRef ? { usagedataRef: adaptiveHref(usagedataRef) } : {}),
+    ...(metadataRef ? { metadataRef: adaptiveHref(metadataRef) } : {}),
+  };
+}
+
 function mapV3Selection(element: QtiXmlElementNode) {
   return {
     select: requireNumberAttribute(element, "select"),
@@ -1692,6 +1828,7 @@ function mapV3AssessmentSection(element: QtiXmlElementNode): unknown {
       case "qti-selection":
       case "qti-ordering":
       case "qti-rubric-block":
+      case "qti-adaptive-selection":
         return []; // mapped into dedicated fields below
       default:
         throw new Error(`Unsupported QTI 3.0.1 assessment section child <${child.localName}> in normalization.`);
@@ -1722,6 +1859,9 @@ function mapV3AssessmentSection(element: QtiXmlElementNode): unknown {
       : {}),
     ...(firstChildElement(element, "qti-time-limits")
       ? { timeLimits: mapV3TimeLimits(firstChildElement(element, "qti-time-limits")!) }
+      : {}),
+    ...(firstChildElement(element, "qti-adaptive-selection")
+      ? { adaptiveSelection: mapV3AdaptiveSelection(firstChildElement(element, "qti-adaptive-selection")!) }
       : {}),
     ...(firstChildElement(element, "qti-selection")
       ? { selection: mapV3Selection(firstChildElement(element, "qti-selection")!) }
@@ -2019,6 +2159,7 @@ function normalizeQti301AssessmentItem(root: QtiXmlElementNode) {
             })),
           }
         : {}),
+      ...companionMaterialsOf(root),
       ...(childElements(root, "qti-stylesheet").length
         ? { stylesheets: childElements(root, "qti-stylesheet").map((element) => mapV3StyleSheet(element)) }
         : {}),
@@ -2062,6 +2203,9 @@ function normalizeQti301AssessmentTest(root: QtiXmlElementNode) {
         : {}),
       ...(childElements(root, "qti-stylesheet").length
         ? { stylesheets: childElements(root, "qti-stylesheet").map((element) => mapV3StyleSheet(element)) }
+        : {}),
+      ...(childElements(root, "qti-rubric-block").length
+        ? { rubricBlocks: childElements(root, "qti-rubric-block").map((child) => mapV3TestRubricBlock(child)) }
         : {}),
       testParts: childElements(root, "qti-test-part").map((testPart) => ({
         identifier: requireAttribute(testPart, "identifier"),
