@@ -39,7 +39,11 @@ export const v0InteractionKinds = [
 
 export type V0InteractionKind = (typeof v0InteractionKinds)[number];
 
-/** Allowed HTML flow/inline element names for generic `kind: "xml"` body nodes. */
+/**
+ * Allowed HTML flow/inline element names for generic `kind: "xml"` body nodes — the
+ * complete QTI HTML vocabulary as the official ASI XSD enumerates it
+ * (HTMLContentDType), not all of HTML5.
+ */
 const v0FlowElements = new Set<string>([
   "p",
   "span",
@@ -53,11 +57,14 @@ const v0FlowElements = new Set<string>([
   "ul",
   "ol",
   "li",
-  // language-critical
+  // language-critical (§2.14: ruby/furigana, bidirectional text)
   "ruby",
   "rb",
   "rt",
   "rp",
+  "rtc",
+  "bdo",
+  "bdi",
   // media (the first media-milestone growth; src/poster route through the Asset Resolver)
   "img",
   "audio",
@@ -89,10 +96,38 @@ const v0FlowElements = new Set<string>([
   "tr",
   "th",
   "td",
+  // the rest of the XSD's enumerated vocabulary
+  "a",
+  "abbr",
+  "acronym",
+  "address",
+  "article",
+  "aside",
+  "big",
+  "code",
+  "details",
+  "summary",
+  "dfn",
+  "dl",
+  "dt",
+  "dd",
+  "kbd",
+  "label",
+  "nav",
+  "pre",
+  "q",
+  "samp",
+  "small",
+  "tt",
+  "var",
+  "footer",
+  "header",
 ]);
 
 /** Element-specific attribute allowlists, additive to the global set. */
 const v0ElementAttributes: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+  // The XSD's attribute schematron for anchors: href and type beyond the global set.
+  ["a", new Set(["href", "type"])],
   ["img", new Set(["src", "alt", "width", "height"])],
   ["audio", new Set(["src", "controls", "loop", "muted", "preload"])],
   ["video", new Set(["src", "controls", "loop", "muted", "preload", "poster", "width", "height"])],
@@ -102,7 +137,7 @@ const v0ElementAttributes: ReadonlyMap<string, ReadonlySet<string>> = new Map([
 ]);
 
 /** Attribute names treated as packaged-asset references (rewritten by the Asset Resolver). */
-const v0UrlAttributes = new Set<string>(["src", "poster", "data"]);
+const v0UrlAttributes = new Set<string>(["src", "poster", "data", "href"]);
 
 /**
  * The MathML root. Its subtree is rendered structurally (presentation MathML) with the
@@ -180,7 +215,12 @@ export function sanitizeAttributes(
       continue;
     }
 
-    if (!model.globalAttributes.has(name) && !elementAllowed?.has(name)) {
+    // WAI-ARIA characteristics (§2.13.3) and data-* extension attributes are part of
+    // the QTI vocabulary (the XSD's own attribute schematron) and have no scripting
+    // surface; everything else must be allowlisted.
+    const ariaOrData = name === "role" || name.startsWith("aria-") || name.startsWith("data-");
+
+    if (!ariaOrData && !model.globalAttributes.has(name) && !elementAllowed?.has(name)) {
       continue;
     }
 

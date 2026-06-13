@@ -45,6 +45,8 @@ describe("sanitizeAttributes", () => {
   });
 
   test("drops event handlers, javascript: urls, style, and unknown attributes", () => {
+    // data-* and aria-*/role pass — they are QTI vocabulary (the XSD's attribute
+    // schematron, §2.13.3) with no scripting surface; style and handlers never do.
     expect(
       sanitizeAttributes(v0ContentModel, "img", {
         onclick: "steal()",
@@ -54,7 +56,8 @@ describe("sanitizeAttributes", () => {
         "data-x": "1",
         class: "ok",
       }),
-    ).toEqual({ class: "ok" });
+    ).toEqual({ class: "ok", "data-x": "1" });
+    expect(sanitizeAttributes(v0ContentModel, "p", { unknownattr: "x", style: "color:red" })).toEqual({});
   });
 
   test("handles missing attributes", () => {

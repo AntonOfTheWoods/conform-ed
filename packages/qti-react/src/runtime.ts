@@ -49,6 +49,8 @@ export type { CapabilityIssue, CapabilityIssueType, CapabilityReport } from "./c
 
 export interface XmlContentNode {
   kind: "xml";
+  /** XML namespace URI; foreign vocabularies (SSML) are recognized by it. */
+  namespace?: string;
   name: string;
   value?: string;
   attributes?: Record<string, unknown>;
@@ -428,7 +430,21 @@ export function createQtiRuntime(config: QtiRuntimeConfig): QtiRuntime {
   const descriptorsByKind = new Map(config.interactions.map((descriptor) => [descriptor.kind, descriptor]));
   const resolveAsset = config.assetResolver ?? ((href: string) => href);
 
+  /** SSML 1.1 (§2.13.2): aural annotations whose text renders transparently. */
+  const ssmlNamespace = "http://www.w3.org/2001/10/synthesis";
+
   function renderFlow(node: XmlContentNode, key: number, overrides?: NodeOverrides, inMath = false): ReactNode {
+    // SSML wraps visual text for speech synthesis (alias substitutions, prosody);
+    // rendering the element as HTML would misread it (ssml:sub is not a subscript).
+    // The annotated text passes through; the aural semantics belong to TTS hosts.
+    if (node.namespace === ssmlNamespace) {
+      return createElement(
+        Fragment,
+        { key },
+        node.value ?? node.children?.map((child, index) => renderNode(child, index, overrides, inMath)),
+      );
+    }
+
     const isMath = inMath || node.name === model.mathRoot;
 
     if (!isMath && !isAllowedFlowElement(model, node.name)) {
