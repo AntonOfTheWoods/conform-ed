@@ -14,6 +14,8 @@ export {
 
 export { foldString, mapResponse, matchCorrect, mapResponsePoint, scoreResponse } from "./response-processing";
 
+export { effectiveItemScore, type EffectiveItemScore } from "./item-score";
+
 export {
   assessmentItemViewFromNormalized,
   assessmentTestViewFromNormalized,
