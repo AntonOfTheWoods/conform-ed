@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@conform-ed/qti-react": "workspace:*",
-    "happy-dom": "^20.10.2"
+    "happy-dom": "^20.10.3"
   },
   "peerDependencies": {
     "@conform-ed/qti-react": ">=0.0.12"
